@@ -1,0 +1,149 @@
+name: Train on Hugging Face Jobs and publish versioned model
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1, 2, 3)"
+        required: true
+        default: "1"
+      namespace:
+        description: "Hugging Face namespace (user or org)"
+        required: true
+        default: "HyperlinksSpace"
+      commit_sha:
+        description: "Pinned git commit SHA to train from (leave empty to use current SHA)"
+        required: false
+        default: ""
+      flavor:
+        description: "HF Jobs hardware flavor (e.g. a10g-small, l40sx1, h200)"
+        required: true
+        default: "a10g-small"
+      timeout:
+        description: "HF Jobs timeout (e.g. 2h, 6h)"
+        required: true
+        default: "2h"
+      max_train_samples:
+        description: "Training sample count"
+        required: true
+        default: "3000"
+      max_eval_samples:
+        description: "Evaluation sample count"
+        required: true
+        default: "600"
+      epochs:
+        description: "Number of epochs"
+        required: true
+        default: "2"
+      batch_size:
+        description: "Batch size"
+        required: true
+        default: "16"
+      learning_rate:
+        description: "Learning rate"
+        required: true
+        default: "1e-4"
+
+jobs:
+  train-on-hf-jobs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install HF client
+        run: pip install --upgrade huggingface_hub
+
+      - name: Submit and monitor HF job
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_NAMESPACE: ${{ github.event.inputs.namespace }}
+          INPUT_COMMIT_SHA: ${{ github.event.inputs.commit_sha }}
+          INPUT_FLAVOR: ${{ github.event.inputs.flavor }}
+          INPUT_TIMEOUT: ${{ github.event.inputs.timeout }}
+          INPUT_MAX_TRAIN_SAMPLES: ${{ github.event.inputs.max_train_samples }}
+          INPUT_MAX_EVAL_SAMPLES: ${{ github.event.inputs.max_eval_samples }}
+          INPUT_EPOCHS: ${{ github.event.inputs.epochs }}
+          INPUT_BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+          INPUT_LEARNING_RATE: ${{ github.event.inputs.learning_rate }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os
+          import time
+          from huggingface_hub import HfApi
+
+          hf_token = os.environ.get("HF_TOKEN")
+          if not hf_token:
+              raise SystemExit("Missing HF_TOKEN secret.")
+
+          version = os.environ["INPUT_VERSION"].strip()
+          if not version.isdigit() or int(version) < 1:
+              raise SystemExit("version must be a positive integer.")
+
+          namespace = os.environ["INPUT_NAMESPACE"].strip()
+          commit_sha = os.environ["INPUT_COMMIT_SHA"].strip() or os.environ["GITHUB_SHA"].strip()
+          flavor = os.environ["INPUT_FLAVOR"].strip()
+          timeout = os.environ["INPUT_TIMEOUT"].strip()
+          max_train_samples = os.environ["INPUT_MAX_TRAIN_SAMPLES"].strip()
+          max_eval_samples = os.environ["INPUT_MAX_EVAL_SAMPLES"].strip()
+          epochs = os.environ["INPUT_EPOCHS"].strip()
+          batch_size = os.environ["INPUT_BATCH_SIZE"].strip()
+          learning_rate = os.environ["INPUT_LEARNING_RATE"].strip()
+          repository = os.environ["GITHUB_REPOSITORY"].strip()
+          repo_url = f"https://github.com/{repository}.git"
+          target_name = f"TinyModel{version}"
+
+          train_script = f"""set -euo pipefail
+          python -m pip install --upgrade pip
+          apt-get update
+          apt-get install -y git
+          git clone {repo_url} /workspace/TinyModel
+          cd /workspace/TinyModel
+          git checkout {commit_sha}
+          python -m pip install --upgrade huggingface_hub transformers datasets torch tokenizers
+          python scripts/train_tinymodel1_agnews.py --output-dir .tmp/{target_name} --max-train-samples {max_train_samples} --max-eval-samples {max_eval_samples} --epochs {epochs} --batch-size {batch_size} --learning-rate {learning_rate}
+          python scripts/publish_hf_artifact.py --namespace {namespace} --name {target_name} --repo-type model --source-dir .tmp/{target_name}
+          """
+
+          api = HfApi(token=hf_token)
+          job = api.run_job(
+              image="python:3.11",
+              command=["bash", "-lc", train_script],
+              flavor=flavor,
+              timeout=timeout,
+              namespace=namespace,
+              secrets={"HF_TOKEN": hf_token},
+              labels={
+                  "project": "TinyModel",
+                  "target_repo": f"{namespace}/{target_name}",
+                  "commit_sha": commit_sha,
+              },
+              token=hf_token,
+          )
+
+          print(f"HF Job submitted: id={job.id} url={job.url}")
+          terminal_ok = {"completed", "success", "succeeded"}
+          terminal_fail = {"failed", "error", "cancelled", "canceled", "timeout"}
+
+          while True:
+              info = api.inspect_job(job_id=job.id, namespace=namespace, token=hf_token)
+              stage = (info.status.stage or "").strip().lower()
+              message = (info.status.message or "").strip()
+              print(f"status={stage} message={message}")
+              if stage in terminal_ok:
+                  print("HF training job completed successfully.")
+                  break
+              if stage in terminal_fail:
+                  print("HF training job failed. Printing logs:")
+                  for line in api.fetch_job_logs(job_id=job.id, namespace=namespace, token=hf_token):
+                      print(line.rstrip())
+                  raise SystemExit(f"HF job failed with stage={stage}")
+              time.sleep(20)
+          PY

@@ -39,13 +39,14 @@ Expected local output folder:
 
 ## 2) Exporting From Hugging Face
 
-Model release workflow promotes an existing HF model repo into a versioned artifact name.
+Model artifact creation is done by Hugging Face Jobs workflow.
 
-- Workflow: `Deploy versioned model artifact to Hugging Face`
+- Workflow: `Train on Hugging Face Jobs and publish versioned model`
 - Required inputs:
   - `version` (for example `1`, `2`)
   - `namespace` (for example `HyperlinksSpace`)
-  - `source_model_id` (for example `HyperlinksSpace/TinyModel1-staging`)
+  - `commit_sha` (optional pinned commit)
+  - training/eval params (`max_train_samples`, `max_eval_samples`, `epochs`, etc.)
 
 Naming result:
 
@@ -55,9 +56,14 @@ Naming result:
 If workflow returns `401 Unauthorized` or repository not found:
 
 - Ensure `HF_TOKEN` secret is set in GitHub Actions
-- Ensure token has access to `source_model_id`
-- Ensure `source_model_id` exists and is spelled correctly
-- Ensure source model visibility/token policy allows Space runtime access
+- Ensure token has write access to target namespace/model repo
+- Ensure target namespace exists and is spelled correctly
+
+This workflow:
+
+- launches an HF Job with selected `flavor` and `timeout`
+- checks out the exact `commit_sha` (or current SHA)
+- trains and publishes directly to `TinyModel{version}`
 
 ## 3) Testing in Hugging Face Space
 

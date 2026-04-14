@@ -32,6 +32,8 @@ def main() -> None:
     model_name = f"TinyModel{version}"
     space_name = f"{model_name}Space"
     model_id = args.model_id.strip() or f"{args.namespace}/{model_name}"
+    space_host = f"{args.namespace.lower()}-{space_name.lower()}.hf.space"
+    space_url = f"https://{space_host}"
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -41,6 +43,7 @@ import gradio as gr
 from transformers import pipeline
 
 MODEL_ID = "{model_id}"
+SPACE_URL = "{space_url}"
 _clf = None
 
 
@@ -57,25 +60,40 @@ def get_pipeline():
 
 
 def predict(text):
+    text = (text or "").strip()
+    if not text:
+        return {{}}, "Please enter some text first."
     try:
         clf = get_pipeline()
     except Exception as exc:
-        return {{"error": f"Model load failed for {{MODEL_ID}}: {{exc}}"}}
+        return {{}}, f"Model load failed for {{MODEL_ID}}: {{exc}}"
     result = clf(text, truncation=True, max_length=128, top_k=None)[0]
     result = sorted(result, key=lambda x: x["score"], reverse=True)
-    return {{item["label"]: float(item["score"]) for item in result}}
+    return {{item["label"]: float(item["score"]) for item in result}}, "OK"
 
 
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Textbox(lines=4, label="Input text"),
-    outputs=gr.Label(num_top_classes=4, label="Predicted class"),
-    title="{space_name}",
-    description="Demo Space for {model_name} (AG News classifier).",
-)
+EXAMPLES = [
+    ["Apple reported strong quarterly revenue growth and raised guidance."],
+    ["The team won the championship after a dramatic overtime finish."],
+    ["Scientists announced a new breakthrough in battery technology."],
+    ["Leaders met to discuss tensions and trade policy in the region."],
+]
+
+with gr.Blocks(title="{space_name}") as demo:
+    gr.Markdown("# {space_name}")
+    gr.Markdown("Model: `{model_id}`")
+    gr.Markdown("Public URL: [{space_url}]({space_url})")
+    inp = gr.Textbox(lines=4, label="Input text", placeholder="Paste a news sentence here...")
+    out = gr.Label(num_top_classes=4, label="Predicted class probabilities")
+    status = gr.Textbox(label="Status", interactive=False)
+    run_btn = gr.Button("Run Inference", variant="primary")
+    run_btn.click(fn=predict, inputs=inp, outputs=[out, status])
+    inp.submit(fn=predict, inputs=inp, outputs=[out, status])
+    gr.Examples(examples=EXAMPLES, inputs=inp)
 
 if __name__ == "__main__":
-    demo.launch()
+    print(f"Space URL: {{SPACE_URL}}")
+    demo.launch(ssr_mode=False)
 """
     requirements = "gradio\ntransformers\ntorch\n"
     readme = f"""---

@@ -17,7 +17,7 @@ Keep `TinyModel1` and related artifacts continuously deployed on Hugging Face so
 1. Create a Hugging Face write token for the deployment account/org.
 2. Add `HF_TOKEN` in GitHub repository secrets.
 3. Ensure both workflows are enabled:
-   - `.github/workflows/deploy-hf-model-versioned.yml`
+   - `.github/workflows/train-hf-job-versioned.yml`
    - `.github/workflows/deploy-hf-space-versioned.yml`
 4. Verify repo visibility and naming on Hugging Face (`TinyModel1`, `TinyModel1Space`, etc.).
 
@@ -32,8 +32,7 @@ For production, do not keep large trained weights in Git history.
 ## Standard release flow (best practice)
 
 1. Merge training code/config changes to `main` (no large weight files in repo).
-2. Trigger `deploy-hf-model-versioned.yml` from GitHub Actions:
-   - set `source_model_id` to a model already trained on HF infra or uploaded from local training
+2. Trigger `train-hf-job-versioned.yml` from GitHub Actions.
 3. Publish model artifact as `TinyModel{version}`.
 4. Trigger `deploy-hf-space-versioned.yml` for the same version.
 5. Publish Space artifact as `TinyModel{version}Space`.
@@ -107,9 +106,9 @@ Before merging to `main`, verify:
 
 If deployment fails:
 
-1. Check GitHub Actions logs for `deploy-hf-model-versioned.yml` and `deploy-hf-space-versioned.yml`.
+1. Check GitHub Actions logs for `train-hf-job-versioned.yml` and `deploy-hf-space-versioned.yml`.
 2. Validate token scope and expiration for `HF_TOKEN`.
-3. Confirm workflow inputs (`namespace`, `version`, `source_model_id`) are correct.
+3. Confirm workflow inputs (`namespace`, `version`, `commit_sha`) are correct.
 4. Re-run workflow after fix.
 5. If HF service-level issue exists, communicate status and ETA to users.
 
