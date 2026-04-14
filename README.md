@@ -5,7 +5,8 @@
 ### Tiny, deployable text classification baseline for rapid product iteration
 
 [![GitHub](https://img.shields.io/badge/GitHub-HyperlinksSpace%2FTinyModel-181717)](https://github.com/HyperlinksSpace/TinyModel)
-[![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/)
+[![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
+[![Space](https://img.shields.io/badge/Hugging%20Face-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
 [![Status](https://img.shields.io/badge/Status-Active%20Development-blue)](https://github.com/HyperlinksSpace/TinyModel)
 
 </div>
@@ -14,6 +15,12 @@
 End users consume deployed Hugging Face model and Space endpoints. Maintainer deployment policy lives in `texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`.
 
 Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyModel)
+
+**TinyModel1 on Hugging Face**
+
+- Model: [HyperlinksSpace/TinyModel1](https://huggingface.co/HyperlinksSpace/TinyModel1)
+- Space (Hub): [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
+- Space (app): [hyperlinksspace-tinymodel1space.hf.space](https://hyperlinksspace-tinymodel1space.hf.space)
 
 ## 1) Local Testing
 
@@ -93,7 +100,7 @@ Naming result:
 
 Minimum validation after publish:
 
-- Space loads successfully
+- Space loads successfully (for example [TinyModel1Space on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space) or the [live app](https://hyperlinksspace-tinymodel1space.hf.space))
 - Inference returns HTTP 200
 - Output contains labels and confidence scores
 - No runtime errors in Space logs
