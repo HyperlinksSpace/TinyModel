@@ -130,6 +130,8 @@ jobs:
           INPUT_LEARNING_RATE: ${{ github.event.inputs.learning_rate }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           python - <<'PY'
           import json
@@ -150,8 +152,10 @@ jobs:
           epochs = os.environ["INPUT_EPOCHS"].strip()
           batch_size = os.environ["INPUT_BATCH_SIZE"].strip()
           learning_rate = os.environ["INPUT_LEARNING_RATE"].strip()
+          run_id = os.environ["GITHUB_RUN_ID"].strip()
+          run_attempt = os.environ["GITHUB_RUN_ATTEMPT"].strip()
 
-          slug = f"tinymodel-train-v{version}-{sha[:8]}"
+          slug = f"tinymodel-train-v{version}-{sha[:8]}-r{run_id}a{run_attempt}"
           workspace = Path(".kaggle_kernel")
           workspace.mkdir(parents=True, exist_ok=True)
           out_dir = f"/kaggle/working/TinyModel{version}"
