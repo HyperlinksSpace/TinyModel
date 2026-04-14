@@ -55,8 +55,26 @@ def get_pipeline():
     kwargs = {{}}
     if token:
         kwargs["token"] = token
-    _clf = pipeline("text-classification", model=MODEL_ID, tokenizer=MODEL_ID, **kwargs)
+    _clf = pipeline(
+        "text-classification",
+        model=MODEL_ID,
+        tokenizer=MODEL_ID,
+        top_k=None,
+        **kwargs,
+    )
     return _clf
+
+
+def _prediction_list(batch_output):
+    """Pipeline returns one item per input; each item is a dict or list of dicts."""
+    if not batch_output:
+        return []
+    first = batch_output[0]
+    if isinstance(first, dict):
+        return [first]
+    if isinstance(first, list):
+        return first
+    return []
 
 
 def predict(text):
@@ -67,9 +85,12 @@ def predict(text):
         clf = get_pipeline()
     except Exception as exc:
         return {{}}, f"Model load failed for {{MODEL_ID}}: {{exc}}"
-    result = clf(text, truncation=True, max_length=128, top_k=None)[0]
-    result = sorted(result, key=lambda x: x["score"], reverse=True)
-    return {{item["label"]: float(item["score"]) for item in result}}, "OK"
+    raw = clf(text, truncation=True, max_length=128)
+    preds = _prediction_list(raw)
+    if not preds:
+        return {{}}, "Empty model output (unexpected pipeline shape)."
+    preds = sorted(preds, key=lambda x: float(x["score"]), reverse=True)
+    return {{item["label"]: float(item["score"]) for item in preds}}, "OK"
 
 
 EXAMPLES = [
