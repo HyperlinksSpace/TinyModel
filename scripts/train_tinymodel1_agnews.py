@@ -156,6 +156,25 @@ def evaluate(
     return correct / max(1, total)
 
 
+def resolve_device() -> torch.device:
+    if not torch.cuda.is_available():
+        return torch.device("cpu")
+    try:
+        major, minor = torch.cuda.get_device_capability(0)
+        # Newer PyTorch builds can drop support for older cards like P100 (sm_60).
+        if major < 7:
+            name = torch.cuda.get_device_name(0)
+            print(
+                f"CUDA device '{name}' (sm_{major}{minor}) is unsupported by current "
+                "PyTorch build; falling back to CPU."
+            )
+            return torch.device("cpu")
+    except Exception as exc:
+        print(f"Could not validate CUDA capability ({exc}); falling back to CPU.")
+        return torch.device("cpu")
+    return torch.device("cuda")
+
+
 def main() -> None:
     args = parse_args()
     set_seed(args.seed)
@@ -207,7 +226,7 @@ def main() -> None:
         collate_fn=collator,
     )
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = resolve_device()
     model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
 
