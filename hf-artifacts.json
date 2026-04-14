@@ -1,10 +1,5 @@
 {
-  "namespace": "YOUR_HF_USER_OR_ORG",
-  "artifacts": [
-    {
-      "name": "TinyModel1",
-      "repo_type": "model",
-      "source_dir": "artifacts/TinyModel1"
-    }
-  ]
+  "namespace": "HyperlinksSpace",
+  "artifacts": [],
+  "note": "Legacy manifest kept for compatibility; versioned workflows are the source of truth."
 }

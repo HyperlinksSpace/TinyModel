@@ -1,0 +1,47 @@
+name: Deploy versioned space artifact to Hugging Face
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1, 2, 3)"
+        required: true
+        default: "1"
+      namespace:
+        description: "Hugging Face namespace (user or org)"
+        required: true
+        default: "HyperlinksSpace"
+
+jobs:
+  deploy-space:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --upgrade huggingface_hub
+
+      - name: Build versioned Space folder
+        run: |
+          python scripts/build_space_artifact.py \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --version "${{ github.event.inputs.version }}" \
+            --output-dir ".tmp/TinyModel${{ github.event.inputs.version }}Space"
+
+      - name: Publish TinyModel{version}Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python scripts/publish_hf_artifact.py \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --name "TinyModel${{ github.event.inputs.version }}Space" \
+            --repo-type space \
+            --source-dir ".tmp/TinyModel${{ github.event.inputs.version }}Space"
