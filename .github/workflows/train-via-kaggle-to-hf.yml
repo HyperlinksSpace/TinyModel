@@ -68,15 +68,29 @@ jobs:
         run: |
           python - <<'PY'
           import os
+          from kaggle.api.kaggle_api_extended import KaggleApi
 
-          # GitHub runners may not have a persisted kaggle config file; use injected secrets.
-          owner = os.getenv("KAGGLE_USERNAME", "").strip()
+          expected_owner = os.getenv("KAGGLE_USERNAME", "").strip()
           key = os.getenv("KAGGLE_KEY", "").strip()
           if not key:
               raise SystemExit("Missing KAGGLE_KEY secret.")
-          if not owner:
+          if not expected_owner:
               raise SystemExit("Missing KAGGLE_USERNAME secret.")
-          print(f"Using Kaggle username from secrets: {owner}")
+
+          # Force an authenticated API client using env vars; then read the resolved account.
+          api = KaggleApi()
+          api.authenticate()
+          owner = str(api.config_values.get("username", "")).strip()
+          if not owner:
+              raise SystemExit("Kaggle API authentication succeeded but no username was resolved.")
+
+          if owner.lower() != expected_owner.lower():
+              raise SystemExit(
+                  f"KAGGLE_USERNAME secret ({expected_owner}) does not match API key owner ({owner}). "
+                  "Update secrets so both belong to the same Kaggle account."
+              )
+
+          print(f"Authenticated Kaggle owner: {owner}")
           with open("kaggle-owner.txt", "w", encoding="utf-8") as f:
               f.write(owner + "\n")
           PY
