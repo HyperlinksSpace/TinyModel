@@ -1,0 +1,10 @@
+{
+  "namespace": "YOUR_HF_USER_OR_ORG",
+  "artifacts": [
+    {
+      "name": "TinyModel1",
+      "repo_type": "model",
+      "source_dir": "artifacts/TinyModel1"
+    }
+  ]
+}

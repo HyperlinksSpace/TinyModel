@@ -1,0 +1,59 @@
+name: Deploy TinyOrbit artifacts to Hugging Face
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifacts/**"
+      - "hf-artifacts.json"
+      - "scripts/publish_hf_artifact.py"
+      - ".github/workflows/deploy-hf-artifacts.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --upgrade huggingface_hub
+
+      - name: Publish artifacts
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          cfg = json.load(open("hf-artifacts.json", "r", encoding="utf-8"))
+          namespace = cfg["namespace"]
+          artifacts = cfg.get("artifacts", [])
+
+          if namespace == "YOUR_HF_USER_OR_ORG":
+              raise SystemExit("Set hf-artifacts.json namespace first.")
+          if not artifacts:
+              raise SystemExit("No artifacts configured in hf-artifacts.json.")
+
+          for item in artifacts:
+              cmd = [
+                  sys.executable,
+                  "scripts/publish_hf_artifact.py",
+                  "--namespace", namespace,
+                  "--name", item["name"],
+                  "--repo-type", item["repo_type"],
+                  "--source-dir", item["source_dir"],
+              ]
+              print("Running:", " ".join(cmd))
+              subprocess.check_call(cmd)
+          PY

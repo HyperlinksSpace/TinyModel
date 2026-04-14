@@ -1,0 +1,15 @@
+{
+  "name": "TinyModel1",
+  "version": "0.2.0",
+  "task": "text-classification",
+  "dataset": "ag_news",
+  "base_model": "tinymodel1-bert-scratch",
+  "labels": [
+    "World",
+    "Sports",
+    "Business",
+    "Sci/Tech"
+  ],
+  "eval_accuracy": 0.5183,
+  "train_loss": 1.1592
+}
