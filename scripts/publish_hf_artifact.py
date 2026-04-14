@@ -21,6 +21,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--source-dir", required=True, help="Local folder to upload")
     parser.add_argument("--token", required=False, help="HF token")
+    parser.add_argument(
+        "--space-sdk",
+        required=False,
+        choices=["gradio", "streamlit", "docker", "static"],
+        default="gradio",
+        help="Space SDK to use when repo_type=space",
+    )
     return parser.parse_args()
 
 
@@ -41,6 +48,7 @@ def main() -> None:
         repo_type=args.repo_type,
         token=token,
         exist_ok=True,
+        space_sdk=args.space_sdk if args.repo_type == "space" else None,
     )
 
     upload_folder(

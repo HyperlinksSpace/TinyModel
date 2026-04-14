@@ -12,9 +12,9 @@ on:
         required: true
         default: "HyperlinksSpace"
       source_model_id:
-        description: "HF model repo to promote (trained on HF or uploaded from local), e.g. HyperlinksSpace/TinyModel1-staging"
+        description: "HF model repo to promote (trained on HF or uploaded from local), e.g. HyperlinksSpace/TinyModel1"
         required: true
-        default: "HyperlinksSpace/TinyModel1-staging"
+        default: "HyperlinksSpace/TinyModel1"
 
 jobs:
   deploy-model:
@@ -34,8 +34,11 @@ jobs:
         run: pip install --upgrade huggingface_hub
 
       - name: Build versioned model folder
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           python - <<'PY'
+          import os
           import shutil
           from pathlib import Path
           from huggingface_hub import snapshot_download
@@ -47,14 +50,17 @@ jobs:
           source_model_id = "${{ github.event.inputs.source_model_id }}".strip()
           if not source_model_id:
               raise SystemExit("source_model_id is required.")
+          token = os.getenv("HF_TOKEN")
+          if not token:
+              raise SystemExit("Missing HF_TOKEN secret.")
           dst = Path(f".tmp/TinyModel{version}")
           if dst.exists():
               shutil.rmtree(dst)
           snapshot_download(
               repo_id=source_model_id,
               repo_type="model",
+              token=token,
               local_dir=str(dst),
-              local_dir_use_symlinks=False,
               ignore_patterns=["*.h5", "*.msgpack", "*.onnx_data"],
           )
           print(f"Prepared: {dst}")
