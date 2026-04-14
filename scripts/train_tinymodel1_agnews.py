@@ -81,6 +81,7 @@ def build_tokenizer(texts: list[str], vocab_size: int, output_dir: Path) -> Bert
 
 
 def write_model_card(path: Path, state: TrainState, args: argparse.Namespace) -> None:
+    display_name = Path(args.output_dir).resolve().name
     readme = f"""---
 license: apache-2.0
 library_name: transformers
@@ -92,9 +93,9 @@ tags:
   - ag-news
 ---
 
-# TinyModel1
+# {display_name}
 
-TinyModel1 is a lightweight news-topic classifier trained from scratch on `ag_news`.
+{display_name} is a lightweight news-topic classifier trained from scratch on `ag_news`.
 
 ## Task
 
@@ -123,9 +124,10 @@ Output labels: World, Sports, Business, Sci/Tech
     path.write_text(readme, encoding="utf-8")
 
 
-def write_manifest(path: Path, state: TrainState) -> None:
+def write_manifest(path: Path, state: TrainState, args: argparse.Namespace) -> None:
+    display_name = Path(args.output_dir).resolve().name
     data = {
-        "name": "TinyModel1",
+        "name": display_name,
         "version": "0.2.0",
         "task": "text-classification",
         "dataset": "ag_news",
@@ -133,6 +135,11 @@ def write_manifest(path: Path, state: TrainState) -> None:
         "labels": LABELS,
         "eval_accuracy": round(state.eval_accuracy, 4),
         "train_loss": round(state.train_loss, 4),
+        "max_train_samples": args.max_train_samples,
+        "max_eval_samples": args.max_eval_samples,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "learning_rate": args.learning_rate,
     }
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
@@ -258,7 +265,7 @@ def main() -> None:
 
     state = TrainState(train_loss=last_loss, eval_accuracy=accuracy)
     write_model_card(output_dir / "README.md", state, args)
-    write_manifest(output_dir / "artifact.json", state)
+    write_manifest(output_dir / "artifact.json", state, args)
     print(f"Saved TinyModel1 to: {output_dir}")
 
 
