@@ -87,6 +87,7 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
+          KAGGLE_USERNAME: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           INPUT_MAX_TRAIN_SAMPLES: ${{ github.event.inputs.max_train_samples }}
           INPUT_MAX_EVAL_SAMPLES: ${{ github.event.inputs.max_eval_samples }}
@@ -166,6 +167,7 @@ jobs:
       - name: Wait for Kaggle kernel completion
         env:
           KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
+          KAGGLE_USERNAME: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: |
           python - <<'PY'
@@ -198,6 +200,7 @@ jobs:
       - name: Download Kaggle output artifacts
         env:
           KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
+          KAGGLE_USERNAME: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
