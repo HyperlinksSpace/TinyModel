@@ -78,6 +78,7 @@ jobs:
           import os
           import time
           from huggingface_hub import HfApi
+          from huggingface_hub.errors import HfHubHTTPError
 
           hf_token = os.environ.get("HF_TOKEN")
           if not hf_token:
@@ -113,20 +114,36 @@ jobs:
           """
 
           api = HfApi(token=hf_token)
-          job = api.run_job(
-              image="python:3.11",
-              command=["bash", "-lc", train_script],
-              flavor=flavor,
-              timeout=timeout,
-              namespace=namespace,
-              secrets={"HF_TOKEN": hf_token},
-              labels={
-                  "project": "TinyModel",
-                  "target_repo": f"{namespace}/{target_name}",
-                  "commit_sha": commit_sha,
-              },
-              token=hf_token,
-          )
+          try:
+              job = api.run_job(
+                  image="python:3.11",
+                  command=["bash", "-lc", train_script],
+                  flavor=flavor,
+                  timeout=timeout,
+                  namespace=namespace,
+                  secrets={"HF_TOKEN": hf_token},
+                  labels={
+                      "project": "TinyModel",
+                      "target_repo": f"{namespace}/{target_name}",
+                      "commit_sha": commit_sha,
+                  },
+                  token=hf_token,
+              )
+          except HfHubHTTPError as exc:
+              status = getattr(exc.response, "status_code", None)
+              if status == 402:
+                  raise SystemExit(
+                      "HF Jobs credits are insufficient for this namespace (402 Payment Required).\n"
+                      "Add credits, then rerun this workflow.\n"
+                      "Useful URLs:\n"
+                      "  Billing: https://huggingface.co/settings/billing\"
+                      "  Tokens: https://huggingface.co/settings/tokens\"
+                      "  Jobs docs: https://huggingface.co/docs/huggingface_hub/en/guides/jobs\"
+                      "Fallback (local training + publish):\n"
+                      f"  python scripts/train_tinymodel1_agnews.py --output-dir .tmp/{target_name}\n"
+                      f"  python scripts/publish_hf_artifact.py --namespace {namespace} --name {target_name} --repo-type model --source-dir .tmp/{target_name}\n"
+                  ) from exc
+              raise
 
           print(f"HF Job submitted: id={job.id} url={job.url}")
           terminal_ok = {"completed", "success", "succeeded"}

@@ -112,3 +112,18 @@ If deployment fails:
 4. Re-run workflow after fix.
 5. If HF service-level issue exists, communicate status and ETA to users.
 
+### Fallback for 402 Payment Required (HF Jobs credits)
+
+If HF Jobs returns 402:
+
+1. Add credits:
+   - https://huggingface.co/settings/billing
+2. Verify token:
+   - https://huggingface.co/settings/tokens
+3. Jobs reference:
+   - https://huggingface.co/docs/huggingface_hub/en/guides/jobs
+4. Continue release via local fallback:
+   - `python scripts/train_tinymodel1_agnews.py --output-dir .tmp/TinyModel{version}`
+   - `python scripts/publish_hf_artifact.py --namespace <namespace> --name TinyModel{version} --repo-type model --source-dir .tmp/TinyModel{version}`
+   - then deploy Space with matching `model_id`.
+

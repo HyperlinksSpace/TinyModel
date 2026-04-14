@@ -1,0 +1,191 @@
+name: Train via Kaggle and publish versioned model to Hugging Face
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1, 2, 3)"
+        required: true
+        default: "1"
+      namespace:
+        description: "Hugging Face namespace (user or org)"
+        required: true
+        default: "HyperlinksSpace"
+      max_train_samples:
+        description: "Training sample count"
+        required: true
+        default: "3000"
+      max_eval_samples:
+        description: "Evaluation sample count"
+        required: true
+        default: "600"
+      epochs:
+        description: "Number of epochs"
+        required: true
+        default: "2"
+      batch_size:
+        description: "Batch size"
+        required: true
+        default: "16"
+      learning_rate:
+        description: "Learning rate"
+        required: true
+        default: "1e-4"
+
+jobs:
+  train-kaggle-publish-hf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install --upgrade kaggle huggingface_hub
+
+      - name: Configure Kaggle API credentials
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          python - <<'PY'
+          import os
+          if not os.getenv("KAGGLE_USERNAME") or not os.getenv("KAGGLE_KEY"):
+              raise SystemExit("Missing KAGGLE_USERNAME or KAGGLE_KEY GitHub secrets.")
+          print("Kaggle credentials present.")
+          PY
+
+      - name: Build and push Kaggle training kernel
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          INPUT_MAX_TRAIN_SAMPLES: ${{ github.event.inputs.max_train_samples }}
+          INPUT_MAX_EVAL_SAMPLES: ${{ github.event.inputs.max_eval_samples }}
+          INPUT_EPOCHS: ${{ github.event.inputs.epochs }}
+          INPUT_BATCH_SIZE: ${{ github.event.inputs.batch_size }}
+          INPUT_LEARNING_RATE: ${{ github.event.inputs.learning_rate }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          version = os.environ["INPUT_VERSION"].strip()
+          if not version.isdigit() or int(version) < 1:
+              raise SystemExit("version must be a positive integer.")
+
+          owner = os.environ["KAGGLE_USERNAME"].strip()
+          if not owner:
+              raise SystemExit("Missing KAGGLE_USERNAME secret.")
+          repo = os.environ["GITHUB_REPOSITORY"].strip()
+          sha = os.environ["GITHUB_SHA"].strip()
+          max_train_samples = os.environ["INPUT_MAX_TRAIN_SAMPLES"].strip()
+          max_eval_samples = os.environ["INPUT_MAX_EVAL_SAMPLES"].strip()
+          epochs = os.environ["INPUT_EPOCHS"].strip()
+          batch_size = os.environ["INPUT_BATCH_SIZE"].strip()
+          learning_rate = os.environ["INPUT_LEARNING_RATE"].strip()
+
+          slug = f"tinymodel-train-v{version}-{sha[:8]}"
+          workspace = Path(".kaggle_kernel")
+          workspace.mkdir(parents=True, exist_ok=True)
+          out_dir = f"/kaggle/working/TinyModel{version}"
+          notebook = {
+              "cells": [
+                  {
+                      "cell_type": "code",
+                      "execution_count": None,
+                      "metadata": {},
+                      "outputs": [],
+                      "source": [
+                          "!pip -q install -U huggingface_hub transformers datasets torch tokenizers\n",
+                          f"!git clone https://github.com/{repo}.git /kaggle/working/TinyModel\n",
+                          "!cd /kaggle/working/TinyModel && git checkout " + sha + "\n",
+                          f"!python /kaggle/working/TinyModel/scripts/train_tinymodel1_agnews.py --output-dir {out_dir} --max-train-samples {max_train_samples} --max-eval-samples {max_eval_samples} --epochs {epochs} --batch-size {batch_size} --learning-rate {learning_rate}\n",
+                          f"!ls -la {out_dir}\n",
+                      ],
+                  }
+              ],
+              "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"}},
+              "nbformat": 4,
+              "nbformat_minor": 5,
+          }
+          (workspace / "notebook.ipynb").write_text(json.dumps(notebook), encoding="utf-8")
+
+          kernel_meta = {
+              "id": f"{owner}/{slug}",
+              "title": f"TinyModel training v{version}",
+              "code_file": "notebook.ipynb",
+              "language": "python",
+              "kernel_type": "notebook",
+              "is_private": "true",
+              "enable_gpu": "true",
+              "enable_internet": "true",
+              "dataset_sources": [],
+              "competition_sources": [],
+              "kernel_sources": [],
+          }
+          (workspace / "kernel-metadata.json").write_text(json.dumps(kernel_meta, indent=2), encoding="utf-8")
+          print(f"Created kernel {owner}/{slug}")
+          (workspace / "kernel-slug.txt").write_text(slug + "\n", encoding="utf-8")
+          PY
+          slug="$(tr -d '\r\n' < .kaggle_kernel/kernel-slug.txt)"
+          echo "KAGGLE_KERNEL_SLUG=$slug" >> "$GITHUB_ENV"
+          kaggle kernels push -p ".kaggle_kernel"
+
+      - name: Wait for Kaggle kernel completion
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import time
+
+          owner = os.environ["KAGGLE_USERNAME"].strip()
+          slug = os.environ["KAGGLE_KERNEL_SLUG"].strip()
+          ref = f"{owner}/{slug}"
+          print(f"Waiting for kernel: {ref}")
+
+          timeout_sec = 3 * 60 * 60
+          start = time.time()
+          while True:
+              out = subprocess.check_output(["kaggle", "kernels", "status", ref], text=True)
+              status = json.loads(out)
+              value = str(status.get("status", "")).lower()
+              print(f"status={value}")
+              if value == "complete":
+                  break
+              if value in {"error", "failed", "cancelled"}:
+                  raise SystemExit(f"Kaggle kernel failed with status={value}")
+              if time.time() - start > timeout_sec:
+                  raise SystemExit("Timed out waiting for Kaggle kernel completion.")
+              time.sleep(30)
+          PY
+
+      - name: Download Kaggle output artifacts
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          mkdir -p ".kaggle_output"
+          kaggle kernels output "${{ secrets.KAGGLE_USERNAME }}/${KAGGLE_KERNEL_SLUG}" -p ".kaggle_output"
+          test -d ".kaggle_output/TinyModel${{ github.event.inputs.version }}"
+
+      - name: Publish TinyModel{version} to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python scripts/publish_hf_artifact.py \
+            --namespace "${{ github.event.inputs.namespace }}" \
+            --name "TinyModel${{ github.event.inputs.version }}" \
+            --repo-type model \
+            --source-dir ".kaggle_output/TinyModel${{ github.event.inputs.version }}"

@@ -59,6 +59,17 @@ If workflow returns `401 Unauthorized` or repository not found:
 - Ensure token has write access to target namespace/model repo
 - Ensure target namespace exists and is spelled correctly
 
+If workflow returns `402 Payment Required`:
+
+- Hugging Face Jobs credits are insufficient for the selected namespace
+- Add credits and rerun:
+  - Billing: [https://huggingface.co/settings/billing](https://huggingface.co/settings/billing)
+  - Tokens: [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+  - Jobs docs: [https://huggingface.co/docs/huggingface_hub/en/guides/jobs](https://huggingface.co/docs/huggingface_hub/en/guides/jobs)
+- Fallback immediately with local training + publish:
+  - `python scripts/train_tinymodel1_agnews.py --output-dir .tmp/TinyModel1`
+  - `python scripts/publish_hf_artifact.py --namespace HyperlinksSpace --name TinyModel1 --repo-type model --source-dir .tmp/TinyModel1`
+
 This workflow:
 
 - launches an HF Job with selected `flavor` and `timeout`
