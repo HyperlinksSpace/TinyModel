@@ -1,4 +1,6 @@
 .env
+# Local training / Hub download scratch (never commit model weights)
+.tmp/
 .venv/
 __pycache__/
 *.pyc

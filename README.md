@@ -21,7 +21,7 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 - Space (Hub): [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
 - Space (app): [hyperlinksspace-tinymodel1space.hf.space](https://hyperlinksspace-tinymodel1space.hf.space)
 
-**Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py); training writes `README.md` and [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) next to the weights. To refresh only the card text from the **current** template while keeping the **same** model repo URL, use the republish workflow below (or run `scripts/regenerate_tinymodel_model_card.py` locally on a downloaded snapshot).
+**Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py); training writes `README.md` and [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
 
 ## 1) Local testing
 
@@ -69,7 +69,7 @@ Configure these once per repository (or organization). They are **not** committe
 
 | Secret | Used by | Purpose |
 | ------ | ------- | ------- |
-| **`HF_TOKEN`** | All workflows below (including republish) | Hugging Face [access token](https://huggingface.co/settings/tokens) with **write** permission to create/update models and Spaces in the target namespace. |
+| **`HF_TOKEN`** | Workflows below | Hugging Face [access token](https://huggingface.co/settings/tokens) with **write** permission to create/update models and Spaces in the target namespace. |
 | **`KAGGLE_USERNAME`** | [`train-via-kaggle-to-hf.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-via-kaggle-to-hf.yml) only | Your Kaggle username (same value as in Kaggle **Account** → API). |
 | **`KAGGLE_KEY`** | [`train-via-kaggle-to-hf.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-via-kaggle-to-hf.yml) only | Kaggle API key from **Account** → **Create New API Token**. |
 
@@ -81,7 +81,6 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
 | -------- | ---- |
 | **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
 | **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
-| **Republish same model repo (e.g. fix model card)** | [`republish-hf-model-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/republish-hf-model-versioned.yml) |
 
 - **[`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml)** — Builds the Gradio Space with `scripts/build_space_artifact.py` and uploads **`{namespace}/TinyModel{version}Space`**.  
   - **Secrets:** `HF_TOKEN`.  
@@ -91,11 +90,6 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
   - **Secrets:** `HF_TOKEN` (also passed into the remote job so it can run `publish_hf_artifact.py`).  
   - **Workflow inputs:** `version`, `namespace`, optional `commit_sha` (empty = current workflow SHA), `flavor`, `timeout`, `max_train_samples`, `max_eval_samples`, `epochs`, `batch_size`, `learning_rate`.  
   - If Hugging Face returns **402 Payment Required** for Jobs, add billing/credits on your HF account or train locally and publish with `scripts/publish_hf_artifact.py` (see `texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`).
-
-- **[`republish-hf-model-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/republish-hf-model-versioned.yml)** — **Same Hub URL** (`https://huggingface.co/{namespace}/TinyModel{version}`): downloads the current snapshot, runs [`scripts/regenerate_tinymodel_model_card.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/regenerate_tinymodel_model_card.py) so `README.md` matches the template on the branch you run from, then re-uploads the full folder with `upload_folder` (overwrites files in place). Use this after editing the model card template or to sync metadata without retraining.  
-  - **Secrets:** `HF_TOKEN`.  
-  - **Workflow inputs:** `version`, `namespace` (must match an **existing** `TinyModel{version}` repo).  
-  - **Note:** Metrics in the card come from `artifact.json` in that snapshot. Older uploads without `max_train_samples` / etc. in `artifact.json` still work; missing keys fall back to script defaults. Re-train once if you need `artifact.json` to list exact hyperparameters.
 
 ### Optional: train via Kaggle
 
