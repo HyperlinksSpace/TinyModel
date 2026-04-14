@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -27,6 +28,10 @@ from transformers import (
 
 
 LABELS = ["World", "Sports", "Business", "Sci/Tech"]
+
+# Bundled with the repo; copied into the HF artifact next to README.md for the model card banner.
+MODEL_CARD_IMAGE = "TinyModel1Image.png"
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def parse_args() -> argparse.Namespace:
@@ -54,6 +59,7 @@ def set_seed(seed: int) -> None:
 class TrainState:
     train_loss: float
     eval_accuracy: float
+    num_parameters: int
 
 
 def build_tokenizer(texts: list[str], vocab_size: int, output_dir: Path) -> BertTokenizerFast:
@@ -80,46 +86,151 @@ def build_tokenizer(texts: list[str], vocab_size: int, output_dir: Path) -> Bert
     return tokenizer
 
 
+def _model_card_banner_image_markdown(output_dir: Path, display_name: str) -> str:
+    if not (output_dir / MODEL_CARD_IMAGE).is_file():
+        return ""
+    return f"""<div align="center">
+  <img src="{MODEL_CARD_IMAGE}" alt="{display_name}" width="560" />
+</div>
+
+"""
+
+
+def copy_model_card_image(output_dir: Path) -> bool:
+    """Copy TinyModel1Image.png from repo root into the artifact folder for README embedding."""
+    src = _REPO_ROOT / MODEL_CARD_IMAGE
+    if not src.is_file():
+        print(f"Note: optional model card image not found at {src}, skipping.")
+        return False
+    dst = output_dir / MODEL_CARD_IMAGE
+    shutil.copy2(src, dst)
+    print(f"Copied model card image to {dst}")
+    return True
+
+
 def write_model_card(path: Path, state: TrainState, args: argparse.Namespace) -> None:
     display_name = Path(args.output_dir).resolve().name
+    out = Path(args.output_dir).resolve()
+    params_m = state.num_parameters / 1_000_000.0
+    banner = _model_card_banner_image_markdown(out, display_name)
+
     readme = f"""---
 license: apache-2.0
 library_name: transformers
+pipeline_tag: text-classification
 datasets:
   - ag_news
+language:
+  - en
 tags:
   - tiny
+  - bert
   - text-classification
   - ag-news
 ---
 
-# {display_name}
+{banner}# {display_name}
 
-{display_name} is a lightweight news-topic classifier trained from scratch on `ag_news`.
+**{display_name}** is a compact **encoder** model for **news topic classification**, trained from scratch on the [AG News](https://huggingface.co/datasets/fancyzhx/ag_news) dataset. It targets fast CPU/GPU inference, simple deployment behind a router or API, and use as a **baseline** before larger or domain-specific models.
 
-## Task
+---
 
-Input: short news text  
-Output labels: World, Sports, Business, Sci/Tech
+## Model summary
 
-## Training setup
+| | |
+|:--|:--|
+| **Task** | Text classification (single-label, 4 classes) |
+| **Labels** | World, Sports, Business, Sci/Tech |
+| **Architecture** | Tiny BERT-style encoder (`BertForSequenceClassification`) |
+| **Parameters** | {state.num_parameters:,} (~{params_m:.2f}M) |
+| **Max sequence length** | 128 tokens (training & inference) |
+| **Framework** | [Transformers](https://github.com/huggingface/transformers) · Safetensors |
 
-- Base model: tiny BERT from scratch
-- Train samples: {args.max_train_samples}
-- Eval samples: {args.max_eval_samples}
-- Epochs: {args.epochs}
-- Batch size: {args.batch_size}
-- Learning rate: {args.learning_rate}
+---
 
-## Quick metrics
+## Model overview
 
-- Eval accuracy: {state.eval_accuracy:.4f}
-- Final train loss: {state.train_loss:.4f}
+This release fits a **small footprint** so you can run batch or interactive classification without heavy GPUs. Training uses a WordPiece tokenizer fit on the training split and a shallow BERT stack suited to short news sentences.
+
+### **Core capabilities**
+
+- **Topic routing** — assign one of four coarse news categories for search, feeds, or moderation triage.
+- **Low latency** — small parameter count keeps inference suitable for edge and serverless setups.
+- **Fine-tuning base** — swap labels or add data for your domain while keeping the same architecture.
+
+---
+
+## Training
+
+| Setting | Value |
+|:--|:--|
+| **Train samples** | {args.max_train_samples} |
+| **Eval samples** | {args.max_eval_samples} |
+| **Epochs** | {args.epochs} |
+| **Batch size** | {args.batch_size} |
+| **Learning rate** | {args.learning_rate} |
+| **Optimizer** | AdamW |
+
+---
+
+## Evaluation
+
+| Metric | Value |
+|:--|:--|
+| **Eval accuracy** | {state.eval_accuracy:.4f} |
+| **Final train loss** | {state.train_loss:.4f} |
+
+Metrics are computed on the held-out eval split configured above; treat them as a **sanity-check baseline**, not a production SLA.
+
+---
+
+## Getting started
+
+### Inference with `transformers`
+
+```python
+from transformers import pipeline
+
+clf = pipeline(
+    "text-classification",
+    model="{display_name}",  # or local path after save
+    tokenizer="{display_name}",
+    top_k=None,
+)
+text = "Markets rose after the central bank held rates steady."
+print(clf(text))
+```
+
+Use `top_k=None` (or your Transformers version’s equivalent) to obtain scores for **all** labels. Replace `"{display_name}"` with your Hugging Face model id (for example `HyperlinksSpace/{display_name}`) when loading from the Hub.
+
+---
+
+## Training data
+
+- **Dataset:** [fancyzhx/ag_news](https://huggingface.co/datasets/fancyzhx/ag_news) (4-class news topics).
+- **Preprocessing:** tokenizer trained on training texts; sequences truncated to 128 tokens.
+
+---
 
 ## Intended use
 
-- Fast baseline for category routing/classification
-- Starter model for domain adaptation and production experiments
+- Prototyping **routing**, **tagging**, and **dashboard** features over English news-style text.
+- Teaching and benchmarking small-classification setups.
+- Starting point for **domain adaptation** (finance, sports, etc.) with your own labels.
+
+---
+
+## Limitations
+
+- **Accuracy** is modest by design; do not rely on it for high-stakes decisions without validation on your data.
+- **English-oriented** news wording; other languages or social-style text may degrade.
+- **Four fixed classes**; not suitable as a general-purpose language model.
+
+---
+
+## License
+
+This model is released under the **Apache 2.0** license (see repository `LICENSE` where applicable).
 """
     path.write_text(readme, encoding="utf-8")
 
@@ -135,6 +246,7 @@ def write_manifest(path: Path, state: TrainState, args: argparse.Namespace) -> N
         "labels": LABELS,
         "eval_accuracy": round(state.eval_accuracy, 4),
         "train_loss": round(state.train_loss, 4),
+        "num_parameters": state.num_parameters,
         "max_train_samples": args.max_train_samples,
         "max_eval_samples": args.max_eval_samples,
         "epochs": args.epochs,
@@ -260,10 +372,14 @@ def main() -> None:
     accuracy = evaluate(model, eval_loader, device)
     print(f"eval_accuracy={accuracy:.4f}")
 
+    num_parameters = int(sum(p.numel() for p in model.parameters()))
+
     model.save_pretrained(output_dir, safe_serialization=True)
     tokenizer.save_pretrained(output_dir)
 
-    state = TrainState(train_loss=last_loss, eval_accuracy=accuracy)
+    copy_model_card_image(output_dir)
+
+    state = TrainState(train_loss=last_loss, eval_accuracy=accuracy, num_parameters=num_parameters)
     write_model_card(output_dir / "README.md", state, args)
     write_manifest(output_dir / "artifact.json", state, args)
     print(f"Saved TinyModel1 to: {output_dir}")
