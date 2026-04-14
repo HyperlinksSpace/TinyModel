@@ -171,7 +171,7 @@ jobs:
                       "metadata": {},
                       "outputs": [],
                       "source": [
-                          "!pip -q install -U huggingface_hub transformers datasets torch tokenizers\n",
+                          "!pip -q install -U huggingface_hub transformers datasets tokenizers\n",
                           f"!git clone https://github.com/{repo}.git /kaggle/working/TinyModel\n",
                           "!cd /kaggle/working/TinyModel && git checkout " + sha + "\n",
                           f"!python /kaggle/working/TinyModel/scripts/train_tinymodel1_agnews.py --output-dir {out_dir} --max-train-samples {max_train_samples} --max-eval-samples {max_eval_samples} --epochs {epochs} --batch-size {batch_size} --learning-rate {learning_rate}\n",
