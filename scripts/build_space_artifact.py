@@ -66,7 +66,7 @@ def get_pipeline():
 
 
 def _prediction_list(batch_output):
-    """Pipeline returns one item per input; each item is a dict or list of dicts."""
+    # One batch item: either a single {{label, score}} dict or a list of them.
     if not batch_output:
         return []
     first = batch_output[0]
