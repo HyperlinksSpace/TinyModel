@@ -61,10 +61,29 @@ jobs:
           print("Kaggle credentials present.")
           PY
 
+      - name: Resolve authenticated Kaggle owner
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+
+          # Use Kaggle's authenticated identity so kernel ownership always matches the API key.
+          out = subprocess.check_output(["kaggle", "config", "view", "-o", "json"], text=True)
+          cfg = json.loads(out)
+          owner = str(cfg.get("username", "")).strip()
+          if not owner:
+              raise SystemExit("Unable to resolve authenticated Kaggle username from kaggle config.")
+          print(f"Authenticated Kaggle username: {owner}")
+          with open("kaggle-owner.txt", "w", encoding="utf-8") as f:
+              f.write(owner + "\n")
+          PY
+          owner="$(tr -d '\r\n' < kaggle-owner.txt)"
+          echo "KAGGLE_OWNER=$owner" >> "$GITHUB_ENV"
+
       - name: Build and push Kaggle training kernel
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           INPUT_MAX_TRAIN_SAMPLES: ${{ github.event.inputs.max_train_samples }}
           INPUT_MAX_EVAL_SAMPLES: ${{ github.event.inputs.max_eval_samples }}
@@ -83,9 +102,9 @@ jobs:
           if not version.isdigit() or int(version) < 1:
               raise SystemExit("version must be a positive integer.")
 
-          owner = os.environ["KAGGLE_USERNAME"].strip()
+          owner = os.environ["KAGGLE_OWNER"].strip()
           if not owner:
-              raise SystemExit("Missing KAGGLE_USERNAME secret.")
+              raise SystemExit("Missing resolved KAGGLE_OWNER.")
           repo = os.environ["GITHUB_REPOSITORY"].strip()
           sha = os.environ["GITHUB_SHA"].strip()
           max_train_samples = os.environ["INPUT_MAX_TRAIN_SAMPLES"].strip()
@@ -143,7 +162,7 @@ jobs:
 
       - name: Wait for Kaggle kernel completion
         env:
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: |
           python - <<'PY'
@@ -152,7 +171,7 @@ jobs:
           import subprocess
           import time
 
-          owner = os.environ["KAGGLE_USERNAME"].strip()
+          owner = os.environ["KAGGLE_OWNER"].strip()
           slug = os.environ["KAGGLE_KERNEL_SLUG"].strip()
           ref = f"{owner}/{slug}"
           print(f"Waiting for kernel: {ref}")
@@ -175,12 +194,12 @@ jobs:
 
       - name: Download Kaggle output artifacts
         env:
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
           mkdir -p ".kaggle_output"
-          kaggle kernels output "${{ secrets.KAGGLE_USERNAME }}/${KAGGLE_KERNEL_SLUG}" -p ".kaggle_output"
+          kaggle kernels output "${KAGGLE_OWNER}/${KAGGLE_KERNEL_SLUG}" -p ".kaggle_output"
           test -d ".kaggle_output/TinyModel${{ github.event.inputs.version }}"
 
       - name: Publish TinyModel{version} to Hugging Face
