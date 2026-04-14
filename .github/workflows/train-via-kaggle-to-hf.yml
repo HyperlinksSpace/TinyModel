@@ -218,14 +218,23 @@ jobs:
           timeout_sec = 3 * 60 * 60
           start = time.time()
           while True:
-              out = subprocess.check_output(["kaggle", "kernels", "status", ref], text=True)
-              status = json.loads(out)
-              value = str(status.get("status", "")).lower()
-              print(f"status={value}")
-              if value == "complete":
-                  break
-              if value in {"error", "failed", "cancelled"}:
-                  raise SystemExit(f"Kaggle kernel failed with status={value}")
+              try:
+                  out = subprocess.check_output(
+                      ["kaggle", "kernels", "status", ref],
+                      text=True,
+                      stderr=subprocess.STDOUT,
+                  )
+                  status = json.loads(out)
+                  value = str(status.get("status", "")).lower()
+                  print(f"status={value}")
+                  if value == "complete":
+                      break
+                  if value in {"error", "failed", "cancelled"}:
+                      raise SystemExit(f"Kaggle kernel failed with status={value}")
+              except subprocess.CalledProcessError as exc:
+                  # Newly pushed kernels can return transient lookup/auth errors for a short time.
+                  print("status lookup failed; retrying...")
+                  print(exc.output.strip())
               if time.time() - start > timeout_sec:
                   raise SystemExit("Timed out waiting for Kaggle kernel completion.")
               time.sleep(30)
