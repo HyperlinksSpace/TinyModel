@@ -215,6 +215,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import re
           import subprocess
           import time
 
@@ -225,6 +226,8 @@ jobs:
 
           timeout_sec = 3 * 60 * 60
           start = time.time()
+          terminal_ok = {"complete", "completed", "success", "succeeded"}
+          terminal_fail = {"error", "failed", "cancelled", "canceled"}
           while True:
               try:
                   out = subprocess.check_output(
@@ -233,6 +236,7 @@ jobs:
                       stderr=subprocess.STDOUT,
                   )
                   raw = out.strip()
+                  print(f"status_cli_raw_repr={raw!r}")
                   value = ""
                   if raw.startswith("{"):
                       status = json.loads(raw)
@@ -250,10 +254,12 @@ jobs:
                           raise SystemExit("Timed out waiting for Kaggle kernel completion.")
                       time.sleep(30)
                       continue
-                  print(f"status={value}")
-                  if value == "complete":
+                  normalized = re.sub(r"[^a-z]", "", value.lower())
+                  elapsed = int(time.time() - start)
+                  print(f"status_raw={value} status_normalized={normalized} elapsed_s={elapsed}")
+                  if normalized in terminal_ok:
                       break
-                  if value in {"error", "failed", "cancelled"}:
+                  if normalized in terminal_fail:
                       raise SystemExit(f"Kaggle kernel failed with status={value}")
               except subprocess.CalledProcessError as exc:
                   # Newly pushed kernels can return transient lookup/auth errors for a short time.
