@@ -11,6 +11,10 @@ on:
         description: "Hugging Face namespace (user or org)"
         required: true
         default: "HyperlinksSpace"
+      model_id:
+        description: "HF model repo id used by Space, e.g. HyperlinksSpace/TinyModel1"
+        required: true
+        default: ""
 
 jobs:
   deploy-space:
@@ -34,6 +38,7 @@ jobs:
           python scripts/build_space_artifact.py \
             --namespace "${{ github.event.inputs.namespace }}" \
             --version "${{ github.event.inputs.version }}" \
+            --model-id "${{ github.event.inputs.model_id }}" \
             --output-dir ".tmp/TinyModel${{ github.event.inputs.version }}Space"
 
       - name: Publish TinyModel{version}Space

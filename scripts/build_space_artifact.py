@@ -14,6 +14,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--namespace", required=True, help="HF org/user namespace")
     parser.add_argument("--version", required=True, help="Artifact version number")
     parser.add_argument("--output-dir", required=True, help="Output directory path")
+    parser.add_argument(
+        "--model-id",
+        required=False,
+        default="",
+        help="Explicit HF model repo id for the Space to use.",
+    )
     return parser.parse_args()
 
 
@@ -25,19 +31,36 @@ def main() -> None:
 
     model_name = f"TinyModel{version}"
     space_name = f"{model_name}Space"
-    model_id = f"{args.namespace}/{model_name}"
+    model_id = args.model_id.strip() or f"{args.namespace}/{model_name}"
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    app_py = f"""import gradio as gr
+    app_py = f"""import os
+import gradio as gr
 from transformers import pipeline
 
 MODEL_ID = "{model_id}"
-clf = pipeline("text-classification", model=MODEL_ID, tokenizer=MODEL_ID)
+_clf = None
+
+
+def get_pipeline():
+    global _clf
+    if _clf is not None:
+        return _clf
+    token = os.getenv("HF_TOKEN")
+    kwargs = {{}}
+    if token:
+        kwargs["token"] = token
+    _clf = pipeline("text-classification", model=MODEL_ID, tokenizer=MODEL_ID, **kwargs)
+    return _clf
 
 
 def predict(text):
+    try:
+        clf = get_pipeline()
+    except Exception as exc:
+        return {{"error": f"Model load failed for {{MODEL_ID}}: {{exc}}"}}
     result = clf(text, truncation=True, max_length=128, top_k=None)[0]
     result = sorted(result, key=lambda x: x["score"], reverse=True)
     return {{item["label"]: float(item["score"]) for item in result}}

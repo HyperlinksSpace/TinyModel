@@ -57,6 +57,7 @@ If workflow returns `401 Unauthorized` or repository not found:
 - Ensure `HF_TOKEN` secret is set in GitHub Actions
 - Ensure token has access to `source_model_id`
 - Ensure `source_model_id` exists and is spelled correctly
+- Ensure source model visibility/token policy allows Space runtime access
 
 ## 3) Testing in Hugging Face Space
 
@@ -66,6 +67,7 @@ Space release workflow creates a versioned Space and points it to the matching m
 - Required inputs:
   - `version`
   - `namespace`
+  - `model_id` (for example `HyperlinksSpace/TinyModel1`)
 
 Naming result:
 
