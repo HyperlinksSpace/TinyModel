@@ -62,18 +62,21 @@ jobs:
           PY
 
       - name: Resolve authenticated Kaggle owner
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: |
           python - <<'PY'
-          import json
-          import subprocess
+          import os
 
-          # Use Kaggle's authenticated identity so kernel ownership always matches the API key.
-          out = subprocess.check_output(["kaggle", "config", "view", "-o", "json"], text=True)
-          cfg = json.loads(out)
-          owner = str(cfg.get("username", "")).strip()
+          # GitHub runners may not have a persisted kaggle config file; use injected secrets.
+          owner = os.getenv("KAGGLE_USERNAME", "").strip()
+          key = os.getenv("KAGGLE_KEY", "").strip()
+          if not key:
+              raise SystemExit("Missing KAGGLE_KEY secret.")
           if not owner:
-              raise SystemExit("Unable to resolve authenticated Kaggle username from kaggle config.")
-          print(f"Authenticated Kaggle username: {owner}")
+              raise SystemExit("Missing KAGGLE_USERNAME secret.")
+          print(f"Using Kaggle username from secrets: {owner}")
           with open("kaggle-owner.txt", "w", encoding="utf-8") as f:
               f.write(owner + "\n")
           PY
