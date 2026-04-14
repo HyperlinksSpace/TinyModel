@@ -211,16 +211,19 @@ jobs:
           KAGGLE_OWNER: ${{ env.KAGGLE_OWNER }}
           KAGGLE_USERNAME: ${{ env.KAGGLE_OWNER }}
           KAGGLE_KEY: ${{ env.KAGGLE_KEY_CLEAN }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
           python - <<'PY'
           import json
           import os
           import re
+          import shutil
           import subprocess
           import time
 
           owner = os.environ["KAGGLE_OWNER"].strip()
           slug = os.environ["KAGGLE_KERNEL_SLUG"].strip()
+          version = os.environ["INPUT_VERSION"].strip()
           ref = f"{owner}/{slug}"
           print(f"Waiting for kernel: {ref}")
 
@@ -230,6 +233,27 @@ jobs:
           terminal_fail = {"error", "failed", "cancelled", "canceled"}
           while True:
               try:
+                  # Output-first check: if Kaggle already finalized artifacts, proceed immediately.
+                  probe_dir = ".kaggle_probe"
+                  if os.path.isdir(probe_dir):
+                      shutil.rmtree(probe_dir, ignore_errors=True)
+                  os.makedirs(probe_dir, exist_ok=True)
+                  try:
+                      probe_out = subprocess.check_output(
+                          ["kaggle", "kernels", "output", ref, "-p", probe_dir],
+                          text=True,
+                          stderr=subprocess.STDOUT,
+                      )
+                      has_artifacts = os.path.isdir(os.path.join(probe_dir, f"TinyModel{version}"))
+                      print(f"output_probe_has_artifacts={has_artifacts}")
+                      print(f"output_probe_raw_repr={probe_out.strip()!r}")
+                      if has_artifacts:
+                          print("Kaggle outputs are available; proceeding without additional status polling.")
+                          break
+                  except subprocess.CalledProcessError as probe_exc:
+                      print("output probe not ready; falling back to status polling...")
+                      print(probe_exc.output.strip())
+
                   out = subprocess.check_output(
                       ["kaggle", "kernels", "status", ref],
                       text=True,
