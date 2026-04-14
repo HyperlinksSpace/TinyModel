@@ -136,6 +136,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import time
           from pathlib import Path
 
           version = os.environ["INPUT_VERSION"].strip()
@@ -155,7 +156,8 @@ jobs:
           run_id = os.environ["GITHUB_RUN_ID"].strip()
           run_attempt = os.environ["GITHUB_RUN_ATTEMPT"].strip()
 
-          slug = f"tinymodel-train-v{version}-{sha[:8]}-r{run_id}a{run_attempt}"
+          nonce = str(int(time.time()))
+          slug = f"tinymodel-train-v{version}-{sha[:8]}-r{run_id}a{run_attempt}-{nonce}"
           workspace = Path(".kaggle_kernel")
           workspace.mkdir(parents=True, exist_ok=True)
           out_dir = f"/kaggle/working/TinyModel{version}"
