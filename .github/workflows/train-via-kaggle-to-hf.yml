@@ -157,7 +157,9 @@ jobs:
           run_attempt = os.environ["GITHUB_RUN_ATTEMPT"].strip()
 
           nonce = str(int(time.time()))
-          slug = f"tinymodel-train-v{version}-{sha[:8]}-r{run_id}a{run_attempt}-{nonce}"
+          # Keep slug short and place uniqueness early to avoid platform slug truncation collisions.
+          run_tail = run_id[-6:] if len(run_id) > 6 else run_id
+          slug = f"tm-v{version}-{nonce}-{sha[:6]}-{run_tail}a{run_attempt}"
           workspace = Path(".kaggle_kernel")
           workspace.mkdir(parents=True, exist_ok=True)
           out_dir = f"/kaggle/working/TinyModel{version}"
@@ -185,7 +187,7 @@ jobs:
 
           kernel_meta = {
               "id": f"{owner}/{slug}",
-              "title": f"TinyModel training v{version}",
+              "title": slug,
               "code_file": "notebook.ipynb",
               "language": "python",
               "kernel_type": "notebook",
