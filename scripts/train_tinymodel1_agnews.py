@@ -46,6 +46,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float, default=1e-4)
     parser.add_argument("--vocab-size", type=int, default=8000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--github-repo-url",
+        default="https://github.com/HyperlinksSpace/TinyModel",
+        help="Source repo URL printed on the Hugging Face model card.",
+    )
+    parser.add_argument(
+        "--hf-namespace",
+        default="HyperlinksSpace",
+        help="Hugging Face org/user for model/Space links on the model card.",
+    )
     return parser.parse_args()
 
 
@@ -96,6 +106,23 @@ def _model_card_banner_image_markdown(output_dir: Path, display_name: str) -> st
 """
 
 
+def _links_markdown(args: argparse.Namespace, display_name: str) -> str:
+    """GitHub repo + Hub model + Space URLs for the model card."""
+    ns = args.hf_namespace.strip()
+    gh = args.github_repo_url.strip()
+    model_id = f"{ns}/{display_name}"
+    space_repo = f"{display_name}Space"
+    model_url = f"https://huggingface.co/{model_id}"
+    space_hub_url = f"https://huggingface.co/spaces/{ns}/{space_repo}"
+    space_app_url = f"https://{ns.lower()}-{space_repo.lower()}.hf.space"
+    return f"""## Links
+
+- **Source code (train & export):** [{gh}]({gh})
+- **This model on Hugging Face:** [{model_id}]({model_url})
+- **Live demo (Space):** [{space_repo} on the Hub]({space_hub_url}) · [direct app]({space_app_url})
+"""
+
+
 def copy_model_card_image(output_dir: Path) -> bool:
     """Copy TinyModel1Image.png from repo root into the artifact folder for README embedding."""
     src = _REPO_ROOT / MODEL_CARD_IMAGE
@@ -113,6 +140,7 @@ def write_model_card(path: Path, state: TrainState, args: argparse.Namespace) ->
     out = Path(args.output_dir).resolve()
     params_m = state.num_parameters / 1_000_000.0
     banner = _model_card_banner_image_markdown(out, display_name)
+    links_block = _links_markdown(args, display_name)
 
     readme = f"""---
 license: apache-2.0
@@ -132,6 +160,8 @@ tags:
 {banner}# {display_name}
 
 **{display_name}** is a compact **encoder** model for **news topic classification**, trained from scratch on the [AG News](https://huggingface.co/datasets/fancyzhx/ag_news) dataset. It targets fast CPU/GPU inference, simple deployment behind a router or API, and use as a **baseline** before larger or domain-specific models.
+
+{links_block}
 
 ---
 
