@@ -4,7 +4,6 @@
 
 ### Tiny, deployable text classification baseline for rapid product iteration
 
-[![GitHub](https://img.shields.io/badge/GitHub-HyperlinksSpace%2FTinyModel-181717)](https://github.com/HyperlinksSpace/TinyModel)
 [![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
 [![Space](https://img.shields.io/badge/Hugging%20Face-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
 [![Status](https://img.shields.io/badge/Status-Active%20Development-blue)](https://github.com/HyperlinksSpace/TinyModel)
@@ -22,7 +21,7 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 - Space (Hub): [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
 - Space (app): [hyperlinksspace-tinymodel1space.hf.space](https://hyperlinksspace-tinymodel1space.hf.space)
 
-## 1) Local Testing
+## 1) Local testing
 
 Train locally after cloning the repo:
 
@@ -44,64 +43,41 @@ Expected local output folder:
 - `.tmp/TinyModel-local/README.md`
 - `.tmp/TinyModel-local/artifact.json`
 
-## 2) Exporting From Hugging Face
+## 2) Using the Hub model and Space
 
-Model artifact creation is done by Hugging Face Jobs workflow.
+Load the published model by id (no local files required):
 
-- Workflow: `Train on Hugging Face Jobs and publish versioned model`
-- Required inputs:
-  - `version` (for example `1`, `2`)
-  - `namespace` (for example `HyperlinksSpace`)
-  - `commit_sha` (optional pinned commit)
-  - training/eval params (`max_train_samples`, `max_eval_samples`, `epochs`, etc.)
+```bash
+python -c "from transformers import pipeline; p=pipeline('text-classification', model='HyperlinksSpace/TinyModel1', tokenizer='HyperlinksSpace/TinyModel1'); print(p('Stocks rallied after central bank comments', top_k=None))"
+```
 
-Naming result:
+Or open the demo: [TinyModel1Space (app)](https://hyperlinksspace-tinymodel1space.hf.space).
 
-- `version=1` -> `TinyModel1`
-- `version=2` -> `TinyModel2`
+Quick checks:
 
-If workflow returns `401 Unauthorized` or repository not found:
+- Space loads; inference returns labels and scores; no errors in Space logs.
 
-- Ensure `HF_TOKEN` secret is set in GitHub Actions
-- Ensure token has write access to target namespace/model repo
-- Ensure target namespace exists and is spelled correctly
+## 3) GitHub Actions workflows
 
-If workflow returns `402 Payment Required`:
+Workflow definitions live under [`.github/workflows/`](https://github.com/HyperlinksSpace/TinyModel/tree/main/.github/workflows). Trigger them from **Actions →** select the workflow → **Run workflow**.
 
-- Hugging Face Jobs credits are insufficient for the selected namespace
-- Add credits and rerun:
-  - Billing: [https://huggingface.co/settings/billing](https://huggingface.co/settings/billing)
-  - Tokens: [https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-  - Jobs docs: [https://huggingface.co/docs/huggingface_hub/en/guides/jobs](https://huggingface.co/docs/huggingface_hub/en/guides/jobs)
-- Fallback immediately with local training + publish:
-  - `python scripts/train_tinymodel1_agnews.py --output-dir .tmp/TinyModel1`
-  - `python scripts/publish_hf_artifact.py --namespace HyperlinksSpace --name TinyModel1 --repo-type model --source-dir .tmp/TinyModel1`
+### Core flows (validated on the GitHub Actions free tier)
 
-This workflow:
+These use the default `ubuntu-latest` runner. Set the **`HF_TOKEN`** repository secret (write access to your Hugging Face namespace) where the workflow publishes.
 
-- launches an HF Job with selected `flavor` and `timeout`
-- checks out the exact `commit_sha` (or current SHA)
-- trains and publishes directly to `TinyModel{version}`
+| Workflow | File |
+| -------- | ---- |
+| **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
+| **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
 
-## 3) Testing in Hugging Face Space
+- **[`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml)** — Builds the Gradio Space with `scripts/build_space_artifact.py` and uploads **`{namespace}/TinyModel{version}Space`**. Inputs: `version`, `namespace`, `model_id` (for example `HyperlinksSpace/TinyModel1`).
 
-Space release workflow creates a versioned Space and points it to the matching model version.
+- **[`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml)** — Submits training on **Hugging Face Jobs**, then publishes **`{namespace}/TinyModel{version}`**. Inputs include `version`, `namespace`, optional pinned `commit_sha`, job `flavor` / `timeout`, and training hyperparameters. If Hugging Face returns **402 Payment Required** for Jobs, add billing/credits on your HF account or train locally and publish with `scripts/publish_hf_artifact.py` (see `texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`).
 
-- Workflow: `Deploy versioned space artifact to Hugging Face`
-- Required inputs:
-  - `version`
-  - `namespace`
-  - `model_id` (for example `HyperlinksSpace/TinyModel1`)
+### Optional: train via Kaggle
 
-Naming result:
+| Workflow | File |
+| -------- | ---- |
+| **Train via Kaggle and publish to Hugging Face** | [`train-via-kaggle-to-hf.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-via-kaggle-to-hf.yml) |
 
-- `version=1` -> `TinyModel1Space`
-- `version=2` -> `TinyModel2Space`
-
-Minimum validation after publish:
-
-- Space loads successfully (for example [TinyModel1Space on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space) or the [live app](https://hyperlinksspace-tinymodel1space.hf.space))
-- Inference returns HTTP 200
-- Output contains labels and confidence scores
-- No runtime errors in Space logs
-
+- **[`train-via-kaggle-to-hf.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-via-kaggle-to-hf.yml)** — Optional path: creates a Kaggle notebook run, trains, downloads outputs, and pushes the model to the Hub. Requires **`KAGGLE_USERNAME`** and **`KAGGLE_KEY`** GitHub secrets and **Kaggle compute credits / GPU quota** (and acceptance of Kaggle’s limits). Use this when you want training on Kaggle instead of HF Jobs.
