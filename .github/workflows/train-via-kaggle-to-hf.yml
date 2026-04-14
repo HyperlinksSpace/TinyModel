@@ -232,8 +232,24 @@ jobs:
                       text=True,
                       stderr=subprocess.STDOUT,
                   )
-                  status = json.loads(out)
-                  value = str(status.get("status", "")).lower()
+                  raw = out.strip()
+                  value = ""
+                  if raw.startswith("{"):
+                      status = json.loads(raw)
+                      value = str(status.get("status", "")).lower()
+                  else:
+                      for line in raw.splitlines():
+                          line_l = line.strip().lower()
+                          if line_l.startswith("status:"):
+                              value = line_l.split(":", 1)[1].strip()
+                              break
+                  if not value:
+                      print("status output not yet parseable; retrying...")
+                      print(raw)
+                      if time.time() - start > timeout_sec:
+                          raise SystemExit("Timed out waiting for Kaggle kernel completion.")
+                      time.sleep(30)
+                      continue
                   print(f"status={value}")
                   if value == "complete":
                       break
