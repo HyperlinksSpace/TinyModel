@@ -101,3 +101,16 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
   - **Secrets:** `KAGGLE_USERNAME`, `KAGGLE_KEY`, and **`HF_TOKEN`** (for upload to Hugging Face).  
   - **Workflow inputs:** `version`, `namespace`, `max_train_samples`, `max_eval_samples`, `epochs`, `batch_size`, `learning_rate`.  
   - **External quota:** Kaggle GPU/CPU weekly limits and any **Kaggle compute credits** your account uses; not covered by GitHub Actions alone.
+
+## 4) Further development
+
+Illustrative directions for evolving the TinyModel line (pick what matches your product goals):
+
+- **Accuracy and capacity** — Train on more AG News samples or epochs; adjust the tiny BERT config (depth, width, sequence length); add LR schedules, warmup, or regularization suited to your budget.
+- **Domains and label sets** — Fine-tune on proprietary or niche corpora; replace the four AG News classes with your own taxonomy and a labeled dataset.
+- **Shipping inference** — Document ONNX or quantized exports for edge and serverless; add batch-inference examples; optionally wire a Hugging Face Inference Endpoint for a stable HTTP API.
+- **Space and API UX** — Batch inputs, per-class thresholds, richer examples, or client snippets (Python and JavaScript) for integrators.
+- **Evaluation discipline** — Fixed test split, confusion matrix, calibration, and versioned eval reports alongside `artifact.json`.
+- **Repository hygiene** — Lightweight CI (lint, script smoke tests) that never pulls large weights; optional Hub Collections or docs that link model, Space, and release notes.
+
+Nothing here is committed on a fixed timeline; treat it as a backlog of sensible next steps for a small classification stack.
