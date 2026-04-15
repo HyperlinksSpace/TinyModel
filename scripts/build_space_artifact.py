@@ -110,13 +110,20 @@ with gr.Blocks(title="{space_name}") as demo:
     run_btn = gr.Button("Run Inference", variant="primary")
     run_btn.click(fn=predict, inputs=inp, outputs=[out, status])
     inp.submit(fn=predict, inputs=inp, outputs=[out, status])
-    gr.Examples(examples=EXAMPLES, inputs=inp)
+    # Do not pre-run examples at startup (loads model N times; can hang, hit Hub rate limits, or break the Space).
+    gr.Examples(examples=EXAMPLES, inputs=inp, cache_examples=False)
 
 if __name__ == "__main__":
     print(f"Space URL: {{SPACE_URL}}")
+    demo.queue(default_concurrency_limit=4)
     demo.launch(ssr_mode=False)
 """
-    requirements = "gradio\ntransformers\ntorch\n"
+    requirements = """gradio==5.49.1
+transformers>=4.40.0,<5
+torch>=2.2.0
+accelerate>=0.26.0
+safetensors>=0.4.0
+"""
     readme = f"""---
 title: {space_name}
 emoji: 🤗
@@ -131,6 +138,8 @@ pinned: false
 # {space_name}
 
 Interactive demo for `{model_id}`.
+
+**Optional:** add a [repository secret](https://huggingface.co/docs/hub/spaces-overview#managing-secrets) named `HF_TOKEN` (read access is enough) so Hub downloads use your token and avoid rate limits.
 """
 
     (output_dir / "app.py").write_text(app_py, encoding="utf-8")
