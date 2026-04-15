@@ -1,0 +1,1 @@
+Make sure Hugging Face Space updates through the GitHub Actions workflow work.

@@ -21,6 +21,10 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 - **Space project (Hub)** — [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Space repository (app code, build logs, settings, community).
 - **Live Gradio app** — [Open TinyModel1Space (App)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Same Space as above; use this canonical Hub URL (the `*.hf.space` subdomain can fail or be blocked in some environments).
 
+**Availability in Russia**
+
+Some features may not work reliably from Russia—for example **live preview** or other flows that depend on third-party hosts or regions that are blocked or throttled. If you hit that, try the free tier of [1VPN](https://1vpn.org/) first (browser extension or app). If that is not enough, you can use **Happ** with a paid subscription; one place people buy such subscriptions is [this Telegram bot](https://t.me/tylervpsbot) (third-party; use at your own discretion).
+
 **Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py); training writes `README.md` and [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
 
 ## 1) Local testing
