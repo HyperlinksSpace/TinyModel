@@ -32,8 +32,8 @@ def main() -> None:
     model_name = f"TinyModel{version}"
     space_name = f"{model_name}Space"
     model_id = args.model_id.strip() or f"{args.namespace}/{model_name}"
-    space_host = f"{args.namespace.lower()}-{space_name.lower()}.hf.space"
-    space_url = f"https://{space_host}"
+    # Canonical Space URL (Hub). *.hf.space subdomains are inconsistent across environments.
+    space_url = f"https://huggingface.co/spaces/{args.namespace}/{space_name}"
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

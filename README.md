@@ -6,7 +6,7 @@
 
 [![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
 [![Space](https://img.shields.io/badge/Hugging%20Face-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
-[![Live preview](https://img.shields.io/badge/Live%20preview-Gradio%20app-brightgreen)](https://hyperlinksspace-tinymodel1space.hf.space)
+[![Live preview](https://img.shields.io/badge/Live%20preview-Gradio%20app-brightgreen)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
 
 </div>
 
@@ -19,7 +19,7 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 
 - **Model weights & model card** — [HyperlinksSpace/TinyModel1](https://huggingface.co/HyperlinksSpace/TinyModel1): Safetensors, tokenizer, and `README.md` on the Hugging Face Hub (load with `transformers` or the Inference API where available).
 - **Space project (Hub)** — [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Space repository (app code, build logs, settings, community).
-- **Live Gradio app** — [hyperlinksspace-tinymodel1space.hf.space](https://hyperlinksspace-tinymodel1space.hf.space): Direct URL to run the demo in the browser (same app as the Space, hosted on HF).
+- **Live Gradio app** — [Open TinyModel1Space (App)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Same Space as above; use this canonical Hub URL (the `*.hf.space` subdomain can fail or be blocked in some environments).
 
 **Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py); training writes `README.md` and [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
 
@@ -53,7 +53,7 @@ Load the published model by id (no local files required):
 python -c "from transformers import pipeline; p=pipeline('text-classification', model='HyperlinksSpace/TinyModel1', tokenizer='HyperlinksSpace/TinyModel1'); print(p('Stocks rallied after central bank comments', top_k=None))"
 ```
 
-Or open the demo: [TinyModel1Space (app)](https://hyperlinksspace-tinymodel1space.hf.space).
+Or open the demo: [TinyModel1Space on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space).
 
 Quick checks:
 

@@ -112,11 +112,10 @@ def _links_markdown(args: argparse.Namespace, display_name: str) -> str:
     gh = args.github_repo_url.strip()
     space_repo = f"{display_name}Space"
     space_hub_url = f"https://huggingface.co/spaces/{ns}/{space_repo}"
-    space_app_url = f"https://{ns.lower()}-{space_repo.lower()}.hf.space"
     return f"""## Links
 
 - **Source code (train & export):** [{gh}]({gh})
-- **Live demo (Space):** [{space_repo} on the Hub]({space_hub_url}) · [direct app]({space_app_url})
+- **Live demo (Space):** [{space_repo}]({space_hub_url}) (canonical Hub URL; avoids unreliable `*.hf.space` links)
 """
 
 
