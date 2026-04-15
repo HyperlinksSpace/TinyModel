@@ -6,7 +6,7 @@
 
 [![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
 [![Space](https://img.shields.io/badge/Hugging%20Face-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
-[![Live preview](https://img.shields.io/badge/Live%20preview-Gradio%20app-brightgreen)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
+[![Live preview](https://img.shields.io/badge/Live%20preview-Gradio%20app-brightgreen)](https://hyperlinksspace-tinymodel1space.hf.space)
 
 </div>
 
@@ -19,7 +19,7 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 
 - **Model weights & model card** — [HyperlinksSpace/TinyModel1](https://huggingface.co/HyperlinksSpace/TinyModel1): Safetensors, tokenizer, and `README.md` on the Hugging Face Hub (load with `transformers` or the Inference API where available).
 - **Space project (Hub)** — [HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Space repository (app code, build logs, settings, community).
-- **Live Gradio app** — [Open TinyModel1Space (App)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space): Same Space as above; use this canonical Hub URL (the `*.hf.space` subdomain can fail or be blocked in some environments).
+- **Live Gradio app** — **Direct app URL:** [https://hyperlinksspace-tinymodel1space.hf.space](https://hyperlinksspace-tinymodel1space.hf.space) · **Same app on the Hub:** [huggingface.co/spaces/HyperlinksSpace/TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space). If the direct link fails or is blocked, use the Hub link or see **Availability in Russia** below.
 
 **Availability in Russia**
 
@@ -57,7 +57,7 @@ Load the published model by id (no local files required):
 python -c "from transformers import pipeline; p=pipeline('text-classification', model='HyperlinksSpace/TinyModel1', tokenizer='HyperlinksSpace/TinyModel1'); print(p('Stocks rallied after central bank comments', top_k=None))"
 ```
 
-Or open the demo: [TinyModel1Space on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space).
+Or open the demo: [direct app](https://hyperlinksspace-tinymodel1space.hf.space) · [on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space).
 
 Quick checks:
 
