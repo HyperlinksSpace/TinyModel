@@ -1,1 +1,1 @@
-Make sure Hugging Face Space updates through the GitHub Actions workflow work.
+Test local deploy and Hugging Face deploy flow from the contributor's side.
