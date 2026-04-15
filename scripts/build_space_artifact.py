@@ -20,6 +20,11 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Explicit HF model repo id for the Space to use.",
     )
+    parser.add_argument(
+        "--github-repo-url",
+        default="https://github.com/HyperlinksSpace/TinyModel",
+        help="GitHub repo URL shown in the Space UI.",
+    )
     return parser.parse_args()
 
 
@@ -32,8 +37,9 @@ def main() -> None:
     model_name = f"TinyModel{version}"
     space_name = f"{model_name}Space"
     model_id = args.model_id.strip() or f"{args.namespace}/{model_name}"
-    # Canonical Space URL (Hub). *.hf.space subdomains are inconsistent across environments.
-    space_url = f"https://huggingface.co/spaces/{args.namespace}/{space_name}"
+    github_repo_url = args.github_repo_url.strip()
+    public_app_url = f"https://{args.namespace.lower()}-{space_name.lower()}.hf.space"
+    model_hub_url = f"https://huggingface.co/{model_id}"
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -43,7 +49,9 @@ import gradio as gr
 from transformers import pipeline
 
 MODEL_ID = "{model_id}"
-SPACE_URL = "{space_url}"
+PUBLIC_APP_URL = "{public_app_url}"
+MODEL_HUB_URL = "{model_hub_url}"
+GITHUB_REPO_URL = "{github_repo_url}"
 _clf = None
 
 
@@ -103,7 +111,21 @@ EXAMPLES = [
 with gr.Blocks(title="{space_name}") as demo:
     gr.Markdown("# {space_name}")
     gr.Markdown("Model: `{model_id}`")
-    gr.Markdown("Public URL: [{space_url}]({space_url})")
+    gr.Markdown(
+        "**Public URL (direct app):** ["
+        + PUBLIC_APP_URL
+        + "]("
+        + PUBLIC_APP_URL
+        + ")\\n\\n- **Model on Hugging Face:** ["
+        + MODEL_HUB_URL
+        + "]("
+        + MODEL_HUB_URL
+        + ")\\n- **Source code (GitHub):** ["
+        + GITHUB_REPO_URL
+        + "]("
+        + GITHUB_REPO_URL
+        + ")"
+    )
     inp = gr.Textbox(lines=4, label="Input text", placeholder="Paste a news sentence here...")
     out = gr.Label(num_top_classes=4, label="Predicted class probabilities")
     status = gr.Textbox(label="Status", interactive=False)
@@ -114,7 +136,7 @@ with gr.Blocks(title="{space_name}") as demo:
     gr.Examples(examples=EXAMPLES, inputs=inp, cache_examples=False)
 
 if __name__ == "__main__":
-    print(f"Space URL: {{SPACE_URL}}")
+    print(f"Public URL (direct): {{PUBLIC_APP_URL}}")
     demo.queue(default_concurrency_limit=4)
     demo.launch(ssr_mode=False)
 """
