@@ -112,11 +112,11 @@ with gr.Blocks(title="{space_name}") as demo:
     gr.Markdown("# {space_name}")
     gr.Markdown("Model: `{model_id}`")
     gr.Markdown(
-        "**Public URL (direct app):** ["
+        "- **Public URL (direct app):** ["
         + PUBLIC_APP_URL
         + "]("
         + PUBLIC_APP_URL
-        + ")\\n\\n- **Model on Hugging Face:** ["
+        + ")\\n- **Model on Hugging Face:** ["
         + MODEL_HUB_URL
         + "]("
         + MODEL_HUB_URL
