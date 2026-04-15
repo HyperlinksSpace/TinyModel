@@ -107,18 +107,15 @@ def _model_card_banner_image_markdown(output_dir: Path, display_name: str) -> st
 
 
 def _links_markdown(args: argparse.Namespace, display_name: str) -> str:
-    """GitHub repo + Hub model + Space URLs for the model card."""
+    """GitHub repo and Space URLs for the model card (no link to this model repo — readers are already on it)."""
     ns = args.hf_namespace.strip()
     gh = args.github_repo_url.strip()
-    model_id = f"{ns}/{display_name}"
     space_repo = f"{display_name}Space"
-    model_url = f"https://huggingface.co/{model_id}"
     space_hub_url = f"https://huggingface.co/spaces/{ns}/{space_repo}"
     space_app_url = f"https://{ns.lower()}-{space_repo.lower()}.hf.space"
     return f"""## Links
 
 - **Source code (train & export):** [{gh}]({gh})
-- **This model on Hugging Face:** [{model_id}]({model_url})
 - **Live demo (Space):** [{space_repo} on the Hub]({space_hub_url}) · [direct app]({space_app_url})
 """
 
