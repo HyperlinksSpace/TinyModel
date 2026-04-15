@@ -100,7 +100,7 @@ def _model_card_banner_image_markdown(output_dir: Path, display_name: str) -> st
     if not (output_dir / MODEL_CARD_IMAGE).is_file():
         return ""
     return f"""<div align="center">
-  <img src="{MODEL_CARD_IMAGE}" alt="{display_name}" width="560" />
+  <img src="{MODEL_CARD_IMAGE}" alt="{display_name}" style="max-width: 100%; width: 100%; height: auto; display: block;" />
 </div>
 
 """
