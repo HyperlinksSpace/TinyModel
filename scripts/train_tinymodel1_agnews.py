@@ -163,7 +163,7 @@ tags:
 
 ## Model summary
 
-| | |
+| Field | Value |
 |:--|:--|
 | **Task** | Text classification (single-label, 4 classes) |
 | **Labels** | World, Sports, Business, Sci/Tech |
