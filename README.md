@@ -6,6 +6,7 @@
 
 [![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
 [![Space](https://img.shields.io/badge/Hugging%20Face-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
+[![Live preview](https://img.shields.io/badge/Live%20preview-Gradio%20app-brightgreen)](https://hyperlinksspace-tinymodel1space.hf.space)
 [![Status](https://img.shields.io/badge/Status-Active%20Development-blue)](https://github.com/HyperlinksSpace/TinyModel)
 
 </div>
