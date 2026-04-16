@@ -10,7 +10,7 @@
 
 </div>
 
-`TinyModel1` is a practical starter model line for text classification.
+`TinyModel` is a practical starter model line for text classification.
 End users consume deployed Hugging Face model and Space endpoints. Maintainer deployment policy lives in `texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`.
 
 Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyModel)
@@ -55,6 +55,46 @@ Load the published model by id (no local files required):
 
 ```bash
 python -c "from transformers import pipeline; p=pipeline('text-classification', model='HyperlinksSpace/TinyModel1', tokenizer='HyperlinksSpace/TinyModel1'); print(p('Stocks rallied after central bank comments', top_k=None))"
+```
+
+Use the general-purpose runtime helpers (classification + embeddings + semantic search):
+
+```python
+from scripts.tinymodel_runtime import TinyModelRuntime
+
+rt = TinyModelRuntime("HyperlinksSpace/TinyModel1")
+
+# 1) Classification
+print(rt.classify(["Oil prices fell after a demand forecast update."])[0])
+
+# 2) Embeddings (shape: [batch, hidden_size])
+emb = rt.embed(
+    [
+        "The team won the cup final in extra time.",
+        "Central bank policy affected bond yields.",
+    ]
+)
+print(emb.shape)
+
+# 3) Pairwise semantic similarity
+score = rt.similarity(
+    "Stocks rose after inflation cooled.",
+    "Markets rallied as price growth slowed.",
+)
+print("similarity:", round(score, 4))
+
+# 4) Retrieval: nearest texts to a query
+hits = rt.retrieve(
+    "Chipmaker launches a new AI processor.",
+    [
+        "Parliament debated tax policy in the capital.",
+        "Semiconductor company unveils next-gen accelerator.",
+        "Team signs striker before the derby.",
+    ],
+    top_k=2,
+)
+for h in hits:
+    print(h.index, round(h.score, 4), h.text)
 ```
 
 Or open the demo: [direct app](https://hyperlinksspace-tinymodel1space.hf.space) · [on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space).
@@ -117,4 +157,4 @@ Illustrative directions for evolving the TinyModel line (pick what matches your 
 - **Evaluation discipline** — Fixed test split, confusion matrix, calibration, and versioned eval reports alongside `artifact.json`.
 - **Repository hygiene** — Lightweight CI (lint, script smoke tests) that never pulls large weights; optional Hub Collections or docs that link model, Space, and release notes.
 
-Nothing here is committed on a fixed timeline; treat it as a backlog of sensible next steps for a small classification stack.
+Nothing here is committed on a fixed timeline; treat it as a backlog of sensible next steps for a small text understanding stack.
