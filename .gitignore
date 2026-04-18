@@ -7,3 +7,5 @@ __pycache__/
 dist/
 build/
 artifacts/**/.gitkeep
+# Local eval smoke output (train_tinymodel1_classifier.py --output-dir artifacts/eval-smoke)
+artifacts/eval-smoke/

@@ -120,10 +120,24 @@ def set_seed(seed: int) -> None:
 
 
 @dataclass
+class EvalMetrics:
+    accuracy: float
+    macro_f1: float
+    weighted_f1: float
+    per_class_f1: dict[str, float]
+    confusion_matrix: list[list[int]]
+    """Rows = true class, columns = predicted class (same order as label_names)."""
+
+
+@dataclass
 class TrainState:
     train_loss: float
-    eval_accuracy: float
+    eval_metrics: EvalMetrics
     num_parameters: int
+
+    @property
+    def eval_accuracy(self) -> float:
+        return self.eval_metrics.accuracy
 
 
 def _parse_label_list(raw: str) -> list[str]:
@@ -453,10 +467,14 @@ Trained with a WordPiece tokenizer fit on the training split and a shallow BERT 
 
 | Metric | Value |
 |:--|:--|
-| **Eval accuracy** | {state.eval_accuracy:.4f} |
+| **Accuracy** | {state.eval_metrics.accuracy:.4f} |
+| **Macro F1** | {state.eval_metrics.macro_f1:.4f} |
+| **Weighted F1** | {state.eval_metrics.weighted_f1:.4f} |
 | **Final train loss** | {state.train_loss:.4f} |
 
-Metrics are computed on the held-out eval split; treat them as a **sanity-check baseline**, not a production SLA.
+Per-class F1 and the confusion matrix are saved in `eval_report.json` in this model directory.
+
+Metrics are computed on the held-out eval subset (see `eval_report.json` → `reproducibility`); treat them as a **sanity-check baseline**, not a production SLA.
 
 ---
 
@@ -519,6 +537,7 @@ def write_manifest(
     text_col: str,
 ) -> None:
     display_name = Path(args.output_dir).resolve().name
+    m = state.eval_metrics
     data = {
         "name": display_name,
         "version": "0.3.0",
@@ -531,7 +550,10 @@ def write_manifest(
         "label_column": args.label_column,
         "base_model": "tinymodel1-bert-scratch",
         "labels": label_names,
-        "eval_accuracy": round(state.eval_accuracy, 4),
+        "eval_accuracy": round(m.accuracy, 4),
+        "eval_macro_f1": round(m.macro_f1, 4),
+        "eval_weighted_f1": round(m.weighted_f1, 4),
+        "eval_per_class_f1": {k: round(v, 4) for k, v in m.per_class_f1.items()},
         "train_loss": round(state.train_loss, 4),
         "num_parameters": state.num_parameters,
         "max_train_samples": args.max_train_samples,
@@ -540,27 +562,108 @@ def write_manifest(
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "learning_rate": args.learning_rate,
+        "seed": args.seed,
     }
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def write_eval_report(
+    path: Path,
+    state: TrainState,
+    args: argparse.Namespace,
+    label_names: list[str],
+    text_col: str,
+) -> None:
+    m = state.eval_metrics
+    payload = {
+        "reproducibility": {
+            "seed": args.seed,
+            "dataset": args.dataset,
+            "dataset_config": args.dataset_config,
+            "train_split": args.train_split,
+            "eval_split": args.eval_split,
+            "text_column": text_col,
+            "label_column": args.label_column,
+            "max_train_samples": args.max_train_samples,
+            "max_eval_samples": args.max_eval_samples,
+            "note": (
+                "Train and eval rows are the first N after shuffle(seed) of each split; "
+                "see texts/eval-reproducibility.md."
+            ),
+        },
+        "metrics": {
+            "accuracy": round(m.accuracy, 6),
+            "macro_f1": round(m.macro_f1, 6),
+            "weighted_f1": round(m.weighted_f1, 6),
+            "per_class_f1": {k: round(v, 6) for k, v in m.per_class_f1.items()},
+            "confusion_matrix": m.confusion_matrix,
+            "confusion_matrix_axis": "rows=true class, columns=predicted class",
+            "label_order": list(label_names),
+        },
+    }
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def _metrics_from_confusion(
+    cm: np.ndarray,
+    label_names: list[str],
+) -> EvalMetrics:
+    """cm[i,j] = count with true class i, predicted j."""
+    n_classes = cm.shape[0]
+    per_class_f1: dict[str, float] = {}
+    f1s: list[float] = []
+    supports: list[int] = []
+    for k in range(n_classes):
+        tp = float(cm[k, k])
+        fp = float(cm[:, k].sum() - cm[k, k])
+        fn = float(cm[k, :].sum() - cm[k, k])
+        prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        rec = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        if prec + rec == 0:
+            f1 = 0.0
+        else:
+            f1 = 2.0 * prec * rec / (prec + rec)
+        per_class_f1[label_names[k]] = f1
+        f1s.append(f1)
+        supports.append(int(cm[k, :].sum()))
+    total = float(cm.sum())
+    accuracy = float(np.trace(cm) / total) if total > 0 else 0.0
+    macro_f1 = float(np.mean(f1s)) if f1s else 0.0
+    weighted_f1 = (
+        float(sum(f * s for f, s in zip(f1s, supports)) / total) if total > 0 else 0.0
+    )
+    return EvalMetrics(
+        accuracy=accuracy,
+        macro_f1=macro_f1,
+        weighted_f1=weighted_f1,
+        per_class_f1=per_class_f1,
+        confusion_matrix=cm.astype(int).tolist(),
+    )
 
 
 def evaluate(
     model: BertForSequenceClassification,
     loader: DataLoader,
     device: torch.device,
-) -> float:
+    num_labels: int,
+    label_names: list[str],
+) -> EvalMetrics:
     model.eval()
-    correct = 0
-    total = 0
+    all_labels: list[int] = []
+    all_preds: list[int] = []
     with torch.no_grad():
         for batch in loader:
             labels = batch.pop("labels").to(device)
             batch = {k: v.to(device) for k, v in batch.items()}
             logits = model(**batch).logits
             preds = torch.argmax(logits, dim=-1)
-            correct += (preds == labels).sum().item()
-            total += labels.shape[0]
-    return correct / max(1, total)
+            all_labels.extend(labels.cpu().numpy().tolist())
+            all_preds.extend(preds.cpu().numpy().tolist())
+
+    cm = np.zeros((num_labels, num_labels), dtype=np.int64)
+    for t, p in zip(all_labels, all_preds):
+        cm[int(t), int(p)] += 1
+    return _metrics_from_confusion(cm, label_names)
 
 
 def resolve_device() -> torch.device:
@@ -671,8 +774,14 @@ def main() -> None:
         last_loss = running_loss / max(1, steps)
         print(f"epoch={epoch + 1} train_loss={last_loss:.4f}")
 
-    accuracy = evaluate(model, eval_loader, device)
-    print(f"eval_accuracy={accuracy:.4f}")
+    eval_metrics = evaluate(
+        model, eval_loader, device, num_labels=num_labels, label_names=label_names
+    )
+    print(f"eval_accuracy={eval_metrics.accuracy:.4f}")
+    print(f"eval_macro_f1={eval_metrics.macro_f1:.4f}")
+    print(f"eval_weighted_f1={eval_metrics.weighted_f1:.4f}")
+    for name, f1 in eval_metrics.per_class_f1.items():
+        print(f"  f1[{name}]={f1:.4f}")
 
     num_parameters = int(sum(p.numel() for p in model.parameters()))
 
@@ -681,10 +790,14 @@ def main() -> None:
 
     copy_model_card_image(output_dir)
 
-    state = TrainState(train_loss=last_loss, eval_accuracy=accuracy, num_parameters=num_parameters)
+    state = TrainState(
+        train_loss=last_loss, eval_metrics=eval_metrics, num_parameters=num_parameters
+    )
     write_model_card(output_dir / "README.md", state, args, label_names)
     write_manifest(output_dir / "artifact.json", state, args, label_names, text_col)
+    write_eval_report(output_dir / "eval_report.json", state, args, label_names, text_col)
     print(f"Saved classifier to: {output_dir}")
+    print(f"Wrote eval_report.json with confusion matrix and per-class F1.")
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyM
 
 Some features may not work reliably from Russia—for example **live preview** or other flows that depend on third-party hosts or regions that are blocked or throttled. If you hit that, you can try third-party tools such as the free tier of [1VPN](https://1vpn.org/) (browser extension or app), or **Happ** (paid subscription). One place people buy Happ subscriptions is [this Telegram bot](https://t.me/tylervpsbot). These are all **third-party** services; use at your own discretion and follow applicable laws.
 
-**Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py); training writes `README.md` and [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
+**Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py); training writes `README.md`, [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py), and `eval_report.json` next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
 
 ## 1) Local testing
 
@@ -48,6 +48,27 @@ Expected local output folder:
 - `.tmp/TinyModel-local/tokenizer.json`
 - `.tmp/TinyModel-local/README.md`
 - `.tmp/TinyModel-local/artifact.json`
+- `.tmp/TinyModel-local/eval_report.json` — evaluation metrics, confusion matrix, and reproducibility fields (see below)
+
+### Training script: evaluation and artifacts
+
+The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
+
+| Function / area | Role |
+| ---------------- | ---- |
+| **`parse_args()`** | CLI for dataset id, splits, text/label columns, caps, hyperparameters, `--seed`, and Hub card metadata. |
+| **`set_seed()`** | Sets Python, NumPy, and PyTorch RNGs so runs are repeatable for a given `--seed`. |
+| **`load_splits()`** | Loads the Hub dataset, selects train/eval split names, **shuffles each split with `seed`**, then takes the first *N* rows (`--max-train-samples`, `--max-eval-samples`). |
+| **`infer_text_column()`** | Picks the text column if you do not pass `--text-column`. |
+| **`resolve_label_names()`** / **`build_label_maps()`** / **`rows_to_model_inputs()`** | Resolve class names, map raw labels to contiguous ids, and build `Dataset` columns for training. |
+| **`build_tokenizer()`** | Trains a WordPiece tokenizer on training texts and writes tokenizer files under the output dir. |
+| **`evaluate()`** | Runs the model on the eval `DataLoader`, collects predictions, builds a **confusion matrix** (rows = true class, columns = predicted), and returns an **`EvalMetrics`** object: accuracy, macro/weighted F1, per-class F1. |
+| **`write_eval_report()`** | Writes **`eval_report.json`**: `reproducibility` (seed, dataset, splits, columns, sample caps) and `metrics` (full matrix + `label_order`). |
+| **`write_manifest()`** | Writes **`artifact.json`**: training config, labels, and summary metrics for downstream tooling. |
+| **`write_model_card()`** | Writes Hub-style **`README.md`** next to the weights (model card with eval summary). |
+| **`copy_model_card_image()`** | Optionally copies `TinyModel1Image.png` into the output dir for the card banner. |
+
+How the eval subset is defined (same script, same seed → same rows) is documented in [`texts/eval-reproducibility.md`](texts/eval-reproducibility.md).
 
 ## 2) Using the Hub model and Space
 

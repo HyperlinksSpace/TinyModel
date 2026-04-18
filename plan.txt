@@ -1,1 +1,25 @@
-Test local deploy and Hugging Face deploy flow from the contributor's side.
+Short-term plan — start now (aligned with Phase A: harden the encoder lane)
+
+1) Ship and verify the pipeline
+   - Run the Hugging Face / Kaggle training and publish workflows end-to-end; confirm a versioned model artifact and Space (or runtime) load correctly from the contributor machine and from CI.
+   - Fix any remaining workflow or secret issues so runs are repeatable.
+
+2) Tighten evaluation (before scaling data or model size) — implemented
+   - `scripts/train_tinymodel1_classifier.py` now reports accuracy, macro/weighted F1, per-class F1, and writes `eval_report.json` (confusion matrix + reproducibility block).
+   - How split + seed work: `texts/eval-reproducibility.md`.
+   - Instant test (fast CPU run, ~30s): `python scripts/train_tinymodel1_classifier.py --output-dir artifacts/eval-smoke --max-train-samples 120 --max-eval-samples 80 --epochs 1 --batch-size 8 --seed 42` then open `artifacts/eval-smoke/eval_report.json`.
+
+3) Second dataset or second task (same encoder family)
+   - Pick one additional Hub single-label classification dataset (or a second label schema) and wire it through the existing training script/config without forking the whole stack.
+   - Goal: prove the pipeline is dataset-agnostic, not only AG News.
+
+4) Embeddings smoke test (product-shaped)
+   - Run tinymodel_runtime (or equivalent) on a handful of queries; sanity-check similarity / routing behavior. Optionally sketch one “search or triage” scenario the roadmap calls out.
+
+5) Optional quick win: pretrained encoder fine-tune
+   - One experiment: fine-tune a small public BERT/RoBERTa on the same task instead of from-scratch only; compare eval vs current TinyModel1 baseline. Informs whether to invest in PEFT/LoRA next.
+
+6) Data hygiene (lightweight)
+   - If you add custom or weak labels later, start a one-page label guide + versioned snapshots (even if manual for now); avoid train/val/test leakage across documents.
+
+Out of scope for this short list — do not start yet until (1)–(3) are stable: decoder LLM training, RAG production stack, or multimodal — those build on eval + serving discipline from the steps above.
