@@ -9,9 +9,9 @@ Short-term plan — start now (aligned with Phase A: harden the encoder lane)
    - How split + seed work: `texts/eval-reproducibility.md`.
    - Instant test (fast CPU run, ~30s): `python scripts/train_tinymodel1_classifier.py --output-dir artifacts/eval-smoke --max-train-samples 120 --max-eval-samples 80 --epochs 1 --batch-size 8 --seed 42` then open `artifacts/eval-smoke/eval_report.json`.
 
-3) Second dataset or second task (same encoder family)
-   - Pick one additional Hub single-label classification dataset (or a second label schema) and wire it through the existing training script/config without forking the whole stack.
-   - Goal: prove the pipeline is dataset-agnostic, not only AG News.
+3) Second dataset or second task (same encoder family) — implemented
+   - Hub [`emotion`](https://huggingface.co/datasets/emotion) wired via `scripts/train_tinymodel1_emotion.py` (preset over `train_tinymodel1_classifier.py`). README: section **Second reference dataset (Emotion)**.
+   - Instant test: `python scripts/train_tinymodel1_emotion.py --output-dir artifacts/emotion-smoke --max-train-samples 200 --max-eval-samples 100 --epochs 1 --batch-size 8 --seed 42` then open `artifacts/emotion-smoke/eval_report.json`.
 
 4) Embeddings smoke test (product-shaped)
    - Run tinymodel_runtime (or equivalent) on a handful of queries; sanity-check similarity / routing behavior. Optionally sketch one “search or triage” scenario the roadmap calls out.

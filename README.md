@@ -70,6 +70,39 @@ The canonical training implementation is [`scripts/train_tinymodel1_classifier.p
 
 How the eval subset is defined (same script, same seed → same rows) is documented in [`texts/eval-reproducibility.md`](texts/eval-reproducibility.md).
 
+### Second reference dataset (Emotion)
+
+Besides AG News ([`train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py)), this repo includes a **second** single-label task on the Hub **[`emotion`](https://huggingface.co/datasets/emotion)** (English short text, 6 classes: sadness, joy, love, anger, fear, surprise). It uses the **same** training code path; only dataset id, eval split, and label names are preset.
+
+| Entry point | Dataset | Eval split (default) |
+| ----------- | ------- | -------------------- |
+| [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) | `fancyzhx/ag_news` | `test` |
+| [`scripts/train_tinymodel1_emotion.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_emotion.py) | `emotion` | `validation` |
+
+**Equivalent explicit CLI** (if you prefer not to use the wrapper):
+
+```bash
+python scripts/train_tinymodel1_classifier.py \
+  --dataset emotion \
+  --eval-split validation \
+  --labels sadness,joy,love,anger,fear,surprise \
+  --output-dir .tmp/TinyModel-emotion
+```
+
+**Instant smoke test** (small samples, ~1 minute on CPU; needs network to download `emotion` once):
+
+```bash
+python scripts/train_tinymodel1_emotion.py \
+  --output-dir artifacts/emotion-smoke \
+  --max-train-samples 200 \
+  --max-eval-samples 100 \
+  --epochs 1 \
+  --batch-size 8 \
+  --seed 42
+```
+
+Then check `artifacts/emotion-smoke/eval_report.json` — `reproducibility.dataset` should be `emotion` and `label_order` should list the six emotion names. For other Hub datasets, pass `--dataset`, splits, and optional `--labels` / `--text-column` to [`train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py) directly.
+
 ## 2) Using the Hub model and Space
 
 Load the published model by id (no local files required):
