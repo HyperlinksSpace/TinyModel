@@ -15,7 +15,7 @@ from typing import Sequence
 
 import torch
 import torch.nn.functional as F
-from transformers import BertForSequenceClassification, BertTokenizerFast
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
 @dataclass
@@ -35,8 +35,8 @@ class TinyModelRuntime:
         device: str | None = None,
         max_length: int = 128,
     ) -> None:
-        self.tokenizer = BertTokenizerFast.from_pretrained(model_id_or_path)
-        self.model = BertForSequenceClassification.from_pretrained(model_id_or_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id_or_path)
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_id_or_path)
         self.model.eval()
         self.max_length = max_length
 
@@ -44,6 +44,17 @@ class TinyModelRuntime:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
         self.model.to(self.device)
+
+    def _encoder_backbone(self):
+        """Return the base encoder (BERT, DistilBERT, RoBERTa, etc.)."""
+        m = self.model
+        for name in ("bert", "distilbert", "roberta", "electra", "camembert", "xlm_roberta"):
+            if hasattr(m, name):
+                return getattr(m, name)
+        raise AttributeError(
+            "Could not find a supported encoder backbone on this model; "
+            "embeddings need BERT/DistilBERT/RoBERTa-style checkpoints."
+        )
 
     def classify(self, texts: Sequence[str]) -> list[dict[str, float]]:
         """Return per-label probabilities for each input text."""
@@ -67,7 +78,7 @@ class TinyModelRuntime:
         return out
 
     def embed(self, texts: Sequence[str], *, normalize: bool = True) -> torch.Tensor:
-        """Generate pooled sentence embeddings from the BERT encoder."""
+        """Generate pooled sentence embeddings from the transformer encoder ([CLS] / first token)."""
         encoded = self.tokenizer(
             list(texts),
             truncation=True,
@@ -78,11 +89,11 @@ class TinyModelRuntime:
         encoded = {k: v.to(self.device) for k, v in encoded.items()}
 
         with torch.inference_mode():
-            # For BertModel outputs, [CLS] token is a simple and fast sentence proxy.
-            hidden = self.model.bert(
+            backbone = self._encoder_backbone()
+            # Only pass ids/mask so DistilBERT and BERT both accept the call.
+            hidden = backbone(
                 input_ids=encoded["input_ids"],
                 attention_mask=encoded["attention_mask"],
-                token_type_ids=encoded.get("token_type_ids"),
                 return_dict=True,
             ).last_hidden_state
             cls = hidden[:, 0, :]

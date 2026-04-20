@@ -103,6 +103,57 @@ python scripts/train_tinymodel1_emotion.py \
 
 Then check `artifacts/emotion-smoke/eval_report.json` — `reproducibility.dataset` should be `emotion` and `label_order` should list the six emotion names. For other Hub datasets, pass `--dataset`, splits, and optional `--labels` / `--text-column` to [`train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py) directly.
 
+### Embeddings smoke test (routing / search-shaped)
+
+[`scripts/embeddings_smoke_test.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/embeddings_smoke_test.py) runs [`TinyModelRuntime`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/tinymodel_runtime.py) on a few queries: **classification probabilities**, **pairwise similarity**, and **retrieval** over a toy candidate list (support/triage scenario).
+
+**What these terms mean**
+
+- **Classification probabilities** — Output of `TinyModelRuntime.classify(...)`: for each input text, the model returns a probability distribution across all labels (values sum to ~1.0). Use this for routing decisions and confidence-aware thresholds.
+- **Pairwise similarity** — Output of `TinyModelRuntime.similarity(text_a, text_b)`: cosine similarity between two sentence embeddings (from the encoder). Higher values mean semantically closer text under this model.
+- **Retrieval** — Output of `TinyModelRuntime.retrieve(query, candidates, top_k=...)`: ranks candidate texts by embedding similarity to a query and returns top matches with scores and indices.
+
+**Instant test** (needs a checkpoint — train the tiny eval run first, or pass a Hub id):
+
+```bash
+python scripts/train_tinymodel1_classifier.py \
+  --output-dir artifacts/eval-smoke --max-train-samples 120 --max-eval-samples 80 \
+  --epochs 1 --batch-size 8 --seed 42
+python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke
+# Or: python scripts/embeddings_smoke_test.py --model HyperlinksSpace/TinyModel1
+```
+
+### Pretrained encoder fine-tune (compare to scratch baseline)
+
+[`scripts/finetune_pretrained_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/finetune_pretrained_classifier.py) fine-tunes **`AutoModelForSequenceClassification`** from `--base-model` (default `distilbert-base-uncased`) using the **same** splits and metrics as the scratch trainer. Use matching `--seed` and sample caps, then compare `eval_report.json` / `artifact.json` to a scratch run.
+
+**Instant test** (downloads base weights once; CPU-friendly small run):
+
+```bash
+python scripts/finetune_pretrained_classifier.py \
+  --output-dir artifacts/finetune-smoke \
+  --base-model distilbert-base-uncased \
+  --max-train-samples 400 --max-eval-samples 200 \
+  --epochs 1 --batch-size 8 --seed 42
+```
+
+### Custom labels and data hygiene
+
+For proprietary or weakly labeled data: use a short **label guide**, **versioned snapshots**, and **leakage-safe splits**. See [`texts/labeling-and-data-hygiene.md`](texts/labeling-and-data-hygiene.md).
+
+### Current implementation status (what, why, how to run)
+
+This section summarizes the currently implemented components and their practical purpose.
+
+| Part | What it is for | How to launch | What to verify |
+| ---- | ---- | ---- | ---- |
+| **Scratch baseline training** (`scripts/train_tinymodel1_classifier.py`) | Build a small from-scratch text classifier baseline and export all model artifacts. | `python scripts/train_tinymodel1_classifier.py --output-dir artifacts/eval-smoke --max-train-samples 120 --max-eval-samples 80 --epochs 1 --batch-size 8 --seed 42` | `artifacts/eval-smoke/eval_report.json` exists and includes `accuracy`, `macro_f1`, `per_class_f1`, `confusion_matrix`. |
+| **Second dataset path** (`scripts/train_tinymodel1_emotion.py`) | Prove the same pipeline works on another Hub dataset without forking core training code. | `python scripts/train_tinymodel1_emotion.py --output-dir artifacts/emotion-smoke --max-train-samples 200 --max-eval-samples 100 --epochs 1 --batch-size 8 --seed 42` | `reproducibility.dataset == "emotion"` and 6 labels in `label_order`. |
+| **Embeddings/runtime smoke** (`scripts/embeddings_smoke_test.py`) | Validate product-shaped runtime behavior: classify, similarity, retrieval. | `python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke` (or `--model HyperlinksSpace/TinyModel1`) | Script prints all 3 blocks and ends with `Embeddings smoke test completed.` |
+| **Pretrained fine-tune path** (`scripts/finetune_pretrained_classifier.py`) | Compare a pretrained encoder baseline (DistilBERT/BERT-family) against scratch training using same eval reporting format. | `python scripts/finetune_pretrained_classifier.py --output-dir artifacts/finetune-smoke --base-model distilbert-base-uncased --max-train-samples 400 --max-eval-samples 200 --epochs 1 --batch-size 8 --seed 42` | `artifacts/finetune-smoke/eval_report.json` + `artifact.json` exist; compare metrics to scratch run on same caps/seed. |
+| **Data hygiene guide** (`texts/labeling-and-data-hygiene.md`) | Lightweight rules for label quality, versioning, and leakage prevention when moving to custom/proprietary data. | Read the file and apply before collecting custom labels. | Label guide versioning and split hygiene rules are defined before annotation scale-up. |
+| **Kaggle→HF training workflow hardening** (`.github/workflows/train-via-kaggle-to-hf.yml`) | Make CI training/publish flow robust: stable auth handling, unique kernel slugs, resilient status polling, and clearer diagnostics. | Trigger workflow from GitHub Actions with `version`, `namespace`, train hyperparameters. | Workflow reaches model publish step and uploads `{namespace}/TinyModel{version}`. |
+
 ## 2) Using the Hub model and Space
 
 Load the published model by id (no local files required):
@@ -150,6 +201,15 @@ hits = rt.retrieve(
 for h in hits:
     print(h.index, round(h.score, 4), h.text)
 ```
+
+### TinyModelRuntime function outputs
+
+| Function | Return type | Output values |
+| ---- | ---- | ---- |
+| `classify(texts)` | `list[dict[str, float]]` | One dict per input text. Keys are label names from `model.config.id2label`; values are probabilities in `[0, 1]` that sum to ~1.0 for each text. |
+| `embed(texts, normalize=True)` | `torch.Tensor` | Shape `[batch_size, hidden_size]` (default TinyModel hidden size is `128`). If `normalize=True`, each row is L2-normalized (vector norm ~1.0). |
+| `similarity(text_a, text_b)` | `float` | Cosine similarity between the two embeddings. Typical range is `[-1, 1]`: higher means more semantically similar under this model. |
+| `retrieve(query, candidates, top_k=3)` | `list[RetrievalHit]` | Ranked top matches. Each item has: `index` (position in `candidates`), `text` (candidate string), `score` (cosine similarity; higher is closer). Length is `min(top_k, len(candidates))`. |
 
 Or open the demo: [direct app](https://hyperlinksspace-tinymodel1space.hf.space) · [on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space).
 

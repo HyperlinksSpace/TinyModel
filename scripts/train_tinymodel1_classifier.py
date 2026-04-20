@@ -19,6 +19,7 @@ from tokenizers.models import WordPiece
 from tokenizers.normalizers import Lowercase, NFD, Sequence, StripAccents
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import WordPieceTrainer
+import torch.nn as nn
 from torch.utils.data import DataLoader
 from transformers import (
     BertConfig,
@@ -642,7 +643,7 @@ def _metrics_from_confusion(
 
 
 def evaluate(
-    model: BertForSequenceClassification,
+    model: nn.Module,
     loader: DataLoader,
     device: torch.device,
     num_labels: int,

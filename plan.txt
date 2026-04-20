@@ -1,8 +1,8 @@
 Short-term plan — start now (aligned with Phase A: harden the encoder lane)
 
-1) Ship and verify the pipeline
-   - Run the Hugging Face / Kaggle training and publish workflows end-to-end; confirm a versioned model artifact and Space (or runtime) load correctly from the contributor machine and from CI.
-   - Fix any remaining workflow or secret issues so runs are repeatable.
+1) Ship and verify the pipeline — mostly implemented
+   - Kaggle → Hugging Face workflow was hardened and validated through multiple failure classes (auth, kernel conflict, status parsing, retries), and now reaches train/eval/publish path reliably.
+   - Remaining routine work: periodic re-runs for regression checks and verifying Space/model release pair per version.
 
 2) Tighten evaluation (before scaling data or model size) — implemented
    - `scripts/train_tinymodel1_classifier.py` now reports accuracy, macro/weighted F1, per-class F1, and writes `eval_report.json` (confusion matrix + reproducibility block).
@@ -13,13 +13,15 @@ Short-term plan — start now (aligned with Phase A: harden the encoder lane)
    - Hub [`emotion`](https://huggingface.co/datasets/emotion) wired via `scripts/train_tinymodel1_emotion.py` (preset over `train_tinymodel1_classifier.py`). README: section **Second reference dataset (Emotion)**.
    - Instant test: `python scripts/train_tinymodel1_emotion.py --output-dir artifacts/emotion-smoke --max-train-samples 200 --max-eval-samples 100 --epochs 1 --batch-size 8 --seed 42` then open `artifacts/emotion-smoke/eval_report.json`.
 
-4) Embeddings smoke test (product-shaped)
-   - Run tinymodel_runtime (or equivalent) on a handful of queries; sanity-check similarity / routing behavior. Optionally sketch one “search or triage” scenario the roadmap calls out.
+4) Embeddings smoke test (product-shaped) — implemented
+   - `scripts/embeddings_smoke_test.py` exercises classify / similarity / retrieve (triage-style copy). README: **Embeddings smoke test**.
+   - Test: train `artifacts/eval-smoke` then `python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke` (or `--model HyperlinksSpace/TinyModel1`).
 
-5) Optional quick win: pretrained encoder fine-tune
-   - One experiment: fine-tune a small public BERT/RoBERTa on the same task instead of from-scratch only; compare eval vs current TinyModel1 baseline. Informs whether to invest in PEFT/LoRA next.
+5) Optional quick win: pretrained encoder fine-tune — implemented
+   - `scripts/finetune_pretrained_classifier.py` (default `distilbert-base-uncased`). Compare `eval_report.json` to scratch runs with same `--seed` and caps. README: **Pretrained encoder fine-tune**.
+   - Test: command block in README (`artifacts/finetune-smoke`).
 
-6) Data hygiene (lightweight)
-   - If you add custom or weak labels later, start a one-page label guide + versioned snapshots (even if manual for now); avoid train/val/test leakage across documents.
+6) Data hygiene (lightweight) — implemented
+   - `texts/labeling-and-data-hygiene.md` (label guide template, versioning, leakage). README cross-link under **Custom labels and data hygiene**.
 
 Out of scope for this short list — do not start yet until (1)–(3) are stable: decoder LLM training, RAG production stack, or multimodal — those build on eval + serving discipline from the steps above.
