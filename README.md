@@ -41,6 +41,43 @@ Quick local inference sanity check:
 python -c "from transformers import pipeline; p=pipeline('text-classification', model='.tmp/TinyModel-local', tokenizer='.tmp/TinyModel-local'); print(p('Stocks rallied after central bank comments', top_k=None))"
 ```
 
+### Phase 1 presets and comparison matrix
+
+`scripts/phase1_compare.py` standardizes run profiles and prevents ad-hoc parameter drift.
+It executes matching-seed runs and writes a comparison matrix with `accuracy`, `macro_f1`,
+and per-class F1 for each run.
+
+Presets:
+
+- `smoke`: quickest reproducibility/health check (`120/80`, `1 epoch`)
+- `dev`: day-to-day iteration (`1000/300`, `2 epochs`)
+- `full`: heavier baseline (`6000/1200`, `3 epochs`)
+
+Run full Phase 1 baseline comparison (scratch vs pretrained) on both AG News and Emotion:
+
+```bash
+python scripts/phase1_compare.py --preset smoke --seed 42
+```
+
+Outputs:
+
+- `artifacts/phase1/runs/<preset>/<dataset>/<model>/...` (model artifacts per run)
+- `artifacts/phase1/reports/phase1_<preset>_seed<seed>.md` (human-readable table)
+- `artifacts/phase1/reports/phase1_<preset>_seed<seed>.csv` (spreadsheet-friendly)
+- `artifacts/phase1/reports/phase1_<preset>_seed<seed>.json` (machine-readable)
+
+CI smoke check (no heavy pretrained download by default):
+
+```bash
+python scripts/phase1_compare.py \
+  --preset smoke \
+  --models scratch \
+  --datasets ag_news,emotion \
+  --seed 42
+```
+
+This same default check is wired in `.github/workflows/phase1-smoke.yml`.
+
 Expected local output folder:
 
 - `.tmp/TinyModel-local/model.safetensors`
