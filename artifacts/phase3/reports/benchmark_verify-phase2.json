@@ -1,0 +1,45 @@
+{
+  "primary": {
+    "model": "C:\\1\\1\\1\\1\\1\\TinyModel\\.tmp\\verify-phase2",
+    "onnx_dir": "C:\\1\\1\\1\\1\\1\\TinyModel\\.tmp\\verify-phase2\\onnx",
+    "pytorch": {
+      "classify_batch1": {
+        "mean_ms": 2.0484499997110106,
+        "p50_ms": 1.882549997390015,
+        "p90_ms": 2.860610000789165
+      },
+      "embed_batch3": {
+        "mean_ms": 3.624330000093323,
+        "p50_ms": 3.5415499987720978,
+        "p90_ms": 4.504300001281081
+      },
+      "retrieve_top2_query3cand": {
+        "mean_ms": 3.4868699993239716,
+        "p50_ms": 3.3276499998464715,
+        "p90_ms": 3.9820099991629823
+      }
+    },
+    "file_sizes_mib": {
+      "model.safetensors": 2.466,
+      "classifier.onnx": 0.425,
+      "encoder.onnx": 0.358
+    },
+    "onnx": {
+      "classify_batch1": {
+        "mean_ms": 1.6765999997005565,
+        "p50_ms": 1.5200999987428077,
+        "p90_ms": 2.011819998733699
+      },
+      "embed_batch3": {
+        "mean_ms": 6.039459999738028,
+        "p50_ms": 5.746599998019519,
+        "p90_ms": 6.903589999274117
+      },
+      "retrieve_top2_query3cand": {
+        "mean_ms": 8.369699999821023,
+        "p50_ms": 8.042899999054498,
+        "p90_ms": 10.402520000934599
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+# Optional dependencies for Phase 3: ONNX, benchmarks, reference HTTP API
+# Install: pip install -r optional-requirements-phase3.txt
+# ONNX export uses torch.onnx with dynamo=True (PyTorch 2.6+); on Windows, set
+# PYTHONIOENCODING=utf-8 if the exporter prints Unicode to the console.
+
+onnx>=1.16.0
+onnxscript>=0.1.0
+onnxruntime>=1.16.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.0.0

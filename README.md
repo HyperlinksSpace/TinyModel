@@ -87,6 +87,8 @@ Training and pretrained fine-tuning now emit richer evaluation artifacts so repo
 | **`eval_report.json`** | Existing `reproducibility` + `metrics`, plus **`dataset_quality.class_distribution`** (train/eval counts and proportions per label on the capped subsets), **`error_analysis.top_confusions`** (largest off-diagonal confusion pairs), **`calibration.max_prob_histogram`** (bins over the winner softmax probability per eval example), and **`routing`** (documented fallback behavior for low-confidence routing; thresholds are not fixed by training). |
 | **`misclassified_sample.jsonl`** | Up to **`--max-misclassified-examples`** wrong predictions with `text`, `true_label`, `predicted_label`, `max_prob` (one JSON object per line). Use `0` to skip writing the file content beyond an empty run. |
 
+**Routing threshold example (Phase 2 exit):** a worked **min_confidence** + **fallback** policy for triage is documented in [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md) (tune on your own validation data).
+
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
 - `--max-misclassified-examples` (default `100`)
@@ -129,6 +131,46 @@ Expected local output folder:
 - `.tmp/TinyModel-local/artifact.json`
 - `.tmp/TinyModel-local/eval_report.json` — evaluation metrics, confusion matrix, reproducibility, and Phase 2 fields (class distribution, top confusions, calibration histogram, routing notes)
 - `.tmp/TinyModel-local/misclassified_sample.jsonl` — optional sample of errors for review (see Phase 2 section)
+
+## Phase 3: ONNX, CPU benchmarks, reference HTTP API
+
+**Optional dependencies:** `optional-requirements-phase3.txt` (ONNX, ONNX Runtime, `onnxscript` for export, `fastapi`/`uvicorn` for the reference server). PyTorch 2.6+ uses `torch.onnx.export(..., dynamo=True)`.
+
+1. **Export** — from a training output directory or Hub id:
+
+   ```bash
+   python scripts/phase3_export_onnx.py --model artifacts/phase1/runs/smoke/ag_news/scratch
+   # or: --model HyperlinksSpace/TinyModel1
+   ```
+
+   On **Windows Git Bash**, do **not** use a Unix-style placeholder like `/path/to/checkpoint` — the shell rewrites it under `C:/Program Files/Git/...`. Use a **relative** path from the repo or a `c:/...` path.
+
+   Writes `onnx/classifier.onnx` (logits) and `onnx/encoder.onnx` (pooled token for embeddings). The default dynamo path traces at **batch size 1**; use tokenizer **padding to `max_seq_length`** (e.g. 128) to match. Optional `--dynamic-quantize` attempts INT8 sidecars (may be skipped on some graphs).
+
+2. **Parity (PyTorch vs ONNX Runtime):**
+
+   ```bash
+   python scripts/phase3_onnx_parity.py --model artifacts/phase1/runs/smoke/ag_news/scratch
+   ```
+
+3. **CPU benchmark report** (PyTorch `TinyModelRuntime` vs ORT, classify / embed / retrieve patterns):
+
+   ```bash
+   python scripts/phase3_benchmark.py --model artifacts/phase1/runs/smoke/ag_news/scratch --compare-model .tmp/phase3-smoke
+   ```
+
+   Artifacts: `artifacts/phase3/reports/benchmark_<name>.{json,md}`. (Example report may be present under that folder after a run.)
+
+4. **Serving contract + minimal API** — [`texts/phase3-serving-profile.md`](texts/phase3-serving-profile.md) (`GET /healthz`, `POST /v1/classify`, `POST /v1/retrieve`). Reference process:
+
+   ```bash
+   pip install -r optional-requirements-phase3.txt
+   python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1
+   ```
+
+5. **CI** — `.github/workflows/phase3-smoke.yml` trains a tiny model, exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
+
+**Optional R&D spike ideas (not part of the release path)** — see [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
 
 ### Training script: evaluation and artifacts
 
@@ -235,6 +277,7 @@ This section summarizes the currently implemented components and their practical
 | **Pretrained fine-tune path** (`scripts/finetune_pretrained_classifier.py`) | Compare a pretrained encoder baseline (DistilBERT/BERT-family) against scratch training using same eval reporting format. | `python scripts/finetune_pretrained_classifier.py --output-dir artifacts/finetune-smoke --base-model distilbert-base-uncased --max-train-samples 400 --max-eval-samples 200 --epochs 1 --batch-size 8 --seed 42` | `artifacts/finetune-smoke/eval_report.json` + `artifact.json` exist; compare metrics to scratch run on same caps/seed. |
 | **Data hygiene guide** (`texts/labeling-and-data-hygiene.md`) | Lightweight rules for label quality, versioning, and leakage prevention when moving to custom/proprietary data. | Read the file and apply before collecting custom labels. | Label guide versioning and split hygiene rules are defined before annotation scale-up. |
 | **Kaggle→HF training workflow hardening** (`.github/workflows/train-via-kaggle-to-hf.yml`) | Make CI training/publish flow robust: stable auth handling, unique kernel slugs, resilient status polling, and clearer diagnostics. | Trigger workflow from GitHub Actions with `version`, `namespace`, train hyperparameters. | Workflow reaches model publish step and uploads `{namespace}/TinyModel{version}`. |
+| **Phase 3: ONNX, bench, API** (`scripts/phase3_*.py`, `texts/phase3-serving-profile.md`) | Export to ONNX, verify parity, CPU latency report, reference HTTP API. | `pip install -r optional-requirements-phase3.txt` then `python scripts/phase3_export_onnx.py --model <dir>` and `python scripts/phase3_onnx_parity.py` / `python scripts/phase3_benchmark.py` (see **Phase 3** section). | `onnx/*.onnx` present; benchmark under `artifacts/phase3/reports/`; parity exits 0. |
 
 ## 2) Using the Hub model and Space
 
@@ -319,6 +362,8 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
 
 | Workflow | File |
 | -------- | ---- |
+| **PR smoke: Phase 1 matrix** (scratch, small caps) | [`phase1-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase1-smoke.yml) |
+| **PR smoke: Phase 3** (train tiny → ONNX → parity → bench) | [`phase3-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase3-smoke.yml) |
 | **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
 | **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
 
@@ -354,3 +399,27 @@ Illustrative directions for evolving the TinyModel line (pick what matches your 
 - **Repository hygiene** — Lightweight CI (lint, script smoke tests) that never pulls large weights; optional Hub Collections or docs that link model, Space, and release notes.
 
 Nothing here is committed on a fixed timeline; treat it as a backlog of sensible next steps for a small text understanding stack.
+
+## 5) Further development plan: what was added and how to exit-check
+
+The living plan is in [`texts/further-development-plan.md`](texts/further-development-plan.md). Recent updates there:
+
+- **Exit steps (verification)** for **Phase 1–3**, **optional R&D**, and each **decision gate** (concrete commands, **exit status 0**, artifacts).
+- **Phase 2 routing:** [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md).
+- **Phase 3 (done in repo):** ONNX export, parity, CPU benchmark, reference API, serving doc — see **Phase 3** in this `README` and `texts/phase3-serving-profile.md`. CI: `.github/workflows/phase3-smoke.yml`.
+- **Optional R&D** backlog: [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
+- **Plan status** and **What is left (if any)** at the end of the plan file (mostly optional follow-ups).
+
+**Quick Phase 1 exit check (local, matches CI):**
+
+```bash
+python scripts/phase1_compare.py \
+  --preset smoke \
+  --models scratch \
+  --datasets ag_news,emotion \
+  --seed 42
+echo $?
+# Expect: 0; reports under artifacts/phase1/reports/phase1_smoke_seed42.*
+```
+
+For the up-to-date list of optional or future work, see **“What is left (if any)”** at the end of the same plan file.

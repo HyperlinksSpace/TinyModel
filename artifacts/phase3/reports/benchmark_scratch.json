@@ -1,0 +1,45 @@
+{
+  "primary": {
+    "model": "artifacts/phase1/runs/smoke/ag_news/scratch",
+    "onnx_dir": "artifacts\\phase1\\runs\\smoke\\ag_news\\scratch\\onnx",
+    "pytorch": {
+      "classify_batch1": {
+        "mean_ms": 2.47763999941526,
+        "p50_ms": 2.760899998975219,
+        "p90_ms": 2.958179998677224
+      },
+      "embed_batch3": {
+        "mean_ms": 4.014319999987492,
+        "p50_ms": 4.128100001253188,
+        "p90_ms": 4.519180001079803
+      },
+      "retrieve_top2_query3cand": {
+        "mean_ms": 4.728499998600455,
+        "p50_ms": 4.6841999974276405,
+        "p90_ms": 5.162239998753648
+      }
+    },
+    "file_sizes_mib": {
+      "model.safetensors": 3.104,
+      "classifier.onnx": 0.425,
+      "encoder.onnx": 0.358
+    },
+    "onnx": {
+      "classify_batch1": {
+        "mean_ms": 1.7037000005075242,
+        "p50_ms": 1.5929000001051463,
+        "p90_ms": 2.1600800020678435
+      },
+      "embed_batch3": {
+        "mean_ms": 5.616420000296785,
+        "p50_ms": 5.572599999140948,
+        "p90_ms": 6.025120000413154
+      },
+      "retrieve_top2_query3cand": {
+        "mean_ms": 5.4212999988521915,
+        "p50_ms": 4.965799998899456,
+        "p90_ms": 6.946339998830808
+      }
+    }
+  }
+}

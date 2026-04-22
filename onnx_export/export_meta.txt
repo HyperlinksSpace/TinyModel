@@ -1,0 +1,5 @@
+source_model=HyperlinksSpace/TinyModel1
+max_seq_length=128
+opset=18
+export_mode=dynamo
+note=Default dynamo export uses batch=1; parity/benchmark use batch-1 ORT calls or repeat.
