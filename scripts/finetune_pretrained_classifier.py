@@ -44,7 +44,7 @@ if str(_scripts) not in sys.path:
 
 from train_tinymodel1_classifier import (  # noqa: E402
     TrainState,
-    evaluate,
+    evaluate_with_details,
     infer_text_column,
     load_splits,
     resolve_label_names,
@@ -52,6 +52,8 @@ from train_tinymodel1_classifier import (  # noqa: E402
     rows_to_model_inputs,
     set_seed,
     build_label_maps,
+    write_eval_report,
+    write_misclassified_jsonl,
 )
 
 
@@ -77,6 +79,24 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--learning-rate", type=float, default=5e-5)
     p.add_argument("--max-seq-length", type=int, default=128)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--max-misclassified-examples",
+        type=int,
+        default=100,
+        help="Write up to N misclassified eval rows to misclassified_sample.jsonl (0 disables).",
+    )
+    p.add_argument(
+        "--confidence-histogram-bins",
+        type=int,
+        default=10,
+        help="Number of bins for max softmax probability histogram in eval_report.json.",
+    )
+    p.add_argument(
+        "--top-confusions",
+        type=int,
+        default=20,
+        help="How many off-diagonal confusion pairs to record (sorted by count).",
+    )
     return p.parse_args()
 
 
@@ -110,6 +130,9 @@ def _split_args_for_reports(args: argparse.Namespace) -> SimpleNamespace:
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         seed=args.seed,
+        max_misclassified_examples=args.max_misclassified_examples,
+        confidence_histogram_bins=args.confidence_histogram_bins,
+        top_confusions=args.top_confusions,
     )
 
 
@@ -155,6 +178,7 @@ def main() -> None:
 
     train_tok = train_ds.map(tokenize, batched=True)
     eval_tok = eval_ds.map(tokenize, batched=True)
+    eval_texts = list(eval_tok["text"])
     train_tok = train_tok.remove_columns(["text"])
     eval_tok = eval_tok.remove_columns(["text"])
 
@@ -216,7 +240,9 @@ def main() -> None:
         shuffle=False,
         collate_fn=collator,
     )
-    eval_metrics = evaluate(model, eval_loader, device, num_labels, label_names)
+    eval_metrics, eval_detail = evaluate_with_details(
+        model, eval_loader, device, num_labels, label_names
+    )
 
     num_parameters = int(sum(p.numel() for p in model.parameters()))
     state = TrainState(
@@ -226,9 +252,25 @@ def main() -> None:
     )
 
     report_ns = _split_args_for_reports(args)
-    from train_tinymodel1_classifier import write_eval_report  # noqa: E402
 
-    write_eval_report(output_dir / "eval_report.json", state, report_ns, label_names, text_col)
+    write_eval_report(
+        output_dir / "eval_report.json",
+        state,
+        report_ns,
+        label_names,
+        text_col,
+        train_raw=train_raw,
+        eval_raw=eval_raw,
+        raw_to_id=raw_to_id,
+        detail=eval_detail,
+    )
+    write_misclassified_jsonl(
+        output_dir / "misclassified_sample.jsonl",
+        label_names,
+        eval_detail,
+        eval_texts,
+        args.max_misclassified_examples,
+    )
 
     payload = json.loads((output_dir / "eval_report.json").read_text(encoding="utf-8"))
     payload["reproducibility"]["base_model"] = args.base_model

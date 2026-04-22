@@ -1,3 +1,9 @@
+>>> Actual
+
+Further development steps' 1 and 2 exits
+
+>>> Old plan (to think about):
+
 Short-term plan — start now (aligned with Phase A: harden the encoder lane)
 
 1) Ship and verify the pipeline — mostly implemented

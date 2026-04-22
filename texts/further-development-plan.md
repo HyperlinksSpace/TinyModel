@@ -2,7 +2,13 @@
 
 This plan builds on the implemented baseline and targets practical quality gains before major architecture jumps.
 
-## Phase 1 (next 1-2 weeks): stabilize and compare
+## Delivery dynamics update (actual pace)
+
+- **Observed throughput:** Phase 1 completed + Phase 2 implementation prepared in changes in **~2 days total**.
+- **Implication:** original week-based estimates were conservative for current scope and environment.
+- **Planning baseline from now on:** estimate in **days** with a small buffer for validation/manual review.
+
+## Phase 1 (completed in ~1 day): stabilize and compare
 
 ### Goals
 
@@ -28,7 +34,7 @@ This plan builds on the implemented baseline and targets practical quality gains
 - no unresolved script crashes on the primary contributor environment,
 - reproducible outputs for `smoke` and `dev` presets.
 
-## Phase 2 (2-4 weeks): data and evaluation quality
+## Phase 2 (implemented in changes, ~1 day dev + 0.5-1 day validation): data and evaluation quality
 
 ### Goals
 
@@ -53,7 +59,13 @@ This plan builds on the implemented baseline and targets practical quality gains
 - documented threshold strategy for at least one routing scenario,
 - at least one iteration based on manual error review.
 
-## Phase 3 (4-8 weeks): productization and performance
+### Remaining time to close Phase 2 exit
+
+- **0.5 day**: run one explicit manual-error-review loop (inspect `misclassified_sample.jsonl`, make one concrete change).
+- **0.5 day**: document one routing scenario with a chosen threshold policy and fallback action.
+- **Total remaining:** **~1 day**.
+
+## Phase 3 (~3-5 working days): productization and performance
 
 ### Goals
 
@@ -78,6 +90,12 @@ This plan builds on the implemented baseline and targets practical quality gains
 - one quantized or ONNX test artifact,
 - one documented serving profile for integration.
 
+### Time split estimate for Phase 3
+
+1. **Inference packaging (ONNX + parity):** ~1-2 days
+2. **Runtime benchmarking:** ~1 day
+3. **Serving integration notes/reference API:** ~1-2 days
+
 ## Optional R&D lane (parallel, low-risk commitment)
 
 - explore parameter-efficient fine-tuning (LoRA/PEFT),
@@ -85,6 +103,11 @@ This plan builds on the implemented baseline and targets practical quality gains
 - prototype retrieval quality improvements with better embedding pooling.
 
 Keep this lane isolated from release-critical timelines until metrics justify promotion.
+
+### Optional R&D estimate
+
+- **Per experiment spike:** ~1-2 days
+- **Small batch (2-3 experiments):** ~3-5 days total
 
 ## Decision gates
 

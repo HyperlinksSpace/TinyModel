@@ -78,6 +78,48 @@ python scripts/phase1_compare.py \
 
 This same default check is wired in `.github/workflows/phase1-smoke.yml`.
 
+## Phase 2: Evaluation quality (datasets, errors, calibration)
+
+Training and pretrained fine-tuning now emit richer evaluation artifacts so reports support decisions beyond headline accuracy.
+
+| Artifact | What it contains |
+| -------- | ---------------- |
+| **`eval_report.json`** | Existing `reproducibility` + `metrics`, plus **`dataset_quality.class_distribution`** (train/eval counts and proportions per label on the capped subsets), **`error_analysis.top_confusions`** (largest off-diagonal confusion pairs), **`calibration.max_prob_histogram`** (bins over the winner softmax probability per eval example), and **`routing`** (documented fallback behavior for low-confidence routing; thresholds are not fixed by training). |
+| **`misclassified_sample.jsonl`** | Up to **`--max-misclassified-examples`** wrong predictions with `text`, `true_label`, `predicted_label`, `max_prob` (one JSON object per line). Use `0` to skip writing the file content beyond an empty run. |
+
+CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
+
+- `--max-misclassified-examples` (default `100`)
+- `--confidence-histogram-bins` (default `10`)
+- `--top-confusions` (default `20`)
+
+**Third reference dataset (SST-2)** — binary sentiment on GLUE, useful as an additional domain check:
+
+```bash
+python scripts/train_tinymodel1_sst2.py \
+  --output-dir .tmp/TinyModel-sst2 \
+  --max-train-samples 500 \
+  --max-eval-samples 200 \
+  --epochs 1 \
+  --batch-size 8 \
+  --seed 42
+```
+
+Quick Phase 2 smoke (AG News, small caps):
+
+```bash
+python scripts/train_tinymodel1_classifier.py \
+  --output-dir .tmp/phase2-smoke \
+  --max-train-samples 64 \
+  --max-eval-samples 32 \
+  --epochs 1 \
+  --batch-size 8 \
+  --seed 42 \
+  --max-misclassified-examples 20
+```
+
+Then inspect `.tmp/phase2-smoke/eval_report.json` (new sections) and `.tmp/phase2-smoke/misclassified_sample.jsonl`.
+
 Expected local output folder:
 
 - `.tmp/TinyModel-local/model.safetensors`
@@ -85,7 +127,8 @@ Expected local output folder:
 - `.tmp/TinyModel-local/tokenizer.json`
 - `.tmp/TinyModel-local/README.md`
 - `.tmp/TinyModel-local/artifact.json`
-- `.tmp/TinyModel-local/eval_report.json` — evaluation metrics, confusion matrix, and reproducibility fields (see below)
+- `.tmp/TinyModel-local/eval_report.json` — evaluation metrics, confusion matrix, reproducibility, and Phase 2 fields (class distribution, top confusions, calibration histogram, routing notes)
+- `.tmp/TinyModel-local/misclassified_sample.jsonl` — optional sample of errors for review (see Phase 2 section)
 
 ### Training script: evaluation and artifacts
 
@@ -99,8 +142,9 @@ The canonical training implementation is [`scripts/train_tinymodel1_classifier.p
 | **`infer_text_column()`** | Picks the text column if you do not pass `--text-column`. |
 | **`resolve_label_names()`** / **`build_label_maps()`** / **`rows_to_model_inputs()`** | Resolve class names, map raw labels to contiguous ids, and build `Dataset` columns for training. |
 | **`build_tokenizer()`** | Trains a WordPiece tokenizer on training texts and writes tokenizer files under the output dir. |
-| **`evaluate()`** | Runs the model on the eval `DataLoader`, collects predictions, builds a **confusion matrix** (rows = true class, columns = predicted), and returns an **`EvalMetrics`** object: accuracy, macro/weighted F1, per-class F1. |
-| **`write_eval_report()`** | Writes **`eval_report.json`**: `reproducibility` (seed, dataset, splits, columns, sample caps) and `metrics` (full matrix + `label_order`). |
+| **`evaluate()`** / **`evaluate_with_details()`** | Runs eval, builds the confusion matrix and **`EvalMetrics`**; **`evaluate_with_details`** also records per-example **max softmax** (winner) probability for calibration histograms. |
+| **`write_eval_report()`** | Writes **`eval_report.json`**: `reproducibility`, `metrics`, plus optional **`dataset_quality`**, **`error_analysis`**, **`calibration`**, **`routing`** (see Phase 2 section). |
+| **`write_misclassified_jsonl()`** | Writes **`misclassified_sample.jsonl`** (up to N lines) for manual error review. |
 | **`write_manifest()`** | Writes **`artifact.json`**: training config, labels, and summary metrics for downstream tooling. |
 | **`write_model_card()`** | Writes Hub-style **`README.md`** next to the weights (model card with eval summary). |
 | **`copy_model_card_image()`** | Optionally copies `TinyModel1Image.png` into the output dir for the card banner. |
@@ -115,6 +159,7 @@ Besides AG News ([`train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpa
 | ----------- | ------- | -------------------- |
 | [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) | `fancyzhx/ag_news` | `test` |
 | [`scripts/train_tinymodel1_emotion.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_emotion.py) | `emotion` | `validation` |
+| [`scripts/train_tinymodel1_sst2.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_sst2.py) | `glue` (`sst2`) | `validation` |
 
 **Equivalent explicit CLI** (if you prefer not to use the wrapper):
 

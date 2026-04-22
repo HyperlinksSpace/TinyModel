@@ -11,3 +11,9 @@ artifacts/**/.gitkeep
 artifacts/eval-smoke/
 artifacts/emotion-smoke/
 artifacts/finetune-smoke/
+# Phase 1 generated run outputs (large local artifacts)
+artifacts/phase1/runs/
+# Local debug/runtime crash files
+debug.log
+texts/debug.log
+*.stackdump

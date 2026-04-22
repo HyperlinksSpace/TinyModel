@@ -111,6 +111,24 @@ def parse_args() -> argparse.Namespace:
         default="HyperlinksSpace",
         help="Hugging Face org/user for model/Space links on the model card.",
     )
+    parser.add_argument(
+        "--max-misclassified-examples",
+        type=int,
+        default=100,
+        help="Write up to N misclassified eval rows to misclassified_sample.jsonl (0 disables).",
+    )
+    parser.add_argument(
+        "--confidence-histogram-bins",
+        type=int,
+        default=10,
+        help="Number of bins for max softmax probability histogram in eval_report.json.",
+    )
+    parser.add_argument(
+        "--top-confusions",
+        type=int,
+        default=20,
+        help="How many off-diagonal confusion pairs to record (sorted by count).",
+    )
     return parser.parse_args()
 
 
@@ -139,6 +157,15 @@ class TrainState:
     @property
     def eval_accuracy(self) -> float:
         return self.eval_metrics.accuracy
+
+
+@dataclass
+class EvalRunDetail:
+    """Per-example eval outputs (aligned with eval split row order)."""
+
+    true_ids: list[int]
+    pred_ids: list[int]
+    max_probs: list[float]
 
 
 def _parse_label_list(raw: str) -> list[str]:
@@ -574,9 +601,14 @@ def write_eval_report(
     args: argparse.Namespace,
     label_names: list[str],
     text_col: str,
+    *,
+    train_raw: Dataset | None = None,
+    eval_raw: Dataset | None = None,
+    raw_to_id: dict[object, int] | None = None,
+    detail: EvalRunDetail | None = None,
 ) -> None:
     m = state.eval_metrics
-    payload = {
+    payload: dict = {
         "reproducibility": {
             "seed": args.seed,
             "dataset": args.dataset,
@@ -602,7 +634,59 @@ def write_eval_report(
             "label_order": list(label_names),
         },
     }
+    if train_raw is not None and eval_raw is not None and raw_to_id is not None:
+        payload["dataset_quality"] = {
+            "class_distribution": class_distribution_summary(
+                train_raw, eval_raw, args.label_column, raw_to_id, label_names
+            ),
+        }
+    if detail is not None:
+        payload["error_analysis"] = {
+            "top_confusions": top_confusions_from_cm(
+                m.confusion_matrix, label_names, args.top_confusions
+            ),
+        }
+        payload["calibration"] = {
+            "max_prob_histogram": max_prob_histogram(
+                detail.max_probs, args.confidence_histogram_bins
+            ),
+        }
+        payload["routing"] = routing_threshold_notes()
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def write_misclassified_jsonl(
+    path: Path,
+    label_names: list[str],
+    detail: EvalRunDetail,
+    eval_texts: list[str],
+    max_examples: int,
+) -> int:
+    """Write up to max_examples wrong predictions with text. Returns lines written."""
+    if max_examples <= 0:
+        return 0
+    if len(eval_texts) != len(detail.true_ids):
+        raise ValueError("eval_texts length must match eval example count.")
+    rows: list[dict] = []
+    for text, ti, pi, mp in zip(
+        eval_texts, detail.true_ids, detail.pred_ids, detail.max_probs
+    ):
+        if ti == pi:
+            continue
+        rows.append(
+            {
+                "text": text,
+                "true_label": label_names[ti],
+                "predicted_label": label_names[pi],
+                "max_prob": round(float(mp), 6),
+            })
+        if len(rows) >= max_examples:
+            break
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for r in rows:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    return len(rows)
 
 
 def _metrics_from_confusion(
@@ -642,6 +726,40 @@ def _metrics_from_confusion(
     )
 
 
+def evaluate_with_details(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    num_labels: int,
+    label_names: list[str],
+) -> tuple[EvalMetrics, EvalRunDetail]:
+    model.eval()
+    all_labels: list[int] = []
+    all_preds: list[int] = []
+    all_max_probs: list[float] = []
+    with torch.no_grad():
+        for batch in loader:
+            labels = batch.pop("labels").to(device)
+            batch = {k: v.to(device) for k, v in batch.items()}
+            logits = model(**batch).logits
+            probs = torch.softmax(logits, dim=-1)
+            max_p, preds = probs.max(dim=-1)
+            all_labels.extend(labels.cpu().numpy().tolist())
+            all_preds.extend(preds.cpu().numpy().tolist())
+            all_max_probs.extend(max_p.cpu().numpy().tolist())
+
+    cm = np.zeros((num_labels, num_labels), dtype=np.int64)
+    for t, p in zip(all_labels, all_preds):
+        cm[int(t), int(p)] += 1
+    metrics = _metrics_from_confusion(cm, label_names)
+    detail = EvalRunDetail(
+        true_ids=list(map(int, all_labels)),
+        pred_ids=list(map(int, all_preds)),
+        max_probs=list(map(float, all_max_probs)),
+    )
+    return metrics, detail
+
+
 def evaluate(
     model: nn.Module,
     loader: DataLoader,
@@ -649,22 +767,120 @@ def evaluate(
     num_labels: int,
     label_names: list[str],
 ) -> EvalMetrics:
-    model.eval()
-    all_labels: list[int] = []
-    all_preds: list[int] = []
-    with torch.no_grad():
-        for batch in loader:
-            labels = batch.pop("labels").to(device)
-            batch = {k: v.to(device) for k, v in batch.items()}
-            logits = model(**batch).logits
-            preds = torch.argmax(logits, dim=-1)
-            all_labels.extend(labels.cpu().numpy().tolist())
-            all_preds.extend(preds.cpu().numpy().tolist())
+    m, _ = evaluate_with_details(
+        model, loader, device, num_labels=num_labels, label_names=label_names
+    )
+    return m
 
-    cm = np.zeros((num_labels, num_labels), dtype=np.int64)
-    for t, p in zip(all_labels, all_preds):
-        cm[int(t), int(p)] += 1
-    return _metrics_from_confusion(cm, label_names)
+
+def class_distribution_summary(
+    train_ds: Dataset,
+    eval_ds: Dataset,
+    label_col: str,
+    raw_to_id: dict[object, int],
+    label_names: list[str],
+) -> dict:
+    """Counts and proportions per class id for train/eval caps (post-shuffle subsets)."""
+
+    def _counts(ds: Dataset) -> dict[str, int]:
+        out: dict[str, int] = {name: 0 for name in label_names}
+        for x in ds[label_col]:
+            i = raw_to_id[x]
+            out[label_names[i]] += 1
+        return out
+
+    train_c = _counts(train_ds)
+    eval_c = _counts(eval_ds)
+    n_t = sum(train_c.values()) or 1
+    n_e = sum(eval_c.values()) or 1
+    return {
+        "train": {
+            "counts_by_label": train_c,
+            "proportions_by_label": {k: round(v / n_t, 6) for k, v in train_c.items()},
+            "total": int(n_t),
+        },
+        "eval": {
+            "counts_by_label": eval_c,
+            "proportions_by_label": {k: round(v / n_e, 6) for k, v in eval_c.items()},
+            "total": int(n_e),
+        },
+    }
+
+
+def top_confusions_from_cm(
+    confusion_matrix: list[list[int]],
+    label_names: list[str],
+    top_k: int,
+) -> list[dict[str, object]]:
+    """Off-diagonal pairs sorted by count descending."""
+    n = len(label_names)
+    pairs: list[tuple[int, int, int]] = []
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                continue
+            c = int(confusion_matrix[i][j])
+            if c > 0:
+                pairs.append((c, i, j))
+    pairs.sort(key=lambda t: (-t[0], t[1], t[2]))
+    out: list[dict[str, object]] = []
+    for c, i, j in pairs[: max(0, top_k)]:
+        out.append(
+            {
+                "true_label": label_names[i],
+                "predicted_label": label_names[j],
+                "count": c,
+            }
+        )
+    return out
+
+
+def max_prob_histogram(
+    max_probs: list[float],
+    num_bins: int,
+) -> dict[str, object]:
+    """Histogram of max softmax probability per eval example (calibration-oriented)."""
+    if num_bins < 1:
+        num_bins = 1
+    edges = [i / num_bins for i in range(num_bins + 1)]
+    counts = [0] * num_bins
+    for p in max_probs:
+        p = float(min(1.0, max(0.0, p)))
+        idx = min(num_bins - 1, int(p * num_bins))
+        counts[idx] += 1
+    bins_out: list[dict[str, object]] = []
+    for b in range(num_bins):
+        lo, hi = edges[b], edges[b + 1]
+        if b == num_bins - 1:
+            hi = 1.0
+        bins_out.append(
+            {
+                "bin_low": round(lo, 6),
+                "bin_high": round(hi, 6),
+                "count": int(counts[b]),
+            }
+        )
+    return {
+        "num_bins": num_bins,
+        "bins": bins_out,
+        "note": "Each eval example contributes one max softmax probability (winner class).",
+    }
+
+
+def routing_threshold_notes() -> dict[str, object]:
+    """Document product routing behavior; thresholds are not enforced in training."""
+    return {
+        "fallback_behavior": (
+            "At inference, if the maximum softmax probability is below `min_confidence`, "
+            "treat the prediction as low-confidence: route to human review, a secondary "
+            "model, or a safe default class—choose per product."
+        ),
+        "min_confidence": None,
+        "comment": (
+            "`min_confidence` is not set by training; typical starting range is 0.5–0.7 "
+            "for routing. Tune on a validation set using `max_prob` histogram and error analysis."
+        ),
+    }
 
 
 def resolve_device() -> torch.device:
@@ -708,6 +924,7 @@ def main() -> None:
 
     train_ds = rows_to_model_inputs(train_raw, text_col, args.label_column, raw_to_id)
     eval_ds = rows_to_model_inputs(eval_raw, text_col, args.label_column, raw_to_id)
+    eval_texts = list(eval_ds["text"])
 
     tokenizer = build_tokenizer(train_ds["text"], args.vocab_size, output_dir)
     config = BertConfig(
@@ -775,7 +992,7 @@ def main() -> None:
         last_loss = running_loss / max(1, steps)
         print(f"epoch={epoch + 1} train_loss={last_loss:.4f}")
 
-    eval_metrics = evaluate(
+    eval_metrics, eval_detail = evaluate_with_details(
         model, eval_loader, device, num_labels=num_labels, label_names=label_names
     )
     print(f"eval_accuracy={eval_metrics.accuracy:.4f}")
@@ -796,9 +1013,29 @@ def main() -> None:
     )
     write_model_card(output_dir / "README.md", state, args, label_names)
     write_manifest(output_dir / "artifact.json", state, args, label_names, text_col)
-    write_eval_report(output_dir / "eval_report.json", state, args, label_names, text_col)
+    write_eval_report(
+        output_dir / "eval_report.json",
+        state,
+        args,
+        label_names,
+        text_col,
+        train_raw=train_raw,
+        eval_raw=eval_raw,
+        raw_to_id=raw_to_id,
+        detail=eval_detail,
+    )
+    n_mis = write_misclassified_jsonl(
+        output_dir / "misclassified_sample.jsonl",
+        label_names,
+        eval_detail,
+        eval_texts,
+        args.max_misclassified_examples,
+    )
     print(f"Saved classifier to: {output_dir}")
-    print(f"Wrote eval_report.json with confusion matrix and per-class F1.")
+    print(
+        f"Wrote eval_report.json (dataset_quality, error_analysis, calibration, routing) "
+        f"and misclassified_sample.jsonl ({n_mis} rows)."
+    )
 
 
 if __name__ == "__main__":
