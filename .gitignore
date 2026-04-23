@@ -13,6 +13,9 @@ artifacts/emotion-smoke/
 artifacts/finetune-smoke/
 # Phase 1 generated run outputs (large local artifacts)
 artifacts/phase1/runs/
+# Horizon 1 three-dataset trained weights (summary is in texts/)
+artifacts/horizon1/three-tasks/
+artifacts/horizon1/three-tasks-summary.json
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

@@ -2,6 +2,8 @@
 
 This plan builds on the implemented baseline and targets practical quality gains before major architecture jumps.
 
+**Long-horizon vision (multi-year “universe brain” target, horizons and gates):** see [`further-development-universe-brain.md`](further-development-universe-brain.md)—separate from the tactical Phases 1–3 below.
+
 ## Delivery dynamics update (actual pace)
 
 - **Observed throughput:** Phase 1 completed + Phase 2 implementation prepared in changes in **~2 days total**.

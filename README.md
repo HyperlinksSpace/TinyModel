@@ -172,6 +172,16 @@ Expected local output folder:
 
 **Optional R&D spike ideas (not part of the release path)** — see [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
 
+## Horizon 1 (short term): one-shot verify, three tasks, RAG smoke
+
+This is the **A–C** tranche from [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md) (baseline closure, multi-dataset eval breadth, minimal FAQ-style retrieval). Full commands, what gets written, and how to test manually: **[`texts/horizon1-short-term-handbook.md`](texts/horizon1-short-term-handbook.md)**.
+
+| Block | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **A — Verify** | **Two commands** (do not put `then` on the `pip` line): `pip install -r optional-requirements-phase3.txt` then a **new** line: `python scripts/horizon1_verify_short_term_a.py`. Or: `pip install -r optional-requirements-phase3.txt && python scripts/horizon1_verify_short_term_a.py` (Git Bash / PowerShell 7+). Add `--skip-phase3` to skip ONNX. | Proves Phases 1–2 plus export/parity/benchmark in **one** local pass, aligned with `phase1-smoke` / `phase3-smoke` CI. |
+| **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary table: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md). Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
+| **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub) | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); template for support/FAQ products. |
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
@@ -277,7 +287,7 @@ This section summarizes the currently implemented components and their practical
 | **Pretrained fine-tune path** (`scripts/finetune_pretrained_classifier.py`) | Compare a pretrained encoder baseline (DistilBERT/BERT-family) against scratch training using same eval reporting format. | `python scripts/finetune_pretrained_classifier.py --output-dir artifacts/finetune-smoke --base-model distilbert-base-uncased --max-train-samples 400 --max-eval-samples 200 --epochs 1 --batch-size 8 --seed 42` | `artifacts/finetune-smoke/eval_report.json` + `artifact.json` exist; compare metrics to scratch run on same caps/seed. |
 | **Data hygiene guide** (`texts/labeling-and-data-hygiene.md`) | Lightweight rules for label quality, versioning, and leakage prevention when moving to custom/proprietary data. | Read the file and apply before collecting custom labels. | Label guide versioning and split hygiene rules are defined before annotation scale-up. |
 | **Kaggle→HF training workflow hardening** (`.github/workflows/train-via-kaggle-to-hf.yml`) | Make CI training/publish flow robust: stable auth handling, unique kernel slugs, resilient status polling, and clearer diagnostics. | Trigger workflow from GitHub Actions with `version`, `namespace`, train hyperparameters. | Workflow reaches model publish step and uploads `{namespace}/TinyModel{version}`. |
-| **Phase 3: ONNX, bench, API** (`scripts/phase3_*.py`, `texts/phase3-serving-profile.md`) | Export to ONNX, verify parity, CPU latency report, reference HTTP API. | `pip install -r optional-requirements-phase3.txt` then `python scripts/phase3_export_onnx.py --model <dir>` and `python scripts/phase3_onnx_parity.py` / `python scripts/phase3_benchmark.py` (see **Phase 3** section). | `onnx/*.onnx` present; benchmark under `artifacts/phase3/reports/`; parity exits 0. |
+| **Phase 3: ONNX, bench, API** (`scripts/phase3_*.py`, `texts/phase3-serving-profile.md`) | Export to ONNX, verify parity, CPU latency report, reference HTTP API. | Install **once** (`pip install -r optional-requirements-phase3.txt`); **then** in separate shell commands, run `python scripts/phase3_export_onnx.py --model <dir>`, `python scripts/phase3_onnx_parity.py`, `python scripts/phase3_benchmark.py` (see **Phase 3** section). Never append `then python` to the same line as `pip install`. | `onnx/*.onnx` present; benchmark under `artifacts/phase3/reports/`; parity exits 0. |
 
 ## 2) Using the Hub model and Space
 
