@@ -1,0 +1,11 @@
+# Optional dependencies for Horizon 2: local causal (generative) models
+# Install: pip install -r optional-requirements-horizon2.txt
+# Requires a working `torch` (match your platform / CUDA) from your main training install.
+
+transformers>=4.40.0
+accelerate>=0.30.0
+safetensors>=0.4.0
+
+# For scripts/horizon2_server.py (same as Phase 3):
+#   pip install -r optional-requirements-phase3.txt
+# or: fastapi>=0.110.0  uvicorn[standard]>=0.27.0  pydantic>=2.0.0

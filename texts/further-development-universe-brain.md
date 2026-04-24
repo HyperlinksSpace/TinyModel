@@ -86,6 +86,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 - **Side-by-side** eval vs. human or strong baseline on **domain** tasks.
 - **Latency and cost** envelopes documented per **tier** (CPU small model vs. GPU vs. API).
 
+**Implemented in this repository (MVP, local weights + JSON runs):** [`texts/horizon2-handbook.md`](horizon2-handbook.md) — `scripts/horizon2_core.py` (prompts, generation), `scripts/horizon2_generative.py` (CLI, `--verify`, optional `--compare-with`), `scripts/horizon2_server.py` (optional FastAPI; install Phase 3 style deps for HTTP), `optional-requirements-horizon2.txt`, and `.github/workflows/horizon2-smoke.yml` (runs `python scripts/horizon2_generative.py --verify`).
+
 ---
 
 ### Horizon 3 — **Persistent mind (memory + continuity)**

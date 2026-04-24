@@ -16,6 +16,10 @@ artifacts/phase1/runs/
 # Horizon 1 three-dataset trained weights (summary is in texts/)
 artifacts/horizon1/three-tasks/
 artifacts/horizon1/three-tasks-summary.json
+# Horizon 2 local run outputs (regenerable; handbook keeps usage)
+.tmp/horizon2/
+.tmp/horizon2-verify/
+artifacts/horizon2/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

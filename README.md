@@ -182,6 +182,27 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 | **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary table: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md). Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
 | **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub) | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); template for support/FAQ products. |
 
+## Horizon 2: generative core (open causal LM, JSON runs, optional API)
+
+**What it is:** a **local** [transformers](https://github.com/huggingface/transformers) path that turns text into new text: **summarize**, **reformulate**, and **grounded** (RAG context + answer) — aligned with the “Generative core” line in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md). It **does not** replace your classifier; it **complements** Horizon 1 (retrieval) and your Phase 1–3 stack.
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Install** | `pip install -r optional-requirements-horizon2.txt` (plus your existing `torch`) | Picks up `transformers` / `accelerate` for `AutoModelForCausalLM`. |
+| **Smoke verify** | `python scripts/horizon2_generative.py --verify` | One greedy generation with `sshleifer/tiny-gpt2` → proves downloads + wiring (not demo quality). |
+| **Real run** | `python scripts/horizon2_generative.py` or set `HORIZON2_MODEL=HuggingFaceTB/SmolLM2-360M-Instruct` | Writes `horizon2` JSON under `.tmp/horizon2/last_run.json` with per-sample **latency** and **token counts** for cost and tier planning. |
+| **Side-by-side** | add `--compare-with <other-hf-id>` | Same inputs, two model outputs in one JSON (Horizon 2 **exit** shaped like “A/B on domain tasks”). |
+| **+ RAG** | `--task grounded --context-file <chunk>` (or `--context "..."`) | Pairs [FAQ / retrieval](texts/rag_faq_corpus.md) with generation. |
+| **HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon2_server.py --smoke` | `GET /` lists routes; **Swagger UI:** `http://127.0.0.1:8766/docs` — `POST /v1/generate` (same product pattern as the Phase 3 reference server). |
+
+**Benefits (product / engineering):**
+
+- **Drafts and summaries** on top of the same org data and policies you already use for classification.
+- **One JSON contract** per run (`horizon2_generative_run/1.0`) for dashboards and regression checks (see [`texts/horizon2-handbook.md`](texts/horizon2-handbook.md)).
+- **Tier awareness:** smoke vs. default Instruct vs. your own API — documented in the handbook; latencies are recorded in the artifact.
+
+**CI:** `.github/workflows/horizon2-smoke.yml` runs `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
