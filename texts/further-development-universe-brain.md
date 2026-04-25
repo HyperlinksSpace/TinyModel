@@ -103,6 +103,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 - Privacy review artifacts; **DSR** (access/delete) story for stored memory.
 - Measured **utility** (e.g. retrieval hit rate, task success) vs. **risk** (leakage tests).
 
+**Implemented in this repository (MVP, local SQLite + audit):** [`texts/horizon3-handbook.md`](horizon3-handbook.md) — `scripts/horizon3_store.py` (session vs long-term, TTL, prune, export, forget), `scripts/horizon3_memory_cli.py` (`--verify`), optional `scripts/horizon3_memory_api.py` (FastAPI), `optional-requirements-horizon3.txt`, and `.github/workflows/horizon3-smoke.yml`.
+
 ---
 
 ### Horizon 4 — **Multimodal grounding**

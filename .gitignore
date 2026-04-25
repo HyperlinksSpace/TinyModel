@@ -20,6 +20,9 @@ artifacts/horizon1/three-tasks-summary.json
 .tmp/horizon2/
 .tmp/horizon2-verify/
 artifacts/horizon2/
+# Horizon 3 SQLite memory DBs (default under .tmp/horizon3)
+.tmp/horizon3/
+artifacts/horizon3/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

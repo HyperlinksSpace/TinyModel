@@ -1,0 +1,4 @@
+# Horizon 3 core (horizon3_store + horizon3_memory_cli) uses only the Python stdlib (sqlite3).
+#
+# Optional HTTP API (horizon3_memory_api.py):
+#   pip install -r optional-requirements-phase3.txt

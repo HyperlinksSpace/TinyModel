@@ -203,6 +203,26 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon2-smoke.yml` runs `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
+## Horizon 3: persistent mind (session + long-term memory, audit, DSR-shaped export)
+
+**What it is:** a **local SQLite** memory layer for **org/user `scope_key`**, with **`session`** vs **`long_term`** rows, optional **TTL** + **`prune`**, an **audit log**, **export** (access-shaped JSON), and **`forget-scope`** (delete all data for a scope). See [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md) — *Persistent mind*.
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Self-test** | `python scripts/horizon3_memory_cli.py --verify` | No network; validates CRUD, export, session clear, TTL prune, forget. |
+| **Daily use** | `python scripts/horizon3_memory_cli.py put|get|list|export|forget-scope|clear-session|prune|audit` (see `-h`) | Editable, auditable, deletable memory — not an opaque vector dump. |
+| **Optional HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon3_memory_api.py` | **http://127.0.0.1:8767/docs** — `put` / `list` / `export` / `forget` (default port **8767**; set `HORIZON3_DB`). |
+
+**Benefits**
+
+- **Product:** carry **continuity** across sessions (long-term) while **dropping chat noise** (session clear) or **expiring** junk (TTL + prune).
+- **Governance:** **audit** trail for creates/updates/deletes; **export** supports access requests; **forget-scope** supports erasure for a tenant id (you still own legal review and scope design).
+- **Engineering:** **stdlib-only** store and CLI — no new pip packages for the core; optional FastAPI matches Phase 3 patterns.
+
+**Manual test recipe:** [`texts/horizon3-handbook.md`](texts/horizon3-handbook.md).
+
+**CI:** `.github/workflows/horizon3-smoke.yml` runs `horizon3_memory_cli.py --verify` (offline).
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
