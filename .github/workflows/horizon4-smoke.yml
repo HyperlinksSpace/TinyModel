@@ -1,0 +1,32 @@
+# Horizon 4: synthetic CLIP forward (no Hub download)
+name: horizon4-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install torch + transformers
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install 'transformers>=4.40.0' -q
+      - name: Run Horizon 4 --verify
+        run: python scripts/horizon4_multimodal.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon4-verify/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==4; print('ok')"

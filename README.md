@@ -223,6 +223,23 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon3-smoke.yml` runs `horizon3_memory_cli.py --verify` (offline).
 
+## Horizon 4: multimodal grounding (image + text, CLIP alignment)
+
+**What it is:** a **CLIP**-style path (Hugging Face `transformers`: **image + caption** → one alignment `logit`) for “does this picture go with this text?” — a narrow slice of **multimodal grounding** from [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md). **Audio** and automated **moderation** are **not** in this script; add them in product layers.
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Install** | `pip install -r optional-requirements-horizon4.txt` (and `torch` + `transformers` for real Hub models) | Adds **Pillow**; reuses the same PyTorch stack as the rest of the repo. |
+| **CI / offline verify** | `python scripts/horizon4_multimodal.py --verify` | **No Hub download** — random `CLIPConfig` + `CLIPModel` forward; proves the wiring. On **Windows** this uses a **subprocess** and OpenMP env defaults to avoid native crashes; if PyTorch still fails, see the handbook. |
+| **Pretrained check** | `python scripts/horizon4_multimodal.py --verify-pretrained` | Loads **`HORIZON4_CLIP_MODEL`** (default `openai/clip-vit-base-patch32`) if cached/online. |
+| **Real photo + text** | `python scripts/horizon4_multimodal.py --image <file> --text "<caption>"` | JSON under `.tmp/horizon4/last_run.json` with `logit_image_text` for triage, QA, or internal benchmarks. |
+
+**Benefits:** one **concrete** image–text score next to your text-only classifiers; **governance** still needs human/review for abuse; **smoke** stays **offline** and fast in CI.
+
+**Manual steps:** [`texts/horizon4-handbook.md`](texts/horizon4-handbook.md)
+
+**CI:** `.github/workflows/horizon4-smoke.yml` runs `horizon4_multimodal.py --verify` (no network).
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

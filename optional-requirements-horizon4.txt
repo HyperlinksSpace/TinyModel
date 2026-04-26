@@ -1,0 +1,12 @@
+# Horizon 4: image + text alignment (CLIP) — add to your existing torch + transformers stack
+# Install: pip install -r optional-requirements-horizon4.txt
+# You also need torch + transformers (see optional-requirements-horizon2.txt or your main env).
+#
+# numpy/scipy/sklearn: transformers pulls these (via generation → sklearn). On Windows, a broken
+# scipy wheel can raise ImportError: initialization failed when importing CLIP — reinstall:
+#   pip install --upgrade --force-reinstall "numpy" "scipy" "scikit-learn"
+
+Pillow>=9.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+scikit-learn>=1.3.0

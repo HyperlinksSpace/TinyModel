@@ -23,6 +23,11 @@ artifacts/horizon2/
 # Horizon 3 SQLite memory DBs (default under .tmp/horizon3)
 .tmp/horizon3/
 artifacts/horizon3/
+# Horizon 4 CLIP / verify output
+.tmp/horizon4/
+.tmp/horizon4-verify/
+.tmp/horizon4-verify-pretrained/
+artifacts/horizon4/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

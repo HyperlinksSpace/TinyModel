@@ -119,6 +119,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 - **Benchmark slice** (internal or public) for each modality you ship.
 - **Abuse and bias** review before broad launch.
 
+**Implemented in this repository (MVP, image + text only):** [`texts/horizon4-handbook.md`](horizon4-handbook.md) — `scripts/horizon4_multimodal.py` (CLIP-style alignment, JSON `horizon4_multimodal_run/1.0`), `optional-requirements-horizon4.txt` (Pillow), and `.github/workflows/horizon4-smoke.yml` (offline `python scripts/horizon4_multimodal.py --verify` using a synthetic random `CLIPConfig` + `CLIPModel`). Pretrained CLIP and manual `--verify-pretrained` are documented in the handbook; audio and production moderation are out of scope for this file.
+
 ---
 
 ### Horizon 5 — **“Universe” scale (selective, lab-heavy)**
