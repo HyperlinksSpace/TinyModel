@@ -240,6 +240,36 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon4-smoke.yml` runs `horizon4_multimodal.py --verify` (no network).
 
+## Horizon 6: converged stack (chain H2 + H3 + H4)
+
+**What it is:** a **thin smoke orchestrator** from [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md) (*Converged stack*)—one command runs the **existing** generative, memory, and CLIP smokes in order and writes **one** JSON file (`horizon6_converged_run/1.0`).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Install** | `pip install` **torch** (CPU is fine) + `pip install -r optional-requirements-horizon2.txt` + `pip install -r optional-requirements-horizon4.txt` | H2 and H4 share a **transformers** stack; H3 stays **stdlib**-only. |
+| **Converged verify** | `python scripts/horizon6_converged_smoke.py --verify` | Chains: `horizon2_generative.py --verify` → `horizon3_memory_cli.py --verify` → `horizon4_multimodal.py --verify`. Output: `.tmp/horizon6-converge/run.json`. |
+| **Optional RAG** | same command with `--with-rag` | Also runs `rag_faq_smoke.py` (needs a **trained** `config.json` dir or Hub **download**; can fail in air-gapped envs). |
+
+**What is still *not* H6 (full exit):** a **single** production **runtime** and router, one **auth/tenant** story, and a real **incident runbook**—this repo only proves **component** smokes in sequence.
+
+**How to test (local):** install deps as above, then `python scripts/horizon6_converged_smoke.py --verify`. Expect exit **0** and `ok: true` in the JSON; H2 may hit the Hub once for `sshleifer/tiny-gpt2` if not cached. **Faster one-offs:** run each horizon’s `--verify` alone (see Horizon 2–4 sections above).
+
+**CI:** `.github/workflows/horizon6-smoke.yml` runs the same command on **CPU** in GitHub Actions.
+
+## Horizon 7: assured platform (tenant isolation smoke)
+
+**What it is:** a **stdlib-only** check that two **separate** SQLite files (two “tenants”) do **not** share memory rows or exports, using the same **Horizon 3** store as the rest of the repo. This is a **toy** for **H7 isolation** from [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md)—not legal/compliance by itself.
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Self-test** | `python scripts/horizon7_assured_smoke.py --verify` | No **torch**; output `.tmp/horizon7-assured/run.json` (`horizon7_assured_run/1.0`) with per-check `ok` flags. |
+
+**What is still *not* H7 (full exit):** **repeatable** tenant onboarding, **regulatory** evidence packs, **external** audit, **SLAs**, **quotas**—treat the script as a **developer** check only.
+
+**How to test (local):** `python scripts/horizon7_assured_smoke.py --verify` — should print `horizon7 verify: OK` and write JSON with all checks `ok: true`.
+
+**CI:** `.github/workflows/horizon7-smoke.yml` runs the same command (no extra pip deps).
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

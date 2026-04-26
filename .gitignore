@@ -28,6 +28,11 @@ artifacts/horizon3/
 .tmp/horizon4-verify/
 .tmp/horizon4-verify-pretrained/
 artifacts/horizon4/
+# Horizon 6–7 local smoke (regenerable)
+.tmp/horizon6-converge/
+.tmp/horizon7-assured/
+artifacts/horizon6/
+artifacts/horizon7/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

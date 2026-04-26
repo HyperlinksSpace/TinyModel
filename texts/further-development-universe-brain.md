@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack: what to build **after** the encoder line is mature, with **horizons** and **gates**. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–7**): what to build **after** the encoder line is mature, with **gates**, a **converged** orchestration stage (H6), and an **assured platform** stage (H7) for scale and trust. |
 
 ---
 
@@ -57,6 +57,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 **Exit (already aligned with `further-development-plan.md`):** reproducible training, ONNX path, benchmark report, reference API doc.
 
+**Implemented in this repository:** the **tactical** spine in [`further-development-plan.md`](further-development-plan.md) (Phases 1–3: training, eval reports, ONNX, packaging), plus CI on the default branch for the main smoke/verify paths. This horizon is the **foundation** for all later `horizonK-*` handbooks.
+
 ---
 
 ### Horizon 1 — **Multi-task text intelligence (single org, many tasks)**
@@ -71,6 +73,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 - At least **N** distinct tasks (e.g. classification + retrieval + light extraction) sharing one **runtime** and **observability** story.
 - Documented **failure modes** and **rollback** for production.
+
+**Implemented in this repository (MVP, short-term A–C, not the full H1 exit):** [`horizon1-short-term-handbook.md`](horizon1-short-term-handbook.md) — `scripts/horizon1_verify_short_term_a.py`, `scripts/horizon1_three_datasets.py`, `scripts/rag_faq_smoke.py` with [`rag_faq_corpus.md`](rag_faq_corpus.md). Full **H1 exit** (one production runtime, unified observability) is still a **target**; see the short-term block and [`further-development-plan.md`](further-development-plan.md).
 
 ---
 
@@ -121,6 +125,8 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 **Implemented in this repository (MVP, image + text only):** [`texts/horizon4-handbook.md`](horizon4-handbook.md) — `scripts/horizon4_multimodal.py` (CLIP-style alignment, JSON `horizon4_multimodal_run/1.0`), `optional-requirements-horizon4.txt` (Pillow), and `.github/workflows/horizon4-smoke.yml` (offline `python scripts/horizon4_multimodal.py --verify` using a synthetic random `CLIPConfig` + `CLIPModel`). Pretrained CLIP and manual `--verify-pretrained` are documented in the handbook; audio and production moderation are out of scope for this file.
 
+**Remaining to reach full H4 exit (benchmark + governance):** a **multimodal eval slice** (internal or public) and an **abuse/bias** review before broad launch; shared **safety** hooks across text + image are **not** yet unified in this repo.
+
 ---
 
 ### Horizon 5 — **“Universe” scale (selective, lab-heavy)**
@@ -131,6 +137,44 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 - **Publication-level** clarity on **limitations**; no silent production drift.
 - **Kill criteria** if reliability or safety regress beyond agreed thresholds.
+
+**In this repository:** **no** dedicated MVP (by design). Use [`optional-rd-backlog.md`](optional-rd-backlog.md) and the commercial ladder in [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) for **lab** spikes; pass **decision gates** before any product commitment.
+
+---
+
+### Horizon 6 — **Converged stack (orchestrated “brain” slice)**
+
+**Goal:** after individual horizons have **credible** MVPs, **compose** them into **one** governed system—not a monolithic “brain” model, but a **routed** stack: the same **policy, audit, and observability** no matter which capability runs (classify, retrieve, generate, read/write memory, image–text score).
+
+- **Routing** to the right sub-capability with explicit **deny/allow** and **logging**; **degradation** when a provider or model is down.
+- **Single contract** for JSON/event logs and eval, so you can **reason** about end-to-end behavior in incidents.
+- **Cost and latency** envelopes per path (CPU encoder vs. API LLM vs. CLIP, etc.).
+
+**Exit criteria**
+
+- **One** documented **end-to-end** path (scripts and/or a reference API) that exercises **at least three** of: encoder/classification, RAG, generative (H2), memory (H3), multimodal (H4).
+- A **runbook** for common failures: retrieval empty, model timeout, memory quota, multimodal off.
+
+**Implemented in this repository (MVP, thin orchestration):** `scripts/horizon6_converged_smoke.py` — `--verify` runs **H2** (`horizon2_generative.py --verify`), **H3** (`horizon3_memory_cli.py --verify`), and **H4** (`horizon4_multimodal.py --verify`) in sequence; writes `horizon6_converged_run/1.0` JSON under `.tmp/horizon6-converge/run.json`. Optional `--with-rag` appends `rag_faq_smoke.py` (needs a local encoder or Hub). **Not done yet vs. full exit:** a **single** production runtime, unified **routing** policy, and a written **runbook** beyond the chained verifiers.
+
+---
+
+### Horizon 7 — **Trust, scale, and ecosystem (assured platform)**
+
+**Goal:** an H6-style stack is **internally** coherent; **broad** deployment needs **external** trust: **multi-tenant** isolation, **compliance** and **evidence** for buyers and regulators, and—where it makes sense—a **controlled ecosystem** (partners, registered tools) that still flows through **your** policy, audit, and logging—not ad hoc integrations.
+
+- **Isolation** — strong **boundaries** between orgs/tenants for data, memory, and configuration; **blast-radius** limits when something fails.
+- **Compliance & assurance** — **DSR**, retention, regional and **sector** playbooks as **product** artifacts, not one-off legal memos; paths to **external** review on a **defined** scope.
+- **Ecosystem (optional)** — third-party capabilities exposed as **tools** under **contract** (schemas, timeouts, denylists), not arbitrary side effects.
+- **Economics at scale** — **quotas**, tiers, and support boundaries tied to **observable** SLOs and cost visibility.
+
+**Exit criteria**
+
+- **Repeatable** onboarding of a **new** tenant (or large customer) **without** bespoke engineering for every deal.
+- **Audit materials** and **incident** narrative that a **stakeholder** (customer security, regulator in bounded scope) can follow—**including** clear statements of what you **do not** claim.
+- **No silent universality** — limits and **kill** criteria are **published** to customers, not only internal runbooks.
+
+**Implemented in this repository (MVP, isolation demo only):** `scripts/horizon7_assured_smoke.py` — `--verify` uses two **separate** SQLite files with the **same** `scope_key` to show **no crosstalk** (export, `get`, `forget-scope`); writes `horizon7_assured_run/1.0` under `.tmp/horizon7-assured/run.json`. **Not done yet vs. full exit:** **multi-tenant** product **onboarding**, **regional** or **compliance** packs, **external** audit artifacts, **partner** ecosystem, **economics** — those remain org-level work, not a script.
 
 ---
 
@@ -145,11 +189,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–7**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6** (converged stack) is the **next** technical **composition** step; **H7** (assured platform) is the **next** **trust and scale** step once a composed stack is credible.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; the same applies before composing paths toward **H6**, and before promising **H7**-class deployments to many tenants.
 
 ---
 
@@ -158,6 +203,7 @@ Short list that connects **this** repo to **Horizon 1** without waiting for a �
 - **Over-promising** “universe” or “brain” externally while the stack is still a **specialized text pipeline**—**avoid**; use this doc **internally** for alignment.
 - **Memory + agency** without **security** and **governance** invite incidents; **Horizon 3** is not “more parameters,” it is **more responsibility**.
 - **Scope creep** across horizons without **gates** burns budget; sequence matters.
+- **Horizon 7**-style **multi-tenant** or **compliance** promises without **engineered** isolation and **contractual** clarity invite breach and **regulatory** exposure.
 
 ---
 

@@ -1,0 +1,35 @@
+# Horizon 6: chain H2 + H3 + H4 --verify (H6 converged smoke)
+name: horizon6-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install torch + horizon2 + horizon4 stacks
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r optional-requirements-horizon2.txt
+          python -m pip install -r optional-requirements-horizon4.txt
+      - name: Run Horizon 6 --verify
+        env:
+          HF_HUB_ENABLE_HF_TRANSFER: 1
+        run: python scripts/horizon6_converged_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon6-converge/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==6 and d['schema']=='horizon6_converged_run/1.0'; assert len(d.get('steps',[]))==3; print('ok')"
