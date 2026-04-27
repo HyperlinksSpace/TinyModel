@@ -1,0 +1,27 @@
+# Horizon 21: retention purge eligibility (stdlib)
+name: horizon21-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 21 --verify
+        run: python scripts/horizon21_retention_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon21-retention/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==21; assert d['schema']=='horizon21_retention_run/1.0'; print('ok')"

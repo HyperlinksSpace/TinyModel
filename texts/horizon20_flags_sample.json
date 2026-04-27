@@ -1,0 +1,30 @@
+{
+  "schema": "horizon20_flags_sample/1.0",
+  "salt": "demo-salt-h20",
+  "note": "Staged rollout: deterministic bucket via SHA-256(salt:subject) mod 100 vs rollout_percent.",
+  "flags": [
+    {
+      "id": "copilot_beta",
+      "enabled": true,
+      "rollout_percent": 50
+    },
+    {
+      "id": "danger_zone",
+      "enabled": false,
+      "rollout_percent": 100
+    },
+    {
+      "id": "full_rollout_off_switch",
+      "enabled": true,
+      "rollout_percent": 100
+    }
+  ],
+  "expect_vectors": [
+    { "subject": "alice", "flag_id": "copilot_beta", "expect_on": true },
+    { "subject": "bob", "flag_id": "copilot_beta", "expect_on": true },
+    { "subject": "carol", "flag_id": "copilot_beta", "expect_on": false },
+    { "subject": "tenant:z", "flag_id": "copilot_beta", "expect_on": true },
+    { "subject": "alice", "flag_id": "danger_zone", "expect_on": false },
+    { "subject": "alice", "flag_id": "full_rollout_off_switch", "expect_on": true }
+  ]
+}

@@ -49,10 +49,14 @@ artifacts/horizon14/
 .tmp/horizon17-degrade/
 .tmp/horizon18-readiness/
 .tmp/horizon19-audit-chain/
+.tmp/horizon20-flags/
+.tmp/horizon21-retention/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
 artifacts/horizon19/
+artifacts/horizon20/
+artifacts/horizon21/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

@@ -1,0 +1,17 @@
+{
+  "schema": "horizon21_retention_sample/1.0",
+  "note": "Category retention_days vs synthetic records; purge-eligible when age >= retention.",
+  "as_of": "2026-04-26",
+  "tiers": [
+    { "category": "session_cache", "retention_days": 7 },
+    { "category": "audit_logs", "retention_days": 365 },
+    { "category": "analytics_aggregate", "retention_days": 90 }
+  ],
+  "records": [
+    { "id": "r1", "category": "session_cache", "created": "2026-04-20", "expect_eligible": false },
+    { "id": "r2", "category": "session_cache", "created": "2026-04-01", "expect_eligible": true },
+    { "id": "r3", "category": "audit_logs", "created": "2025-01-01", "expect_eligible": true },
+    { "id": "r4", "category": "audit_logs", "created": "2026-03-01", "expect_eligible": false },
+    { "id": "r5", "category": "analytics_aggregate", "created": "2025-12-01", "expect_eligible": true }
+  ]
+}

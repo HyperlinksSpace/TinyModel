@@ -438,6 +438,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon19-smoke.yml`.
 
+## Horizon 20: feature flags (deterministic rollout)
+
+**What it is:** **hash bucket** vs **rollout_percent** for staged releases — see *Feature flags & staged rollout* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Flags verify** | `python scripts/horizon20_flags_smoke.py --verify` | Loads [`texts/horizon20_flags_sample.json`](texts/horizon20_flags_sample.json); writes `.tmp/horizon20-flags/run.json` (`horizon20_flags_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H20 (full exit):** hosted flag services, experiments UI, audit exports.
+
+**How to test (local):** `python scripts/horizon20_flags_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon20-smoke.yml`.
+
+## Horizon 21: retention tiers (purge eligibility)
+
+**What it is:** **category TTL** vs synthetic records at a fixed **as_of** date — see *Data retention & purge eligibility* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Retention verify** | `python scripts/horizon21_retention_smoke.py --verify` | Loads [`texts/horizon21_retention_sample.json`](texts/horizon21_retention_sample.json); writes `.tmp/horizon21-retention/run.json` (`horizon21_retention_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H21 (full exit):** legal holds, distributed backups, scheduler integration.
+
+**How to test (local):** `python scripts/horizon21_retention_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon21-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
