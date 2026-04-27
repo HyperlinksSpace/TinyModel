@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–11**): through **H9** policy, **H10** unit budgets, **H11** feedback capture—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–13**): through **H11** feedback, plus **H12** provenance hashes and **H13** resilience patterns—then product layers beyond this repo. |
 
 ---
 
@@ -240,6 +240,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 12 — **Provenance & integrity manifest (supply-chain shaped)**
+
+**Goal:** ship **fingerprints** (hashes) for **pinned** configs and artifacts so CI and auditors can detect **tampering** or **drift** without trusting a single opaque binary. Pairs with signed releases in mature orgs.
+
+- **Extend** with **Sigstore**, **in-toto**, or **SBOM** links in production.
+
+**Exit criteria**
+
+- **Signed** attestations or **immutable** build provenance for every **release** artifact.
+
+**Implemented in this repository (MVP):** `scripts/horizon12_provenance_smoke.py` — `--verify` computes **SHA-256** for pinned `texts/*.json` policy/budget samples and writes `horizon12_provenance_run/1.0` under `.tmp/horizon12-provenance/run.json`. **Not done yet vs. full exit:** **signing**, **timestamping**, **registry** integration.
+
+---
+
+### Horizon 13 — **Resilience: circuit breaker (dependency hardening)**
+
+**Goal:** stop **cascading failures** when an **LLM**, **DB**, or **tool** is unhealthy: **fail fast** after repeated errors, **recover** cautiously (**half-open** probe), then resume. Complements **H8** probes and **H10** budgets.
+
+- **Production** adds **timeouts**, **jitter**, **per-tenant** breakers, and **metrics**.
+
+**Exit criteria**
+
+- **Measured** error budget and **SLO** for dependency **availability**; **playbooks** for **OPEN** state.
+
+**Implemented in this repository (MVP):** `scripts/horizon13_circuit_smoke.py` — `--verify` drives a tiny **CLOSED → OPEN → HALF_OPEN → CLOSED** state machine and writes `horizon13_circuit_run/1.0` under `.tmp/horizon13-circuit/run.json`. **Not done yet vs. full exit:** **async** integration, **distributed** coordination, **live** traffic metrics.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -251,12 +279,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–11**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–13**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H11** add **budget** envelopes and **feedback** JSONL—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H13** add **budget**, **feedback**, **hash manifests**, and **circuit-breaker** demos—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H11** add **probes**, **policy**, **budgets**, and **feedback** shapes in-repo as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H13** add **operational** shapes (probes, policy, budget, feedback, integrity, resilience) as **tests and contracts**, not only narrative.
 
 ---
 

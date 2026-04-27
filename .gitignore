@@ -39,7 +39,10 @@ artifacts/horizon8/
 .tmp/horizon10-budget/
 .tmp/horizon11-feedback/
 artifacts/horizon10/
-artifacts/horizon11/
+.tmp/horizon12-provenance/
+.tmp/horizon13-circuit/
+artifacts/horizon12/
+artifacts/horizon13/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

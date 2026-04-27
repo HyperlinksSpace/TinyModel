@@ -326,6 +326,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon11-smoke.yml`.
 
+## Horizon 12: provenance manifest (SHA-256 of pinned configs)
+
+**What it is:** **Integrity fingerprints** for committed sample policies/budgets—see *Provenance & integrity manifest* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Provenance verify** | `python scripts/horizon12_provenance_smoke.py --verify` | Writes `.tmp/horizon12-provenance/run.json` (`horizon12_provenance_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H12 (full exit):** signing, timestamp authorities, in-toto/Sigstore.
+
+**How to test (local):** `python scripts/horizon12_provenance_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon12-smoke.yml`.
+
+## Horizon 13: circuit breaker (resilience demo)
+
+**What it is:** a **state-machine** exercise for **OPEN / HALF_OPEN / CLOSED** around a failing upstream—see *Resilience: circuit breaker* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Circuit verify** | `python scripts/horizon13_circuit_smoke.py --verify` | Writes `.tmp/horizon13-circuit/run.json` (`horizon13_circuit_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H13 (full exit):** async middleware, distributed coordination, production metrics.
+
+**How to test (local):** `python scripts/horizon13_circuit_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon13-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
