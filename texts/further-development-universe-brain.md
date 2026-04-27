@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–15**): through **H13** resilience, plus **H14** workflow DAGs and **H15** data-minimization exports—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–17**): through **H15** export envelopes, plus **H16** semver contracts and **H17** degradation tiers—then product layers beyond this repo. |
 
 ---
 
@@ -296,6 +296,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 16 — **Compatibility & versioning (artifact semver)**
+
+**Goal:** JSON **run artifacts** (`horizonN_*_run/1.0`) evolve; **clients** (CLIs, dashboards, replay tools) must declare **which producer versions** they accept—avoid silent mis-parse after a breaking field change.
+
+- **Semantic versioning** discipline per artifact family; **migration** notes when majors bump.
+
+**Exit criteria**
+
+- **Automated** compatibility matrix in CI for **consumer** ↔ **producer** pairs.
+
+**Implemented in this repository (MVP):** `texts/horizon16_compat_manifest_sample.json` + `scripts/horizon16_semver_smoke.py` — `--verify` compares **numeric x.y.z** tuples (`reader_minimum` vs declared artifact versions) and writes `horizon16_semver_run/1.0` under `.tmp/horizon16-semver/run.json`. **Not done yet vs. full exit:** **PEP 440**, **calver**, **mixed** schemas.
+
+---
+
+### Horizon 17 — **Graceful degradation (service tiers)**
+
+**Goal:** when health drops—**deps**, **budget**, **circuit breaker**—the product should **step down** capabilities (rich UI → cached answers → static fallback → read-only notice), not fail **opaquely**.
+
+- Align **tier** with **SLO** promises and **support** messaging.
+
+**Exit criteria**
+
+- **Documented** behavior per tier for **every** paid SKU.
+
+**Implemented in this repository (MVP):** `scripts/horizon17_degrade_smoke.py` — `--verify` maps a **health score** to **FULL / DEGRADED / MINIMAL / OFFLINE** and writes `horizon17_degrade_run/1.0` under `.tmp/horizon17-degrade/run.json`. **Not done yet vs. full exit:** **live** scores from probes (**H8**), **customer-facing** status pages.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -307,12 +335,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–15**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–17**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H15** add **budget**, **feedback**, **hashes**, **circuit breaker**, **DAG** order, **export** envelopes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H15** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H17** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

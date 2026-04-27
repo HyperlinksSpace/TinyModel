@@ -1,0 +1,10 @@
+{
+  "schema": "horizon16_compat_manifest_sample/1.0",
+  "note": "Consumer must accept artifacts produced at semver >= reader_min (simple tuple compare x.y.z).",
+  "reader_minimum": "1.0.0",
+  "artifacts_declared": {
+    "horizon6_converged_run": "1.0.0",
+    "horizon15_export_run": "1.1.0",
+    "future_format": "2.0.0"
+  }
+}

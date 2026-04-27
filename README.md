@@ -382,6 +382,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon15-smoke.yml`.
 
+## Horizon 16: semver compatibility (artifact readers)
+
+**What it is:** a **manifest** of declared artifact versions vs a **minimum reader** — see *Compatibility & versioning* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Semver verify** | `python scripts/horizon16_semver_smoke.py --verify` | Writes `.tmp/horizon16-semver/run.json` (`horizon16_semver_run/1.0`). **Stdlib only** (numeric `x.y.z`). |
+
+**What is still *not* H16 (full exit):** full PEP 440, automated matrix across all consumers.
+
+**How to test (local):** `python scripts/horizon16_semver_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon16-smoke.yml`.
+
+## Horizon 17: degradation tiers (health → FULL…OFFLINE)
+
+**What it is:** a **deterministic ladder** from a 0–100 **health score** to **FULL / DEGRADED / MINIMAL / OFFLINE** — see *Graceful degradation* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Degrade verify** | `python scripts/horizon17_degrade_smoke.py --verify` | Writes `.tmp/horizon17-degrade/run.json` (`horizon17_degrade_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H17 (full exit):** wired probes, status pages, per-SKU docs.
+
+**How to test (local):** `python scripts/horizon17_degrade_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon17-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

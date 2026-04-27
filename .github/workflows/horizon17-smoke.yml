@@ -1,0 +1,27 @@
+# Horizon 17: degradation tier ladder (stdlib)
+name: horizon17-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 17 --verify
+        run: python scripts/horizon17_degrade_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon17-degrade/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==17; assert d['schema']=='horizon17_degrade_run/1.0'; print('ok')"

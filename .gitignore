@@ -45,7 +45,10 @@ artifacts/horizon12/
 .tmp/horizon14-workflow/
 .tmp/horizon15-export/
 artifacts/horizon14/
-artifacts/horizon15/
+.tmp/horizon16-semver/
+.tmp/horizon17-degrade/
+artifacts/horizon16/
+artifacts/horizon17/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
