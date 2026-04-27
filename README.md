@@ -410,6 +410,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon17-smoke.yml`.
 
+## Horizon 18: operational readiness (phased checklist)
+
+**What it is:** **launch / game-day** gates from structured phases and checks — see *Operational readiness* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Readiness verify** | `python scripts/horizon18_readiness_smoke.py --verify` | Loads [`texts/horizon18_readiness_sample.json`](texts/horizon18_readiness_sample.json); writes `.tmp/horizon18-readiness/run.json` (`horizon18_readiness_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H18 (full exit):** CI wiring for every check, paging, rehearsal calendars.
+
+**How to test (local):** `python scripts/horizon18_readiness_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon18-smoke.yml`.
+
+## Horizon 19: audit hash chain (tamper detection)
+
+**What it is:** a linear **SHA-256** chain over synthetic audit events — see *Tamper-evident audit trail* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Chain verify** | `python scripts/horizon19_audit_chain_smoke.py --verify` | Writes `.tmp/horizon19-audit-chain/run.json` (`horizon19_audit_chain_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H19 (full exit):** signing keys, Merkle batches, WORM storage.
+
+**How to test (local):** `python scripts/horizon19_audit_chain_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon19-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–17**): through **H15** export envelopes, plus **H16** semver contracts and **H17** degradation tiers—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–19**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18** operational readiness gates; **H19** tamper-evident audit chains—then product layers beyond this repo. |
 
 ---
 
@@ -324,6 +324,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 18 — **Operational readiness (launch / game-day checklist)**
+
+**Goal:** ship releases and incidents with **explicit gates**, not tribal knowledge—especially when AI surfaces depend on **deps**, **budget**, **circuit breakers**, and **policy**. Structured **phases** (pre-deploy, launch window) with **required** vs optional checks mirror **SOC** / **SRE** practice.
+
+- Wire **checks** to **automated** probes where possible; human **sign-offs** where not.
+
+**Exit criteria**
+
+- **Runbook** runs **every** release train; **failed required checks** block promote.
+
+**Implemented in this repository (MVP):** `texts/horizon18_readiness_sample.json` + `scripts/horizon18_readiness_smoke.py` — `--verify` walks phased **checks** with simulated pass/fail (demo fails only ids containing `_fail_demo`) and writes `horizon18_readiness_run/1.0` under `.tmp/horizon18-readiness/run.json`. **Not done yet vs. full exit:** **integrations** with CI, paging, **freeze windows**, **dry-run** rehearsals.
+
+---
+
+### Horizon 19 — **Tamper-evident audit trail (hash chain)**
+
+**Goal:** append-only **audit logs** so later edits to history are **detectable**—pair with **H12** provenance and policy narratives for **forensics** and **compliance** shaped workflows.
+
+- Production stacks often use **signed** heads, **WORM** storage, or **Merkle** batches; the principle is **don’t trust mutable logs blindly**.
+
+**Exit criteria**
+
+- **Verification** tooling proves **integrity** over retained history for regulators / security reviews.
+
+**Implemented in this repository (MVP):** `scripts/horizon19_audit_chain_smoke.py` — `--verify` builds a linear **SHA-256** chain from a genesis anchor, confirms intact verification, confirms **tampering** breaks verification; writes `horizon19_audit_chain_run/1.0` under `.tmp/horizon19-audit-chain/run.json`. **Not done yet vs. full exit:** **keys**, **batch roots**, **distributed** consensus storage.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -335,12 +363,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–17**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–19**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H17** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H19** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

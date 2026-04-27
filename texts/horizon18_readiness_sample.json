@@ -1,0 +1,21 @@
+{
+  "schema": "horizon18_readiness_sample/1.0",
+  "note": "Structured ops checklist for releases / game-days; each check resolves to pass/fail in tooling.",
+  "phases": [
+    {
+      "name": "pre_deploy",
+      "checks": [
+        { "id": "ci_green", "required": true },
+        { "id": "smoke_scripts_latest", "required": true },
+        { "id": "rollback_plan_linked", "required": true }
+      ]
+    },
+    {
+      "name": "launch_window",
+      "checks": [
+        { "id": "on_call_rostered", "required": true },
+        { "id": "feature_flags_reviewed", "required": false }
+      ]
+    }
+  ]
+}
