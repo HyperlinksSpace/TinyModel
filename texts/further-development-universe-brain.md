@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–21**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18–H19** readiness gates and tamper-evident audit chains; **H20–H21** feature-flag rollout patterns and **data-retention** purge eligibility—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–23**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18–H19** readiness gates and tamper-evident audit chains; **H20–H21** feature flags and retention; **H22–H23** **token-bucket** fairness and **blast-radius** dependency impact—then product layers beyond this repo. |
 
 ---
 
@@ -380,6 +380,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 22 — **Rate limiting & fairness (token bucket)**
+
+**Goal:** protect inference and upstream **APIs** from abuse and hot loops with a **predictable** throttle—**token buckets** are the standard mental model for “burst + sustained” traffic.
+
+- Complements **H10** budgets and **H13** circuit breakers; pair with **per-tenant** keys in production.
+
+**Exit criteria**
+
+- **Documented** default rates and burst per **SKU**; **load tests** prove queueing behavior.
+
+**Implemented in this repository (MVP):** `texts/horizon22_token_bucket_sample.json` + `scripts/horizon22_token_bucket_smoke.py` — `--verify` runs a discrete **tick / consume** trace with golden **expect_allow**; writes `horizon22_token_bucket_run/1.0` under `.tmp/horizon22-token-bucket/run.json`. **Not done yet vs. full exit:** **wall-clock** refill, **distributed** Redis-style counters, **global** fairness.
+
+---
+
+### Horizon 23 — **Blast radius (dependency failure impact)**
+
+**Goal:** AI products are **graphs**—if the **embeddings** index, **auth**, or **vector DB** fails, know **what else falls over** without guessing during an incident.
+
+- Complements **H14** workflows; use for **game-day** exercises and **chaos** shaped tests.
+
+**Exit criteria**
+
+- **Service catalog** edges maintained as code; **redundant paths** documented where blast radius must shrink.
+
+**Implemented in this repository (MVP):** `texts/horizon23_blast_sample.json` + `scripts/horizon23_blast_radius_smoke.py` — `--verify` propagates failure along **dependent → depends_on** edges until fixed point; compares sorted impacted sets per scenario; writes `horizon23_blast_radius_run/1.0` under `.tmp/horizon23-blast-radius/run.json`. **Not done yet vs. full exit:** **partial** degradation, **multi-region**, **capacity** overlays.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -391,12 +419,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–21**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–23**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H21** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H23** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

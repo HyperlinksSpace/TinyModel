@@ -1,0 +1,15 @@
+{
+  "schema": "horizon22_token_bucket_sample/1.0",
+  "note": "Discrete token bucket: tick adds refill up to capacity; consume succeeds iff enough tokens.",
+  "capacity": 5,
+  "refill_per_tick": 2,
+  "initial_tokens": 5,
+  "steps": [
+    { "kind": "consume", "tokens": 4, "expect_allow": true },
+    { "kind": "consume", "tokens": 4, "expect_allow": false },
+    { "kind": "tick" },
+    { "kind": "consume", "tokens": 3, "expect_allow": true },
+    { "kind": "tick" },
+    { "kind": "consume", "tokens": 2, "expect_allow": true }
+  ]
+}

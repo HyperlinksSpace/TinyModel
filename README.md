@@ -466,6 +466,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon21-smoke.yml`.
 
+## Horizon 22: token bucket (rate limiting smoke)
+
+**What it is:** discrete **tick / consume** simulation with golden allows — see *Rate limiting & fairness* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Bucket verify** | `python scripts/horizon22_token_bucket_smoke.py --verify` | Loads [`texts/horizon22_token_bucket_sample.json`](texts/horizon22_token_bucket_sample.json); writes `.tmp/horizon22-token-bucket/run.json` (`horizon22_token_bucket_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H22 (full exit):** wall-clock refill, distributed quotas, per-route limits.
+
+**How to test (local):** `python scripts/horizon22_token_bucket_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon22-smoke.yml`.
+
+## Horizon 23: blast radius (dependency impact)
+
+**What it is:** **failure propagation** to a fixed point over **depends_on** edges — see *Blast radius* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Blast verify** | `python scripts/horizon23_blast_radius_smoke.py --verify` | Loads [`texts/horizon23_blast_sample.json`](texts/horizon23_blast_sample.json); writes `.tmp/horizon23-blast-radius/run.json` (`horizon23_blast_radius_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H23 (full exit):** redundancy paths, partial failures, regional graphs.
+
+**How to test (local):** `python scripts/horizon23_blast_radius_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon23-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

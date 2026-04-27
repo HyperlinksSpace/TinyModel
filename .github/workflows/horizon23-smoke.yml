@@ -1,0 +1,27 @@
+# Horizon 23: blast radius dependency impact (stdlib)
+name: horizon23-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 23 --verify
+        run: python scripts/horizon23_blast_radius_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon23-blast-radius/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==23; assert d['schema']=='horizon23_blast_radius_run/1.0'; print('ok')"

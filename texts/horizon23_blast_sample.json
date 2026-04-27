@@ -1,0 +1,23 @@
+{
+  "schema": "horizon23_blast_sample/1.0",
+  "note": "If dependency fails, dependent fails; propagate until fixed point.",
+  "edges": [
+    { "dependent": "auth", "depends_on": "db" },
+    { "dependent": "gateway", "depends_on": "auth" },
+    { "dependent": "gateway", "depends_on": "cache" }
+  ],
+  "scenarios": [
+    {
+      "failure_origin": "db",
+      "expect_impacted_sorted": ["auth", "db", "gateway"]
+    },
+    {
+      "failure_origin": "cache",
+      "expect_impacted_sorted": ["cache", "gateway"]
+    },
+    {
+      "failure_origin": "gateway",
+      "expect_impacted_sorted": ["gateway"]
+    }
+  ]
+}

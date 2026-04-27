@@ -51,12 +51,16 @@ artifacts/horizon14/
 .tmp/horizon19-audit-chain/
 .tmp/horizon20-flags/
 .tmp/horizon21-retention/
+.tmp/horizon22-token-bucket/
+.tmp/horizon23-blast-radius/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
 artifacts/horizon19/
 artifacts/horizon20/
 artifacts/horizon21/
+artifacts/horizon22/
+artifacts/horizon23/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
