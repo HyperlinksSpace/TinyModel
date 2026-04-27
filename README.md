@@ -354,6 +354,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon13-smoke.yml`.
 
+## Horizon 14: workflow DAG (topological order)
+
+**What it is:** a **linear inference DAG** plus **cycle detection** and **parallel-root** sanity checks—see *Orchestrated workflows* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **DAG verify** | `python scripts/horizon14_workflow_smoke.py --verify` | Writes `.tmp/horizon14-workflow/run.json` (`horizon14_workflow_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H14 (full exit):** retries, sagas, production orchestrator integration.
+
+**How to test (local):** `python scripts/horizon14_workflow_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon14-smoke.yml`.
+
+## Horizon 15: export envelope (field allow-lists)
+
+**What it is:** **`texts/horizon15_export_envelope_sample.json`** defines allowed keys per export kind; the smoke rejects extra fields—see *Data minimization & export envelopes* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Envelope verify** | `python scripts/horizon15_export_smoke.py --verify` | Writes `.tmp/horizon15-export/run.json` (`horizon15_export_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H15 (full exit):** encryption, legal sign-off, automated redaction pipelines.
+
+**How to test (local):** `python scripts/horizon15_export_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon15-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

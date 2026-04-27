@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–13**): through **H11** feedback, plus **H12** provenance hashes and **H13** resilience patterns—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–15**): through **H13** resilience, plus **H14** workflow DAGs and **H15** data-minimization exports—then product layers beyond this repo. |
 
 ---
 
@@ -268,6 +268,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 14 — **Orchestrated workflows (DAG execution)**
+
+**Goal:** complex AI products are **graphs** of steps (retrieve → rerank → generate → guardrail → log). You need **acyclic** plans, **deterministic order**, and **failure isolation**—often backed by Temporal, Airflow, or bespoke queues.
+
+- **Visualize** and **test** ordering **before** production traffic.
+
+**Exit criteria**
+
+- **Idempotent** steps where possible; **compensation** / **saga** patterns for multi-write flows.
+
+**Implemented in this repository (MVP):** `scripts/horizon14_workflow_smoke.py` — `--verify` builds a tiny **ingest → tokenize → classify → emit_log** DAG, checks **topological order**, **cycle rejection**, and **parallel roots**; writes `horizon14_workflow_run/1.0` under `.tmp/horizon14-workflow/run.json`. **Not done yet vs. full exit:** **distributed** orchestrator, **retries**, **dynamic** branching.
+
+---
+
+### Horizon 15 — **Data minimization & export envelopes (privacy engineering)**
+
+**Goal:** each **export kind** (DSR bundle, analytics aggregate, partner feed) exposes **only** fields listed in an **explicit envelope**—the opposite of “dump everything JSON.” Supports **GDPR**/**DSR** discipline when paired with legal review.
+
+- **Deny-by-default** field sets; **schema version** per export type.
+
+**Exit criteria**
+
+- **Privacy review** sign-off per export template; **automated** CI failures when envelopes regress.
+
+**Implemented in this repository (MVP):** `texts/horizon15_export_envelope_sample.json` + `scripts/horizon15_export_smoke.py` — `--verify` validates **allow-list** payloads and rejects **extra** keys; writes `horizon15_export_run/1.0` under `.tmp/horizon15-export/run.json`. **Not done yet vs. full exit:** **encryption** at rest/in transit, **redaction** pipelines, **legal** attestations.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -279,12 +307,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–13**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–15**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H13** add **budget**, **feedback**, **hash manifests**, and **circuit-breaker** demos—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H15** add **budget**, **feedback**, **hashes**, **circuit breaker**, **DAG** order, **export** envelopes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H13** add **operational** shapes (probes, policy, budget, feedback, integrity, resilience) as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H15** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

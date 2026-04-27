@@ -1,0 +1,14 @@
+{
+  "schema": "horizon15_export_envelope_sample/1.0",
+  "note": "Per-kind allow-lists for exports (DSR, analytics). deny_extra_fields rejects unknown keys.",
+  "export_kinds": {
+    "dsr_access": {
+      "allowed_fields": ["scope_key", "items", "exported_at", "schema"],
+      "deny_extra_fields": true
+    },
+    "analytics_agg": {
+      "allowed_fields": ["date", "counts", "schema"],
+      "deny_extra_fields": true
+    }
+  }
+}

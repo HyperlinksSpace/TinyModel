@@ -1,0 +1,27 @@
+# Horizon 15: export field envelopes (stdlib)
+name: horizon15-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 15 --verify
+        run: python scripts/horizon15_export_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon15-export/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==15; assert d['schema']=='horizon15_export_run/1.0'; print('ok')"

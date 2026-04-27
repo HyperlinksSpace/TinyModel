@@ -42,7 +42,10 @@ artifacts/horizon10/
 .tmp/horizon12-provenance/
 .tmp/horizon13-circuit/
 artifacts/horizon12/
-artifacts/horizon13/
+.tmp/horizon14-workflow/
+.tmp/horizon15-export/
+artifacts/horizon14/
+artifacts/horizon15/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
