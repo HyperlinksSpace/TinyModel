@@ -298,6 +298,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon9-smoke.yml`.
 
+## Horizon 10: budget & unit caps (FinOps-shaped)
+
+**What it is:** a **sample budget** (`texts/horizon10_budget_sample.json`) and smoke that accumulates **abstract units** per action until **deny**—see *Resource & cost envelopes* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Budget verify** | `python scripts/horizon10_budget_smoke.py --verify` | Writes `.tmp/horizon10-budget/run.json` (`horizon10_budget_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H10 (full exit):** live metering, distributed quotas, billing reconciliation.
+
+**How to test (local):** `python scripts/horizon10_budget_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon10-smoke.yml`.
+
+## Horizon 11: human feedback capture (JSONL)
+
+**What it is:** validated **newline-delimited JSON** for label corrections (`horizon11_feedback_record/1.0`)—see *Human outcome capture* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Feedback verify** | `python scripts/horizon11_feedback_smoke.py --verify` | Writes `.tmp/horizon11-feedback/` (`sample_feedback.jsonl` + `run.json`, `horizon11_feedback_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H11 (full exit):** secure pipelines, PII policy, automated retraining.
+
+**How to test (local):** `python scripts/horizon11_feedback_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon11-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

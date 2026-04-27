@@ -1,0 +1,10 @@
+{
+  "schema": "horizon10_budget_sample/1.0",
+  "note": "Toy per-window cap in abstract 'units' (tokens, calls, $*1e6 — you map in product).",
+  "max_units_per_window": 100,
+  "per_action_cost_units": {
+    "model.generate": 10,
+    "model.embed": 1,
+    "horizon7.verify": 5
+  }
+}

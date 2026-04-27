@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–9**): **gates**, **H6** converged stack, **H7** tenant trust, **H8** observability probes, **H9** declarative policy—then full product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–11**): through **H9** policy, **H10** unit budgets, **H11** feedback capture—then product layers beyond this repo. |
 
 ---
 
@@ -210,6 +210,36 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 10 — **Resource & cost envelopes (FinOps-shaped guardrails)**
+
+**Goal:** tie **named actions** to **abstract units** (tokens, calls, normalized dollars) and **enforce caps** before work hits GPUs or APIs—so surprise bills become **configuration errors**, not silent debt.
+
+- **Per-window** budgets aligned with **policy** (H9); deny/throttle when **spend** would exceed **cap**.
+- **Metering hooks** in real products push usage into billing systems; this repo only proves **arithmetic + contracts**.
+
+**Exit criteria**
+
+- **Live** metering connected to **payment** or **quota** tiers; alerts before hard deny where appropriate.
+
+**Implemented in this repository (MVP):** `texts/horizon10_budget_sample.json` + `scripts/horizon10_budget_smoke.py` — `--verify` simulates cumulative **units** vs `max_units_per_window` and writes `horizon10_budget_run/1.0` under `.tmp/horizon10-budget/run.json`. **Not done yet vs. full exit:** **distributed** counters, **Redis**/streaming usage, **invoice** reconciliation.
+
+---
+
+### Horizon 11 — **Human outcome capture (feedback loop)**
+
+**Goal:** capture **corrections** and **labels** from operators or users in a **machine-ingestible**, **auditable** format so models and policies can improve—without stuffing feedback only into Slack threads.
+
+- **Append-only** or **versioned** stores with **PIR/privacy** rules on sensitive fields.
+- **Join keys** back to predictions and training pipelines.
+
+**Exit criteria**
+
+- **Regular** export into **training** or **eval** loops with governance sign-off.
+
+**Implemented in this repository (MVP):** `scripts/horizon11_feedback_smoke.py` — `--verify` writes validated **JSONL** (`horizon11_feedback_record/1.0` fields per line) under `.tmp/horizon11-feedback/` and writes `horizon11_feedback_run/1.0`. **Not done yet vs. full exit:** **secure** ingestion, **PII** scrubbing, **identity** on reviewers, **automated** train triggers.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -221,12 +251,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–9**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–11**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6** (converged stack) **composes** smokes; **H7** **isolates** tenants in SQLite; **H8** **probes** env + H7; **H9** **tests** a static allow/deny policy contract.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H9** add **composition**, **tenant** isolation, **probes**, **policy**; **H10–H11** add **budget** envelopes and **feedback** JSONL—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H9** are where **logs** and **policy** get **scripted** gates in this repo, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H11** add **probes**, **policy**, **budgets**, and **feedback** shapes in-repo as **tests and contracts**, not only narrative.
 
 ---
 

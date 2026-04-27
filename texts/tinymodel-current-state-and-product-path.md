@@ -15,6 +15,8 @@ This note is a **synthesis** for stakeholders. Authoritative checklists stay in 
 
 **Engineering in this repository:**
 
+The horizon ladder in [`further-development-universe-brain.md`](further-development-universe-brain.md) runs **0–11** (policy, budgets, feedback capture as later MVPs).
+
 | Area | What exists |
 | ---- | ----------- |
 | **Training & eval** | Reproducible training (`train_tinymodel1_classifier.py` and dataset wrappers), Phase 1 comparison matrix, **Phase 2** `eval_report.json` (dataset quality, confusions, calibration, routing notes), misclassified sample JSONL. |
@@ -24,7 +26,7 @@ This note is a **synthesis** for stakeholders. Authoritative checklists stay in 
 | **Generative (H2)** | Local / Hub causal LM path with JSON run artifacts; smoke tests in CI. |
 | **Memory (H3)** | SQLite **session vs long-term** store, audit, export, forget; CLI + optional HTTP. |
 | **Multimodal (H4)** | CLIP-style **image + caption** alignment and JSON runs; CI uses **offline** synthetic CLIP. |
-| **Convergence & governance (H6–H9)** | Chained smokes (H2–H4), two-file **tenant isolation** demo (H7), **env + H7** probe JSON (H8), **static allow/deny** policy sample + smoke (H9). |
+| **Convergence & governance (H6–H11)** | Chained smokes (H2–H4), two-file **tenant isolation** demo (H7), **env + H7** probe JSON (H8), **policy** smoke (H9), **unit budget** smoke (H10), **feedback JSONL** smoke (H11). |
 
 **What this is *not* yet:** a **single** hosted product with **multi-tenant** auth, **billing**, **abuse and safety** at scale, **signed** policy distribution, or a **unified** production runtime that replaces ad hoc scripts. Those are **staged** in the plan and horizons as **targets**, with many items explicitly **TBD** outside the repo (legal, ops, org process).
 
@@ -44,9 +46,9 @@ This note is a **synthesis** for stakeholders. Authoritative checklists stay in 
 - **C:** **RAG/retrieval** as a **repeatable** story on top of `TinyModelRuntime`, not a one-off script.  
 - **D (optional):** a **generative** hook aligned with the same logging/eval contract.
 
-**Long-horizon (Horizons 0–9, “universe brain” *design target*):**
+**Long-horizon (Horizons 0–11, “universe brain” *design target*):**
 
-- Move from “good encoder + scripts” toward **integrated** **perception, memory, generation, and policy**—with **decision gates** (evidence, safety, economics, operations) before each jump. The repo’s **H6–H9** work is **MVP / smoke / contracts**; full **H7+** (compliance, ecosystem, assurances) is mostly **out of band** in product and legal.
+- Move from “good encoder + scripts” toward **integrated** **perception, memory, generation, and policy**—with **decision gates** (evidence, safety, economics, operations) before each jump. The repo’s **H6–H11** work is **MVP / smoke / contracts**; full **H7+** (compliance, ecosystem, assurances) is mostly **out of band** in product and legal.
 
 **Commercial / market context:** [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) — buyers care about **retrieval, classification, extraction, RAG, assistants, vision**; the roadmap stays **sober** about what a tiny encoder is for versus LLM-class systems.
 
