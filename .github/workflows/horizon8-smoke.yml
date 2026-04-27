@@ -1,0 +1,27 @@
+# Horizon 8: env snapshot + H7 probe (no torch)
+name: horizon8-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 8 --verify
+        run: python scripts/horizon8_observability_probe.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon8-probe/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==8; assert d['schema']=='horizon8_probe_run/1.0'; assert d['probes'][0]['name']=='horizon7_tenant_isolation'; print('ok')"

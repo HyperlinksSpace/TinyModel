@@ -270,6 +270,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon7-smoke.yml` runs the same command (no extra pip deps).
 
+## Horizon 8: observability probe bundle (environment + H7 probe)
+
+**What it is:** a **single JSON “build + health”** snapshot from [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md) (*Observability & probe bundle*)—Python/platform, optional **git** short SHA, and a **real** run of **Horizon 7**’s verify as a dependency probe.
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Probe verify** | `python scripts/horizon8_observability_probe.py --verify` | Writes `.tmp/horizon8-probe/run.json` (`horizon8_probe_run/1.0`). **No torch**; needs `git` only for `git_rev` when available. |
+
+**What is still *not* H8 (full exit):** **SLOs**, **alerting**, streaming **metrics**, and **dashboards**—this is a **file-shaped** probe for CI and manual triage.
+
+**How to test (local):** `python scripts/horizon8_observability_probe.py --verify` — expect `horizon8 verify: OK` and `ok: true` with a `probes` list.
+
+**CI:** `.github/workflows/horizon8-smoke.yml`.
+
+## Horizon 9: declarative policy (allow / deny matrix)
+
+**What it is:** a **versioned sample policy** (`texts/horizon9_policy_sample.json`) and a **smoke** that checks **deny-over-allow** precedence and **default deny**—from the *Declarative policy & capability gates* horizon in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Policy verify** | `python scripts/horizon9_policy_smoke.py --verify` | Writes `.tmp/horizon9-policy/run.json` (`horizon9_policy_run/1.0`). Optional `--policy path.json`. **Stdlib only.** |
+
+**What is still *not* H9 (full exit):** **AuthN**, **OPA**, **signed** policy, **dynamic** attributes, **audit** of policy edits in production.
+
+**How to test (local):** `python scripts/horizon9_policy_smoke.py --verify` — expect `horizon9 verify: OK` and all case rows `ok: true`.
+
+**CI:** `.github/workflows/horizon9-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

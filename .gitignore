@@ -33,6 +33,10 @@ artifacts/horizon4/
 .tmp/horizon7-assured/
 artifacts/horizon6/
 artifacts/horizon7/
+.tmp/horizon8-probe/
+.tmp/horizon9-policy/
+artifacts/horizon8/
+artifacts/horizon9/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

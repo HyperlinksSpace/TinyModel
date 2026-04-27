@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–7**): what to build **after** the encoder line is mature, with **gates**, a **converged** orchestration stage (H6), and an **assured platform** stage (H7) for scale and trust. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–9**): **gates**, **H6** converged stack, **H7** tenant trust, **H8** observability probes, **H9** declarative policy—then full product layers beyond this repo. |
 
 ---
 
@@ -178,6 +178,38 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 8 — **Observability & probe bundle (signals for incidents)**
+
+**Goal:** when something breaks in production, you need **one place** to see **what build**, **what environment**, and **which downstream checks** still pass—without replacing your APM vendor. **Correlate** probes (memory, tenant isolation, model smoke) with **git** identity and **platform** facts.
+
+- **Structured** JSON snapshots suitable for log pipelines and post-incident review.
+- **Synthetic** health that **re-runs** critical local verifiers (here: **H7** isolation) as a probe, not only HTTP pings.
+
+**Exit criteria**
+
+- **Dashboards** or **alerts** that consume these signals (outside this repo, or via your SIEM).
+- **SLOs** per capability with **runbooks** tied to probe failure modes.
+
+**Implemented in this repository (MVP):** `scripts/horizon8_observability_probe.py` — `--verify` records **Python / platform / optional `git rev`**, runs `horizon7_assured_smoke.py --verify` as a **dependency probe**, and writes `horizon8_probe_run/1.0` under `.tmp/horizon8-probe/run.json`. **Not done yet vs. full exit:** streaming metrics, **PagerDuty**/**Slack** wiring, **SLO** math, multi-region probes.
+
+---
+
+### Horizon 9 — **Declarative policy & capability gates**
+
+**Goal:** **explicit** allow/deny for **named actions** (capabilities, tools, routes)—**deny wins** over allow, with a **default-deny** posture for anything not listed. Complements human review: the **contract** lives in **versioned** config, not only in code comments.
+
+- **Policy-as-data** for staged rollouts (feature flags **and** safety).
+- **Audit** of who changed policy and when (product concern; this repo ships a **sample** JSON only).
+
+**Exit criteria**
+
+- **Central** policy service or **signed** bundles in production; **break-glass** paths documented.
+- **Tests** that fail CI if a **forbidden** action becomes **allowed** by accident.
+
+**Implemented in this repository (MVP):** `texts/horizon9_policy_sample.json` + `scripts/horizon9_policy_smoke.py` — `--verify` evaluates the sample matrix (deny precedence, collision case) and writes `horizon9_policy_run/1.0` under `.tmp/horizon9-policy/run.json`. **Not done yet vs. full exit:** **identity**, **attribute-based** rules, **O**Auth/**OPA**, **signed** policy bundles, **tamper-evident** audit.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -189,12 +221,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–7**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–9**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6** (converged stack) is the **next** technical **composition** step; **H7** (assured platform) is the **next** **trust and scale** step once a composed stack is credible.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6** (converged stack) **composes** smokes; **H7** **isolates** tenants in SQLite; **H8** **probes** env + H7; **H9** **tests** a static allow/deny policy contract.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; the same applies before composing paths toward **H6**, and before promising **H7**-class deployments to many tenants.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H9** are where **logs** and **policy** get **scripted** gates in this repo, not only narrative.
 
 ---
 

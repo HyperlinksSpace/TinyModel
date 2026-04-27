@@ -1,0 +1,15 @@
+{
+  "schema": "horizon9_policy_sample/1.0",
+  "note": "Reference policy for scripts/horizon9_policy_smoke.py. deny_actions take precedence over allow_actions.",
+  "default_deny": true,
+  "deny_actions": [
+    "model.toxic.generate",
+    "memory.cross_tenant.read",
+    "tool.exec.shell"
+  ],
+  "allow_actions": [
+    "memory.write",
+    "model.generate",
+    "horizon7.verify"
+  ]
+}
