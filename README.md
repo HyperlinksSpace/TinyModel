@@ -998,6 +998,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon59-smoke.yml`.
 
+## Horizon 60: SPDX license allow-list (supply-chain policy)
+
+**What it is:** **`compliant`** iff each **`dependency_license`** (normalized) appears in **`allowed_license_ids`** — see *SPDX license allow-list* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **License allow verify** | `python scripts/horizon60_license_allow_smoke.py --verify` | Loads [`texts/horizon60_license_allow_sample.json`](texts/horizon60_license_allow_sample.json); writes `.tmp/horizon60-license-allow/run.json` (`horizon60_license_allow_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H60 (full exit):** composite SPDX expressions, transitive graphs, counsel workflows.
+
+**How to test (local):** `python scripts/horizon60_license_allow_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon60-smoke.yml`.
+
+## Horizon 61: maintainer quorum (bus-factor floor)
+
+**What it is:** **`compliant`** iff **`maintainer_count ≥ min_maintainers`** — see *Maintainer quorum* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Maintainer quorum verify** | `python scripts/horizon61_maintainer_quorum_smoke.py --verify` | Loads [`texts/horizon61_maintainer_quorum_sample.json`](texts/horizon61_maintainer_quorum_sample.json); writes `.tmp/horizon61-maintainer-quorum/run.json` (`horizon61_maintainer_quorum_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H61 (full exit):** CODEOWNER coverage, verified identities, succession drills.
+
+**How to test (local):** `python scripts/horizon61_maintainer_quorum_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon61-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

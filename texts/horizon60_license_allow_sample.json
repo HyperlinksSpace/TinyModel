@@ -1,0 +1,12 @@
+{
+  "schema": "horizon60_license_allow_sample/1.0",
+  "note": "Each dependency_license must match an entry in allowed_license_ids (case-insensitive SPDX-style ids).",
+  "allowed_license_ids": ["MIT", "Apache-2.0", "BSD-3-Clause"],
+  "checks": [
+    { "dependency_license": "MIT", "expect_compliant": true },
+    { "dependency_license": "apache-2.0", "expect_compliant": true },
+    { "dependency_license": "BSD-3-Clause", "expect_compliant": true },
+    { "dependency_license": "GPL-3.0-only", "expect_compliant": false },
+    { "dependency_license": "AGPL-3.0", "expect_compliant": false }
+  ]
+}

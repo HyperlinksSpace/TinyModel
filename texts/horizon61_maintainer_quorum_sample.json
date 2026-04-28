@@ -1,0 +1,11 @@
+{
+  "schema": "horizon61_maintainer_quorum_sample/1.0",
+  "note": "Critical repos must retain at least min_maintainers distinct owners (bus-factor floor).",
+  "min_maintainers": 2,
+  "checks": [
+    { "maintainer_count": 5, "expect_compliant": true },
+    { "maintainer_count": 2, "expect_compliant": true },
+    { "maintainer_count": 1, "expect_compliant": false },
+    { "maintainer_count": 0, "expect_compliant": false }
+  ]
+}
