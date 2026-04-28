@@ -77,6 +77,8 @@ artifacts/horizon14/
 .tmp/horizon45-payload-size/
 .tmp/horizon46-latency-p99/
 .tmp/horizon47-kill-switch/
+.tmp/horizon48-dual-control/
+.tmp/horizon49-digest-pin/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -109,6 +111,8 @@ artifacts/horizon44/
 artifacts/horizon45/
 artifacts/horizon46/
 artifacts/horizon47/
+artifacts/horizon48/
+artifacts/horizon49/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

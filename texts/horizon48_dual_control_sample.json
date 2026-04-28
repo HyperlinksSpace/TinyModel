@@ -1,0 +1,26 @@
+{
+  "schema": "horizon48_dual_control_sample/1.0",
+  "note": "Sensitive changes require at least min_distinct_approvers unique identities in approver_ids.",
+  "checks": [
+    {
+      "approver_ids": ["alice", "bob"],
+      "min_distinct_approvers": 2,
+      "expect_pass": true
+    },
+    {
+      "approver_ids": ["alice", "alice"],
+      "min_distinct_approvers": 2,
+      "expect_pass": false
+    },
+    {
+      "approver_ids": ["ops-bot"],
+      "min_distinct_approvers": 2,
+      "expect_pass": false
+    },
+    {
+      "approver_ids": ["a", "b", "c"],
+      "min_distinct_approvers": 3,
+      "expect_pass": true
+    }
+  ]
+}

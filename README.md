@@ -830,6 +830,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon47-smoke.yml`.
 
+## Horizon 48: dual control (distinct approvers)
+
+**What it is:** **`pass_gate`** iff **unique approver count ≥ min_distinct_approvers** — see *Dual control* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Dual control verify** | `python scripts/horizon48_dual_control_smoke.py --verify` | Loads [`texts/horizon48_dual_control_sample.json`](texts/horizon48_dual_control_sample.json); writes `.tmp/horizon48-dual-control/run.json` (`horizon48_dual_control_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H48 (full exit):** SSO-bound identities, role matrices, duty calendars.
+
+**How to test (local):** `python scripts/horizon48_dual_control_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon48-smoke.yml`.
+
+## Horizon 49: pinned artifact digest (promotion gate)
+
+**What it is:** **`allow`** iff **`artifact_sha256`** equals **`pinned_sha256`** (hex, case-insensitive) — see *Pinned artifact digest* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Digest pin verify** | `python scripts/horizon49_digest_pin_smoke.py --verify` | Loads [`texts/horizon49_digest_pin_sample.json`](texts/horizon49_digest_pin_sample.json); writes `.tmp/horizon49-digest-pin/run.json` (`horizon49_digest_pin_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H49 (full exit):** Sigstore attestations, OCI digest locks, SBOM linkage.
+
+**How to test (local):** `python scripts/horizon49_digest_pin_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon49-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
