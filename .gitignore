@@ -95,6 +95,8 @@ artifacts/horizon14/
 .tmp/horizon63-secret-sweep/
 .tmp/horizon64-image-age/
 .tmp/horizon65-rca-deadline/
+.tmp/horizon66-deprecated-dep/
+.tmp/horizon67-dsar-export/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -145,6 +147,8 @@ artifacts/horizon62/
 artifacts/horizon63/
 artifacts/horizon64/
 artifacts/horizon65/
+artifacts/horizon66/
+artifacts/horizon67/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

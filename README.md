@@ -1082,6 +1082,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon65-smoke.yml`.
 
+## Horizon 66: deprecated dependency ceiling (tech-debt gate)
+
+**What it is:** **`compliant`** iff **`deprecated_dependency_count ≤ max_deprecated_dependencies`** — see *Deprecated dependency ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Deprecated dep verify** | `python scripts/horizon66_deprecated_dep_smoke.py --verify` | Loads [`texts/horizon66_deprecated_dep_sample.json`](texts/horizon66_deprecated_dep_sample.json); writes `.tmp/horizon66-deprecated-dep/run.json` (`horizon66_deprecated_dep_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H66 (full exit):** transitive graphs, codemods, vendor RFC timelines.
+
+**How to test (local):** `python scripts/horizon66_deprecated_dep_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon66-smoke.yml`.
+
+## Horizon 67: DSAR export SLA (tiered turnaround)
+
+**What it is:** **`compliant`** iff **`customer_tier`** is **not** in **`customer_tiers_requiring_fast_export`**, **or** **`hours_to_complete_export ≤ max_hours_to_complete_export`** — see *DSAR export SLA* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **DSAR export verify** | `python scripts/horizon67_dsar_export_smoke.py --verify` | Loads [`texts/horizon67_dsar_export_sample.json`](texts/horizon67_dsar_export_sample.json); writes `.tmp/horizon67-dsar-export/run.json` (`horizon67_dsar_export_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H67 (full exit):** identity proofs, jurisdictional carve-outs, portal workflows.
+
+**How to test (local):** `python scripts/horizon67_dsar_export_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon67-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

@@ -1,0 +1,16 @@
+{
+  "schema": "horizon67_dsar_export_sample/1.0",
+  "note": "Listed customer tiers must complete data-export (DSAR-shaped) within max_hours_to_complete_export.",
+  "customer_tiers_requiring_fast_export": ["enterprise", "regulated"],
+  "max_hours_to_complete_export": 168,
+  "checks": [
+    { "customer_tier": "free", "hours_to_complete_export": 999, "expect_compliant": true },
+    { "customer_tier": "startup", "hours_to_complete_export": 300, "expect_compliant": true },
+    { "customer_tier": "enterprise", "hours_to_complete_export": 72, "expect_compliant": true },
+    { "customer_tier": "enterprise", "hours_to_complete_export": 168, "expect_compliant": true },
+    { "customer_tier": "enterprise", "hours_to_complete_export": 169, "expect_compliant": false },
+    { "customer_tier": "regulated", "hours_to_complete_export": 167, "expect_compliant": true },
+    { "customer_tier": "regulated", "hours_to_complete_export": 168, "expect_compliant": true },
+    { "customer_tier": "regulated", "hours_to_complete_export": 200, "expect_compliant": false }
+  ]
+}

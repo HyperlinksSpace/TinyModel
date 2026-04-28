@@ -1,0 +1,10 @@
+{
+  "schema": "horizon66_deprecated_dep_sample/1.0",
+  "note": "Promotion blocked when deprecated direct dependency count exceeds policy ceiling.",
+  "max_deprecated_dependencies": 0,
+  "checks": [
+    { "deprecated_dependency_count": 0, "expect_compliant": true },
+    { "deprecated_dependency_count": 1, "expect_compliant": false },
+    { "deprecated_dependency_count": 10, "expect_compliant": false }
+  ]
+}
