@@ -1,0 +1,12 @@
+{
+  "schema": "horizon69_vendor_host_sample/1.0",
+  "note": "Outbound vendor/API hosts must appear in allowed_api_hosts (normalized, exact hostname match).",
+  "allowed_api_hosts": ["api.vendor-a.example", "hooks.trusted.example"],
+  "checks": [
+    { "requested_host": "api.vendor-a.example", "expect_allow": true },
+    { "requested_host": "hooks.trusted.example", "expect_allow": true },
+    { "requested_host": "HOOKS.TRUSTED.EXAMPLE", "expect_allow": true },
+    { "requested_host": "evil.callback.example", "expect_allow": false },
+    { "requested_host": "api.vendor-a.example.evil.com", "expect_allow": false }
+  ]
+}

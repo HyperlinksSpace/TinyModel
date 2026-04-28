@@ -1,0 +1,10 @@
+{
+  "schema": "horizon68_static_block_sample/1.0",
+  "note": "Promotion blocked when blocking static-analysis findings exceed policy ceiling.",
+  "max_blocking_static_findings": 0,
+  "checks": [
+    { "blocking_static_findings": 0, "expect_compliant": true },
+    { "blocking_static_findings": 1, "expect_compliant": false },
+    { "blocking_static_findings": 12, "expect_compliant": false }
+  ]
+}

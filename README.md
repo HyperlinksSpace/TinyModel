@@ -1110,6 +1110,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon67-smoke.yml`.
 
+## Horizon 68: blocking static-analysis ceiling (quality gate)
+
+**What it is:** **`compliant`** iff **`blocking_static_findings ≤ max_blocking_static_findings`** — see *Blocking static-analysis ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Static block verify** | `python scripts/horizon68_static_block_smoke.py --verify` | Loads [`texts/horizon68_static_block_sample.json`](texts/horizon68_static_block_sample.json); writes `.tmp/horizon68-static-block/run.json` (`horizon68_static_block_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H68 (full exit):** per-language packs, incremental ratchets, autofix bots.
+
+**How to test (local):** `python scripts/horizon68_static_block_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon68-smoke.yml`.
+
+## Horizon 69: vendor API host allow-list (subprocessor egress)
+
+**What it is:** **`allow`** iff **`requested_host`** (normalized) is listed under **`allowed_api_hosts`** — see *Vendor API host allow-list* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Vendor host verify** | `python scripts/horizon69_vendor_host_smoke.py --verify` | Loads [`texts/horizon69_vendor_host_sample.json`](texts/horizon69_vendor_host_sample.json); writes `.tmp/horizon69-vendor-host/run.json` (`horizon69_vendor_host_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H69 (full exit):** suffix wildcards, mTLS pinning, regional VPC endpoints.
+
+**How to test (local):** `python scripts/horizon69_vendor_host_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon69-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

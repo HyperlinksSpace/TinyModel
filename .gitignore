@@ -97,6 +97,8 @@ artifacts/horizon14/
 .tmp/horizon65-rca-deadline/
 .tmp/horizon66-deprecated-dep/
 .tmp/horizon67-dsar-export/
+.tmp/horizon68-static-block/
+.tmp/horizon69-vendor-host/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -149,6 +151,8 @@ artifacts/horizon64/
 artifacts/horizon65/
 artifacts/horizon66/
 artifacts/horizon67/
+artifacts/horizon68/
+artifacts/horizon69/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
