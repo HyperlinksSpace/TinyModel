@@ -103,6 +103,8 @@ artifacts/horizon14/
 .tmp/horizon71-payment-grace/
 .tmp/horizon72-ticket-backlog/
 .tmp/horizon73-contract-notice/
+.tmp/horizon74-pentest-findings/
+.tmp/horizon75-drill-recency/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -161,6 +163,8 @@ artifacts/horizon70/
 artifacts/horizon71/
 artifacts/horizon72/
 artifacts/horizon73/
+artifacts/horizon74/
+artifacts/horizon75/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

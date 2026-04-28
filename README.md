@@ -1194,6 +1194,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon73-smoke.yml`.
 
+## Horizon 74: penetration-test critical-findings ceiling
+
+**What it is:** **`compliant`** iff **`open_critical_pen_test_findings ≤ max_open_critical_pen_test_findings`** — see *Penetration-test critical-findings ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Pen-test findings verify** | `python scripts/horizon74_pentest_findings_smoke.py --verify` | Loads [`texts/horizon74_pentest_findings_sample.json`](texts/horizon74_pentest_findings_sample.json); writes `.tmp/horizon74-pentest-findings/run.json` (`horizon74_pentest_findings_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H74 (full exit):** retest SLAs, scoped scopes, bounty program links.
+
+**How to test (local):** `python scripts/horizon74_pentest_findings_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon74-smoke.yml`.
+
+## Horizon 75: disaster-recovery drill recency
+
+**What it is:** **`compliant`** iff **`months_since_last_drill ≤ max_months_between_drills`** — see *Disaster-recovery drill recency* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **DR drill recency verify** | `python scripts/horizon75_drill_recency_smoke.py --verify` | Loads [`texts/horizon75_drill_recency_sample.json`](texts/horizon75_drill_recency_sample.json); writes `.tmp/horizon75-drill-recency/run.json` (`horizon75_drill_recency_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H75 (full exit):** multi-region game days, fault injection, auditor evidence stores.
+
+**How to test (local):** `python scripts/horizon75_drill_recency_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon75-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

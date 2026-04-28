@@ -1,0 +1,12 @@
+{
+  "schema": "horizon75_drill_recency_sample/1.0",
+  "note": "Compliance requires disaster-recovery tabletop or game day at least every max_months_between_drills.",
+  "max_months_between_drills": 12,
+  "checks": [
+    { "months_since_last_drill": 0, "expect_compliant": true },
+    { "months_since_last_drill": 6, "expect_compliant": true },
+    { "months_since_last_drill": 12, "expect_compliant": true },
+    { "months_since_last_drill": 13, "expect_compliant": false },
+    { "months_since_last_drill": 24, "expect_compliant": false }
+  ]
+}
