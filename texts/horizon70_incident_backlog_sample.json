@@ -1,0 +1,12 @@
+{
+  "schema": "horizon70_incident_backlog_sample/1.0",
+  "note": "Promotion or scale events blocked when open major-track incidents exceed policy ceiling.",
+  "max_open_major_incidents": 2,
+  "checks": [
+    { "open_major_incidents": 0, "expect_compliant": true },
+    { "open_major_incidents": 1, "expect_compliant": true },
+    { "open_major_incidents": 2, "expect_compliant": true },
+    { "open_major_incidents": 3, "expect_compliant": false },
+    { "open_major_incidents": 10, "expect_compliant": false }
+  ]
+}

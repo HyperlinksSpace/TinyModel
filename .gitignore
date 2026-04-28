@@ -99,6 +99,8 @@ artifacts/horizon14/
 .tmp/horizon67-dsar-export/
 .tmp/horizon68-static-block/
 .tmp/horizon69-vendor-host/
+.tmp/horizon70-incident-backlog/
+.tmp/horizon71-payment-grace/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -153,6 +155,8 @@ artifacts/horizon66/
 artifacts/horizon67/
 artifacts/horizon68/
 artifacts/horizon69/
+artifacts/horizon70/
+artifacts/horizon71/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

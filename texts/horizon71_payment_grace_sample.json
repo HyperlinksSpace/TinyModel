@@ -1,0 +1,12 @@
+{
+  "schema": "horizon71_payment_grace_sample/1.0",
+  "note": "Service continuity allowed while hours_past_due ≤ max_hours_past_due_allowed (grace after invoice due).",
+  "max_hours_past_due_allowed": 72,
+  "checks": [
+    { "hours_past_due": 0, "expect_allow_service": true },
+    { "hours_past_due": 24, "expect_allow_service": true },
+    { "hours_past_due": 72, "expect_allow_service": true },
+    { "hours_past_due": 73, "expect_allow_service": false },
+    { "hours_past_due": 200, "expect_allow_service": false }
+  ]
+}

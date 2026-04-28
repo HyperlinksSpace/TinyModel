@@ -1138,6 +1138,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon69-smoke.yml`.
 
+## Horizon 70: major-incident backlog ceiling (ops hygiene)
+
+**What it is:** **`compliant`** iff **`open_major_incidents ≤ max_open_major_incidents`** — see *Major-incident backlog ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Incident backlog verify** | `python scripts/horizon70_incident_backlog_smoke.py --verify` | Loads [`texts/horizon70_incident_backlog_sample.json`](texts/horizon70_incident_backlog_sample.json); writes `.tmp/horizon70-incident-backlog/run.json` (`horizon70_incident_backlog_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H70 (full exit):** severity rubrics, dedup across regions, executive dashboards.
+
+**How to test (local):** `python scripts/horizon70_incident_backlog_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon70-smoke.yml`.
+
+## Horizon 71: payment overdue grace window (subscription continuity)
+
+**What it is:** **`allow_service`** iff **`hours_past_due ≤ max_hours_past_due_allowed`** — see *Payment overdue grace window* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Payment grace verify** | `python scripts/horizon71_payment_grace_smoke.py --verify` | Loads [`texts/horizon71_payment_grace_sample.json`](texts/horizon71_payment_grace_sample.json); writes `.tmp/horizon71-payment-grace/run.json` (`horizon71_payment_grace_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H71 (full exit):** dunning ladders, processor webhooks, enterprise invoicing carve-outs.
+
+**How to test (local):** `python scripts/horizon71_payment_grace_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon71-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
