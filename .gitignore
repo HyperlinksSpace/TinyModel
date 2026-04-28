@@ -75,6 +75,8 @@ artifacts/horizon14/
 .tmp/horizon43-credential-age/
 .tmp/horizon44-optimistic-lock/
 .tmp/horizon45-payload-size/
+.tmp/horizon46-latency-p99/
+.tmp/horizon47-kill-switch/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -105,6 +107,8 @@ artifacts/horizon42/
 artifacts/horizon43/
 artifacts/horizon44/
 artifacts/horizon45/
+artifacts/horizon46/
+artifacts/horizon47/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

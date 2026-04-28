@@ -802,6 +802,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon45-smoke.yml`.
 
+## Horizon 46: latency tail budget (approximate p99 vs ceiling)
+
+**What it is:** sort **`samples_ms`**, approximate **p99** (`ceil(0.99·n)−1` rank), compare to **`max_p99_ms`** against **`expect_under_budget`** — see *Latency tail budget* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **p99 verify** | `python scripts/horizon46_latency_p99_smoke.py --verify` | Loads [`texts/horizon46_latency_p99_sample.json`](texts/horizon46_latency_p99_sample.json); writes `.tmp/horizon46-latency-p99/run.json` (`horizon46_latency_p99_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H46 (full exit):** HDR histograms, weighted SLIs, multi-region tails.
+
+**How to test (local):** `python scripts/horizon46_latency_p99_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon46-smoke.yml`.
+
+## Horizon 47: kill switch (global deny)
+
+**What it is:** **`allowed`** iff **the kill switch is off** and **`policy_allow`** is true — see *Kill switch* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Kill switch verify** | `python scripts/horizon47_kill_switch_smoke.py --verify` | Loads [`texts/horizon47_kill_switch_sample.json`](texts/horizon47_kill_switch_sample.json); writes `.tmp/horizon47-kill-switch/run.json` (`horizon47_kill_switch_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H47 (full exit):** scoped kills, gradual drains, audited expiry.
+
+**How to test (local):** `python scripts/horizon47_kill_switch_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon47-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

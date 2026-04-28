@@ -1,0 +1,20 @@
+{
+  "schema": "horizon47_kill_switch_sample/1.0",
+  "note": "Final allow = (not kill_switch_engaged) and policy_allow.",
+  "scenarios": [
+    {
+      "kill_switch_engaged": false,
+      "checks": [
+        { "policy_allow": true, "expect_allowed": true },
+        { "policy_allow": false, "expect_allowed": false }
+      ]
+    },
+    {
+      "kill_switch_engaged": true,
+      "checks": [
+        { "policy_allow": true, "expect_allowed": false },
+        { "policy_allow": false, "expect_allowed": false }
+      ]
+    }
+  ]
+}
