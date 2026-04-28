@@ -1,0 +1,11 @@
+{
+  "schema": "horizon64_image_age_sample/1.0",
+  "note": "Promotion blocked when container/base image exceeds max_image_age_days since publish.",
+  "max_image_age_days": 90,
+  "checks": [
+    { "image_age_days": 1, "expect_compliant": true },
+    { "image_age_days": 90, "expect_compliant": true },
+    { "image_age_days": 91, "expect_compliant": false },
+    { "image_age_days": 200, "expect_compliant": false }
+  ]
+}

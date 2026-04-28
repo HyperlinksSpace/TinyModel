@@ -1,0 +1,16 @@
+{
+  "schema": "horizon65_rca_deadline_sample/1.0",
+  "note": "Listed severities must publish RCA documentation within max_hours_to_rca_doc hours.",
+  "severities_requiring_rca": ["sev1", "critical"],
+  "max_hours_to_rca_doc": 72,
+  "checks": [
+    { "severity": "info", "hours_to_rca_doc": 999, "expect_compliant": true },
+    { "severity": "sev2", "hours_to_rca_doc": 999, "expect_compliant": true },
+    { "severity": "sev1", "hours_to_rca_doc": 48, "expect_compliant": true },
+    { "severity": "sev1", "hours_to_rca_doc": 72, "expect_compliant": true },
+    { "severity": "sev1", "hours_to_rca_doc": 73, "expect_compliant": false },
+    { "severity": "critical", "hours_to_rca_doc": 71, "expect_compliant": true },
+    { "severity": "critical", "hours_to_rca_doc": 72, "expect_compliant": true },
+    { "severity": "critical", "hours_to_rca_doc": 73, "expect_compliant": false }
+  ]
+}

@@ -93,6 +93,8 @@ artifacts/horizon14/
 .tmp/horizon61-maintainer-quorum/
 .tmp/horizon62-branch-protect/
 .tmp/horizon63-secret-sweep/
+.tmp/horizon64-image-age/
+.tmp/horizon65-rca-deadline/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -141,6 +143,8 @@ artifacts/horizon60/
 artifacts/horizon61/
 artifacts/horizon62/
 artifacts/horizon63/
+artifacts/horizon64/
+artifacts/horizon65/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

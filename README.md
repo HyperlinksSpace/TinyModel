@@ -1054,6 +1054,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon63-smoke.yml`.
 
+## Horizon 64: container image age ceiling (freshness)
+
+**What it is:** **`compliant`** iff **`image_age_days ≤ max_image_age_days`** — see *Container image age ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Image age verify** | `python scripts/horizon64_image_age_smoke.py --verify` | Loads [`texts/horizon64_image_age_sample.json`](texts/horizon64_image_age_sample.json); writes `.tmp/horizon64-image-age/run.json` (`horizon64_image_age_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H64 (full exit):** rolling rebuild automation, digest-only pulls, mirror skew handling.
+
+**How to test (local):** `python scripts/horizon64_image_age_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon64-smoke.yml`.
+
+## Horizon 65: RCA documentation deadline (post-incident SLA)
+
+**What it is:** **`compliant`** iff severity is **not** in **`severities_requiring_rca`**, **or** **`hours_to_rca_doc ≤ max_hours_to_rca_doc`** — see *RCA documentation deadline* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **RCA deadline verify** | `python scripts/horizon65_rca_deadline_smoke.py --verify` | Loads [`texts/horizon65_rca_deadline_sample.json`](texts/horizon65_rca_deadline_sample.json); writes `.tmp/horizon65-rca-deadline/run.json` (`horizon65_rca_deadline_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H65 (full exit):** blameless templates, tracked corrective actions, legal holds.
+
+**How to test (local):** `python scripts/horizon65_rca_deadline_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon65-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
