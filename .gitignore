@@ -55,6 +55,8 @@ artifacts/horizon14/
 .tmp/horizon23-blast-radius/
 .tmp/horizon24-canary-gate/
 .tmp/horizon25-failover/
+.tmp/horizon26-error-budget/
+.tmp/horizon27-prompt-gate/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -65,6 +67,8 @@ artifacts/horizon22/
 artifacts/horizon23/
 artifacts/horizon24/
 artifacts/horizon25/
+artifacts/horizon26/
+artifacts/horizon27/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

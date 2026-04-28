@@ -522,6 +522,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon25-smoke.yml`.
 
+## Horizon 26: SLO error budget (observed vs allowed failures)
+
+**What it is:** compare **errors_observed** to ⌊window × failure_budget_pct⌋ — see *SLO error budget* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Budget verify** | `python scripts/horizon26_error_budget_smoke.py --verify` | Loads [`texts/horizon26_error_budget_sample.json`](texts/horizon26_error_budget_sample.json); writes `.tmp/horizon26-error-budget/run.json` (`horizon26_error_budget_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H26 (full exit):** composite SLIs, burn-rate alerting, paging integrations.
+
+**How to test (local):** `python scripts/horizon26_error_budget_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon26-smoke.yml`.
+
+## Horizon 27: prompt injection gate (substring deny lists)
+
+**What it is:** **case-insensitive** substring rules — see *Prompt injection resistance* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Gate verify** | `python scripts/horizon27_prompt_gate_smoke.py --verify` | Loads [`texts/horizon27_prompt_gate_sample.json`](texts/horizon27_prompt_gate_sample.json); writes `.tmp/horizon27-prompt-gate/run.json` (`horizon27_prompt_gate_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H27 (full exit):** ML moderation, multilingual tuning, tokenizer-aware scans.
+
+**How to test (local):** `python scripts/horizon27_prompt_gate_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon27-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

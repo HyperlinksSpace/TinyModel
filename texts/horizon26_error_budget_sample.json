@@ -1,0 +1,24 @@
+{
+  "schema": "horizon26_error_budget_sample/1.0",
+  "note": "availability_target_pct is minimum successful fraction over window_requests; excess errors consume budget.",
+  "scenarios": [
+    {
+      "availability_target_pct": 99.9,
+      "window_requests": 1000000,
+      "errors_observed": 900,
+      "expect_within_budget": true
+    },
+    {
+      "availability_target_pct": 99.0,
+      "window_requests": 10000,
+      "errors_observed": 95,
+      "expect_within_budget": true
+    },
+    {
+      "availability_target_pct": 99.99,
+      "window_requests": 500000,
+      "errors_observed": 40,
+      "expect_within_budget": true
+    }
+  ]
+}
