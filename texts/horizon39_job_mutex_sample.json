@@ -1,0 +1,27 @@
+{
+  "schema": "horizon39_job_mutex_sample/1.0",
+  "note": "Conflict if both endpoints of any mutex pair appear in scheduled_jobs together.",
+  "mutex_pairs": [
+    ["train", "deploy"],
+    ["migrate", "serve"],
+    ["backup", "restore"]
+  ],
+  "scenarios": [
+    {
+      "scheduled_jobs": ["train", "migrate"],
+      "expect_conflict": false
+    },
+    {
+      "scheduled_jobs": ["train", "deploy"],
+      "expect_conflict": true
+    },
+    {
+      "scheduled_jobs": ["migrate", "serve", "audit"],
+      "expect_conflict": true
+    },
+    {
+      "scheduled_jobs": ["backup", "audit"],
+      "expect_conflict": false
+    }
+  ]
+}

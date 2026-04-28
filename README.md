@@ -690,6 +690,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon37-smoke.yml`.
 
+## Horizon 38: monotonic watermarks (checkpoint series)
+
+**What it is:** adjacent integer series **never decreases** — see *Monotonic checkpoints* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Watermark verify** | `python scripts/horizon38_watermark_smoke.py --verify` | Loads [`texts/horizon38_watermark_sample.json`](texts/horizon38_watermark_sample.json); writes `.tmp/horizon38-watermark/run.json` (`horizon38_watermark_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H38 (full exit):** per-partition vectors, Kafka ISR semantics.
+
+**How to test (local):** `python scripts/horizon38_watermark_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon38-smoke.yml`.
+
+## Horizon 39: job mutex pairs (schedule conflicts)
+
+**What it is:** **mutex_pairs** forbid scheduling **both** jobs together — see *Mutually exclusive jobs* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Mutex verify** | `python scripts/horizon39_job_mutex_smoke.py --verify` | Loads [`texts/horizon39_job_mutex_sample.json`](texts/horizon39_job_mutex_sample.json); writes `.tmp/horizon39-job-mutex/run.json` (`horizon39_job_mutex_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H39 (full exit):** durations, capacities, orchestrator backends.
+
+**How to test (local):** `python scripts/horizon39_job_mutex_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon39-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

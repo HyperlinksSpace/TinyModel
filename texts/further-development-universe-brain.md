@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–37**): through **H34–H35** quorum and crypto suites; **H36–H37** **maintenance freeze calendars** and **pair cardinality** telemetry budgets—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–39**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling—then product layers beyond this repo. |
 
 ---
 
@@ -604,6 +604,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 38 — **Monotonic checkpoints & replay watermarks**
+
+**Goal:** streaming pipelines (**offsets**, **sequence numbers**, **vector clock** summaries) must never **rewind** silently—retrograde checkpoints corrupt downstream **exactly-once** reasoning (**H28**) and confuse **audit** (**H19**).
+
+- Connects to **H32** consumer lag math as **progress** telemetry.
+
+**Exit criteria**
+
+- **Invariant checks** in processors; **alert + halt** when violations detected outside controlled resets.
+
+**Implemented in this repository (MVP):** `texts/horizon38_watermark_sample.json` + `scripts/horizon38_watermark_smoke.py` — `--verify` asserts integer **watermarks** lists are **non-decreasing** adjacent-wise; writes `horizon38_watermark_run/1.0` under `.tmp/horizon38-watermark/run.json`. **Not done yet vs. full exit:** **per-partition** vectors, **Kafka ISR**, **checkpoint stores**.
+
+---
+
+### Horizon 39 — **Mutually exclusive jobs (scheduler mutex)**
+
+**Goal:** certain workloads cannot overlap (**train vs deploy**, **migrate vs serve**)—encoded **mutex pairs** feed schedulers so conflicting windows never obtain exclusive resources concurrently.
+
+- Complements **H14** DAG constraints when parallelism must exclude hazards.
+
+**Exit criteria**
+
+- **Solver-backed** schedules or **Kubernetes** affinity rules reflecting mutex graphs—not only spreadsheets.
+
+**Implemented in this repository (MVP):** `texts/horizon39_job_mutex_sample.json` + `scripts/horizon39_job_mutex_smoke.py` — `--verify` detects **conflict** when **both** endpoints of any **mutex_pair** appear in **scheduled_jobs**; writes `horizon39_job_mutex_run/1.0` under `.tmp/horizon39-job-mutex/run.json`. **Not done yet vs. full exit:** **resource** capacities, **duration**, **retry** storms.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -615,12 +643,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–37**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–39**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H37** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H39** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

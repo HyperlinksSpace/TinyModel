@@ -1,0 +1,18 @@
+{
+  "schema": "horizon38_watermark_sample/1.0",
+  "note": "Checkpoint / offset series must be non-decreasing (no accidental rewind).",
+  "scenarios": [
+    {
+      "watermarks": [1, 2, 2, 5],
+      "expect_non_decreasing": true
+    },
+    {
+      "watermarks": [10, 15, 14, 20],
+      "expect_non_decreasing": false
+    },
+    {
+      "watermarks": [100],
+      "expect_non_decreasing": true
+    }
+  ]
+}
