@@ -886,6 +886,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon51-smoke.yml`.
 
+## Horizon 52: RBAC subset gate (required roles covered by grant)
+
+**What it is:** **`allow`** iff **every required role appears in granted roles** — see *RBAC subset gate* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Role subset verify** | `python scripts/horizon52_role_subset_smoke.py --verify` | Loads [`texts/horizon52_role_subset_sample.json`](texts/horizon52_role_subset_sample.json); writes `.tmp/horizon52-role-subset/run.json` (`horizon52_role_subset_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H52 (full exit):** ABAC, hierarchical roles, JIT elevation.
+
+**How to test (local):** `python scripts/horizon52_role_subset_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon52-smoke.yml`.
+
+## Horizon 53: dry-run gate (no mutating work in simulation)
+
+**What it is:** **`allow`** unless **both** **`dry_run`** and **`mutating_operation`** are true — see *Dry-run gate* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Dry-run verify** | `python scripts/horizon53_dry_run_gate_smoke.py --verify` | Loads [`texts/horizon53_dry_run_gate_sample.json`](texts/horizon53_dry_run_gate_sample.json); writes `.tmp/horizon53-dry-run-gate/run.json` (`horizon53_dry_run_gate_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H53 (full exit):** shadow environments, mixed batches, replay audits.
+
+**How to test (local):** `python scripts/horizon53_dry_run_gate_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon53-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

@@ -1,0 +1,10 @@
+{
+  "schema": "horizon53_dry_run_gate_sample/1.0",
+  "note": "Mutating work is blocked when dry_run is true (simulation-only path).",
+  "checks": [
+    { "dry_run": false, "mutating_operation": false, "expect_allow": true },
+    { "dry_run": false, "mutating_operation": true, "expect_allow": true },
+    { "dry_run": true, "mutating_operation": false, "expect_allow": true },
+    { "dry_run": true, "mutating_operation": true, "expect_allow": false }
+  ]
+}

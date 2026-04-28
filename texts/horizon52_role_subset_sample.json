@@ -1,0 +1,26 @@
+{
+  "schema": "horizon52_role_subset_sample/1.0",
+  "note": "Operation allowed iff every entry in required_roles appears in granted_roles.",
+  "checks": [
+    {
+      "granted_roles": ["admin", "auditor"],
+      "required_roles": ["admin"],
+      "expect_allow": true
+    },
+    {
+      "granted_roles": ["viewer"],
+      "required_roles": ["admin"],
+      "expect_allow": false
+    },
+    {
+      "granted_roles": ["deploy", "release"],
+      "required_roles": ["deploy", "release"],
+      "expect_allow": true
+    },
+    {
+      "granted_roles": ["ops"],
+      "required_roles": [],
+      "expect_allow": true
+    }
+  ]
+}
