@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–27**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18–H25** readiness → failover lines above; **H26–H27** **SLO error budgets** and **prompt injection gates**—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–29**): through **H15** export envelopes; **H16–H27** semver → prompt gates above; **H28–H29** **idempotent side-effects** and **SBOM semver bounds**—then product layers beyond this repo. |
 
 ---
 
@@ -464,6 +464,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 28 — **Idempotent side-effects (ledger)**
+
+**Goal:** payments, provisioning, and **embedding jobs** must tolerate **retries**—clients replay the same logical operation with an **idempotency key** so **exactly-once-ish** semantics hold without double charging.
+
+- Aligns with **H14** workflows (steps must be **retry-safe**) and **H19** audit trails.
+
+**Exit criteria**
+
+- **Durable** dedupe store with TTL; **conflicting** payloads under same key rejected loudly.
+
+**Implemented in this repository (MVP):** `texts/horizon28_idempotency_sample.json` + `scripts/horizon28_idempotency_smoke.py` — `--verify` processes keyed events **in order**, keeps **first-seen** sequence, counts **suppressed** duplicates; writes `horizon28_idempotency_run/1.0` under `.tmp/horizon28-idempotency/run.json`. **Not done yet vs. full exit:** **distributed** stores, **exactly-once** sinks, **payload hash** conflicts.
+
+---
+
+### Horizon 29 — **Supply chain bounds (SBOM semver)**
+
+**Goal:** reproducible stacks Pin **libraries** (**numpy**, HTTP clients, tokenizers) with explicit **semver intervals**—catch accidental drift during upgrades before CI merges **broken pins**.
+
+- Complements **H16** artifact semver with **dependency policy**.
+
+**Exit criteria**
+
+- **Automated** dependency review blocking pins outside approved bands; **CVE** gates tied to SBOM.
+
+**Implemented in this repository (MVP):** `texts/horizon29_sbom_bounds_sample.json` + `scripts/horizon29_sbom_bounds_smoke.py` — `--verify` checks **pinned_version** satisfies **[min_version, max_exclusive)** via padded numeric tuples; writes `horizon29_sbom_bounds_run/1.0` under `.tmp/horizon29-sbom-bounds/run.json`. **Not done yet vs. full exit:** **PEP 440**, prereleases, **signed** SBOM.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -475,12 +503,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–27**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–29**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H27** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H29** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

@@ -1,0 +1,27 @@
+{
+  "schema": "horizon29_sbom_bounds_sample/1.0",
+  "note": "Pinned dependency versions must satisfy half-open semver intervals [min, max_exclusive).",
+  "packages": [
+    {
+      "name": "requests",
+      "pinned_version": "2.31.0",
+      "min_version": "2.28.0",
+      "max_exclusive": "3.0.0",
+      "expect_satisfies": true
+    },
+    {
+      "name": "numpy",
+      "pinned_version": "1.26.4",
+      "min_version": "1.24.0",
+      "max_exclusive": "2.0.0",
+      "expect_satisfies": true
+    },
+    {
+      "name": "hypothetical_pkg",
+      "pinned_version": "4.5.0",
+      "min_version": "5.0.0",
+      "max_exclusive": "6.0.0",
+      "expect_satisfies": false
+    }
+  ]
+}

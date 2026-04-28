@@ -1,0 +1,13 @@
+{
+  "schema": "horizon28_idempotency_sample/1.0",
+  "note": "First occurrence of idempotency_key is processed; later duplicates increment suppressed_duplicates.",
+  "events": [
+    { "idempotency_key": "pay-1", "payload": "charge_usd_10" },
+    { "idempotency_key": "pay-1", "payload": "charge_usd_10" },
+    { "idempotency_key": "pay-2", "payload": "charge_usd_20" },
+    { "idempotency_key": "embed-99", "payload": "vec_job" },
+    { "idempotency_key": "pay-2", "payload": "charge_usd_20" }
+  ],
+  "expect_unique_order": ["pay-1", "pay-2", "embed-99"],
+  "expect_suppressed_duplicates": 2
+}

@@ -57,6 +57,8 @@ artifacts/horizon14/
 .tmp/horizon25-failover/
 .tmp/horizon26-error-budget/
 .tmp/horizon27-prompt-gate/
+.tmp/horizon28-idempotency/
+.tmp/horizon29-sbom-bounds/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -69,6 +71,8 @@ artifacts/horizon24/
 artifacts/horizon25/
 artifacts/horizon26/
 artifacts/horizon27/
+artifacts/horizon28/
+artifacts/horizon29/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

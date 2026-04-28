@@ -550,6 +550,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon27-smoke.yml`.
 
+## Horizon 28: idempotency ledger (dedupe keyed requests)
+
+**What it is:** ordered stream with **first-seen** keys — see *Idempotent side-effects* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Idempotency verify** | `python scripts/horizon28_idempotency_smoke.py --verify` | Loads [`texts/horizon28_idempotency_sample.json`](texts/horizon28_idempotency_sample.json); writes `.tmp/horizon28-idempotency/run.json` (`horizon28_idempotency_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H28 (full exit):** durable stores, conflict detection on mismatched payloads.
+
+**How to test (local):** `python scripts/horizon28_idempotency_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon28-smoke.yml`.
+
+## Horizon 29: SBOM semver bounds (pinned vs allowed interval)
+
+**What it is:** **[min, max_exclusive)** numeric semver tuples — see *Supply chain bounds* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **SBOM verify** | `python scripts/horizon29_sbom_bounds_smoke.py --verify` | Loads [`texts/horizon29_sbom_bounds_sample.json`](texts/horizon29_sbom_bounds_sample.json); writes `.tmp/horizon29-sbom-bounds/run.json` (`horizon29_sbom_bounds_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H29 (full exit):** PEP 440, prereleases, signed attestations.
+
+**How to test (local):** `python scripts/horizon29_sbom_bounds_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon29-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

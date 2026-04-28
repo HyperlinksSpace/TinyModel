@@ -1,0 +1,27 @@
+# Horizon 29: SBOM semver bounds (stdlib)
+name: horizon29-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 29 --verify
+        run: python scripts/horizon29_sbom_bounds_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon29-sbom-bounds/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==29; assert d['schema']=='horizon29_sbom_bounds_run/1.0'; print('ok')"
