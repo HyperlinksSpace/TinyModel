@@ -774,6 +774,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon43-smoke.yml`.
 
+## Horizon 44: optimistic concurrency (revision match)
+
+**What it is:** **`apply_ok`** iff **`client_revision == stored_revision`** — see *Optimistic concurrency* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Revision gate verify** | `python scripts/horizon44_optimistic_lock_smoke.py --verify` | Loads [`texts/horizon44_optimistic_lock_sample.json`](texts/horizon44_optimistic_lock_sample.json); writes `.tmp/horizon44-optimistic-lock/run.json` (`horizon44_optimistic_lock_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H44 (full exit):** vector clocks, CRDT merges, merge UX.
+
+**How to test (local):** `python scripts/horizon44_optimistic_lock_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon44-smoke.yml`.
+
+## Horizon 45: payload size ceiling (ingress max-bytes)
+
+**What it is:** **`allowed`** iff **`bytes ≤ max_bytes`** — see *Payload size ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Payload size verify** | `python scripts/horizon45_payload_size_smoke.py --verify` | Loads [`texts/horizon45_payload_size_sample.json`](texts/horizon45_payload_size_sample.json); writes `.tmp/horizon45-payload-size/run.json` (`horizon45_payload_size_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H45 (full exit):** per-tenant quotas, compression bombs, WebSocket frame limits.
+
+**How to test (local):** `python scripts/horizon45_payload_size_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon45-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

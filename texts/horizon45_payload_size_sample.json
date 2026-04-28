@@ -1,0 +1,12 @@
+{
+  "schema": "horizon45_payload_size_sample/1.0",
+  "note": "Reject requests when payload byte length exceeds max_bytes (ingress guardrail).",
+  "max_bytes": 65536,
+  "checks": [
+    { "bytes": 0, "expect_allowed": true },
+    { "bytes": 1024, "expect_allowed": true },
+    { "bytes": 65536, "expect_allowed": true },
+    { "bytes": 65537, "expect_allowed": false },
+    { "bytes": 1000000, "expect_allowed": false }
+  ]
+}

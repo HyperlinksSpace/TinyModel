@@ -1,0 +1,11 @@
+{
+  "schema": "horizon44_optimistic_lock_sample/1.0",
+  "note": "Apply mutation only when client_revision equals stored_revision (optimistic concurrency / CAS-lite).",
+  "scenarios": [
+    { "stored_revision": 1, "client_revision": 1, "expect_apply": true },
+    { "stored_revision": 10, "client_revision": 10, "expect_apply": true },
+    { "stored_revision": 5, "client_revision": 4, "expect_apply": false },
+    { "stored_revision": 5, "client_revision": 6, "expect_apply": false },
+    { "stored_revision": 0, "client_revision": 1, "expect_apply": false }
+  ]
+}

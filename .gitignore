@@ -73,6 +73,8 @@ artifacts/horizon14/
 .tmp/horizon41-geo-fence/
 .tmp/horizon42-egress-allow/
 .tmp/horizon43-credential-age/
+.tmp/horizon44-optimistic-lock/
+.tmp/horizon45-payload-size/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -101,6 +103,8 @@ artifacts/horizon40/
 artifacts/horizon41/
 artifacts/horizon42/
 artifacts/horizon43/
+artifacts/horizon44/
+artifacts/horizon45/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
