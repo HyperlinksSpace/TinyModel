@@ -1,0 +1,10 @@
+{
+  "schema": "horizon77_legal_hold_sample/1.0",
+  "note": "Destructive mutation blocked under legal_hold_active unless counsel_override.",
+  "checks": [
+    { "legal_hold_active": false, "counsel_override": false, "expect_allow_mutate": true },
+    { "legal_hold_active": true, "counsel_override": false, "expect_allow_mutate": false },
+    { "legal_hold_active": true, "counsel_override": true, "expect_allow_mutate": true },
+    { "legal_hold_active": false, "counsel_override": true, "expect_allow_mutate": true }
+  ]
+}

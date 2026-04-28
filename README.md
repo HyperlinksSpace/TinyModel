@@ -1222,6 +1222,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon75-smoke.yml`.
 
+## Horizon 76: accessibility blocker ceiling
+
+**What it is:** **`compliant`** iff **`open_a11y_blockers ≤ max_open_a11y_blockers`** — see *Accessibility blocker ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **A11y blocker verify** | `python scripts/horizon76_a11y_block_smoke.py --verify` | Loads [`texts/horizon76_a11y_block_sample.json`](texts/horizon76_a11y_block_sample.json); writes `.tmp/horizon76-a11y-block/run.json` (`horizon76_a11y_block_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H76 (full exit):** axe-core CI wiring, manual audits, AT user panels.
+
+**How to test (local):** `python scripts/horizon76_a11y_block_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon76-smoke.yml`.
+
+## Horizon 77: legal-hold mutation gate
+
+**What it is:** **`allow_mutate`** iff **`¬legal_hold_active ∨ counsel_override`** — see *Legal-hold mutation gate* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Legal hold verify** | `python scripts/horizon77_legal_hold_smoke.py --verify` | Loads [`texts/horizon77_legal_hold_sample.json`](texts/horizon77_legal_hold_sample.json); writes `.tmp/horizon77-legal-hold/run.json` (`horizon77_legal_hold_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H77 (full exit):** custodian workflows, chain-of-custody logs, e-discovery bridges.
+
+**How to test (local):** `python scripts/horizon77_legal_hold_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon77-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

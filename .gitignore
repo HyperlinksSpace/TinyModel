@@ -105,6 +105,8 @@ artifacts/horizon14/
 .tmp/horizon73-contract-notice/
 .tmp/horizon74-pentest-findings/
 .tmp/horizon75-drill-recency/
+.tmp/horizon76-a11y-block/
+.tmp/horizon77-legal-hold/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -165,6 +167,8 @@ artifacts/horizon72/
 artifacts/horizon73/
 artifacts/horizon74/
 artifacts/horizon75/
+artifacts/horizon76/
+artifacts/horizon77/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

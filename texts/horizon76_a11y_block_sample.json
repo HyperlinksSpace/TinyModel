@@ -1,0 +1,11 @@
+{
+  "schema": "horizon76_a11y_block_sample/1.0",
+  "note": "Ship gate when open WCAG-shaped blocker-class issues exceed max_open_a11y_blockers.",
+  "max_open_a11y_blockers": 2,
+  "checks": [
+    { "open_a11y_blockers": 0, "expect_compliant": true },
+    { "open_a11y_blockers": 2, "expect_compliant": true },
+    { "open_a11y_blockers": 3, "expect_compliant": false },
+    { "open_a11y_blockers": 10, "expect_compliant": false }
+  ]
+}
