@@ -746,6 +746,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon41-smoke.yml`.
 
+## Horizon 42: egress allow-list (tool / outbound URL hostname gate)
+
+**What it is:** outbound **`url`** hostnames must match **`allowed_hosts`** (exact or registrable suffix when the rule contains **`.`**) — see *Egress allow-list* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Egress verify** | `python scripts/horizon42_egress_allow_smoke.py --verify` | Loads [`texts/horizon42_egress_allow_sample.json`](texts/horizon42_egress_allow_sample.json); writes `.tmp/horizon42-egress-allow/run.json` (`horizon42_egress_allow_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H42 (full exit):** glob patterns, IP allow-lists, DNS rebinding defenses.
+
+**How to test (local):** `python scripts/horizon42_egress_allow_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon42-smoke.yml`.
+
+## Horizon 43: credential / session freshness (max age ceiling)
+
+**What it is:** **`valid`** iff **`age_seconds ≤ max_age_seconds`** — see *Credential freshness* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Credential age verify** | `python scripts/horizon43_credential_age_smoke.py --verify` | Loads [`texts/horizon43_credential_age_sample.json`](texts/horizon43_credential_age_sample.json); writes `.tmp/horizon43-credential-age/run.json` (`horizon43_credential_age_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H43 (full exit):** narrow JWT validity windows, replay caches, rotation webhooks.
+
+**How to test (local):** `python scripts/horizon43_credential_age_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon43-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

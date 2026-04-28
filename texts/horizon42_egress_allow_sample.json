@@ -1,0 +1,12 @@
+{
+  "schema": "horizon42_egress_allow_sample/1.0",
+  "note": "Outbound tool URLs must resolve to hostnames covered by allowed_hosts (exact or registrable suffix match).",
+  "allowed_hosts": ["api.example.com", "hooks.slack.com", "partner.cdn.example.net"],
+  "checks": [
+    { "url": "https://api.example.com/v1/chat", "expect_allowed": true },
+    { "url": "https://hooks.slack.com/services/ABC", "expect_allowed": true },
+    { "url": "https://sub.partner.cdn.example.net/x", "expect_allowed": true },
+    { "url": "https://evil.example.net/phish", "expect_allowed": false },
+    { "url": "https://metadata.internal/", "expect_allowed": false }
+  ]
+}
