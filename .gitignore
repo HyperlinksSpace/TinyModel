@@ -63,6 +63,8 @@ artifacts/horizon14/
 .tmp/horizon31-cardinality/
 .tmp/horizon32-consumer-lag/
 .tmp/horizon33-purpose-matrix/
+.tmp/horizon34-quorum/
+.tmp/horizon35-crypto-suite/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -81,6 +83,8 @@ artifacts/horizon30/
 artifacts/horizon31/
 artifacts/horizon32/
 artifacts/horizon33/
+artifacts/horizon34/
+artifacts/horizon35/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

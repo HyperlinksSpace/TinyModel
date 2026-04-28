@@ -634,6 +634,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon33-smoke.yml`.
 
+## Horizon 34: quorum (strict majority votes)
+
+**What it is:** **votes_yes × 2 > replicas_total** — see *Distributed quorum* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Quorum verify** | `python scripts/horizon34_quorum_smoke.py --verify` | Loads [`texts/horizon34_quorum_sample.json`](texts/horizon34_quorum_sample.json); writes `.tmp/horizon34-quorum/run.json` (`horizon34_quorum_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H34 (full exit):** Byzantine quorum math, weighted voters, raft semantics.
+
+**How to test (local):** `python scripts/horizon34_quorum_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon34-smoke.yml`.
+
+## Horizon 35: cryptographic suite policy (algorithm + minimum key bits)
+
+**What it is:** allow-list **algorithm** plus **key_bits_min** — see *Cryptographic suite policy* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Crypto verify** | `python scripts/horizon35_crypto_suite_smoke.py --verify` | Loads [`texts/horizon35_crypto_suite_sample.json`](texts/horizon35_crypto_suite_sample.json); writes `.tmp/horizon35-crypto-suite/run.json` (`horizon35_crypto_suite_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H35 (full exit):** TLS negotiation order, PQ hybrids, HSM attestation.
+
+**How to test (local):** `python scripts/horizon35_crypto_suite_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon35-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

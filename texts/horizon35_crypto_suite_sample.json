@@ -1,0 +1,16 @@
+{
+  "schema": "horizon35_crypto_suite_sample/1.0",
+  "note": "Claim allowed if algorithm matches an entry and key_bits >= that entry key_bits_min.",
+  "allowed_suites": [
+    { "algorithm": "AES-GCM", "key_bits_min": 128 },
+    { "algorithm": "CHACHA20-POLY1305", "key_bits_min": 256 },
+    { "algorithm": "X25519", "key_bits_min": 256 }
+  ],
+  "claims": [
+    { "algorithm": "AES-GCM", "key_bits": 256, "expect_allowed": true },
+    { "algorithm": "AES-GCM", "key_bits": 128, "expect_allowed": true },
+    { "algorithm": "AES-GCM", "key_bits": 96, "expect_allowed": false },
+    { "algorithm": "CHACHA20-POLY1305", "key_bits": 256, "expect_allowed": true },
+    { "algorithm": "DES", "key_bits": 128, "expect_allowed": false }
+  ]
+}

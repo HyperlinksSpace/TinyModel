@@ -1,0 +1,11 @@
+{
+  "schema": "horizon34_quorum_sample/1.0",
+  "note": "Strict majority: votes_yes * 2 > replicas_total (integer replicas voting yes vs cluster size).",
+  "scenarios": [
+    { "replicas_total": 5, "votes_yes": 3, "expect_strict_majority": true },
+    { "replicas_total": 5, "votes_yes": 2, "expect_strict_majority": false },
+    { "replicas_total": 4, "votes_yes": 3, "expect_strict_majority": true },
+    { "replicas_total": 7, "votes_yes": 4, "expect_strict_majority": true },
+    { "replicas_total": 7, "votes_yes": 3, "expect_strict_majority": false }
+  ]
+}
