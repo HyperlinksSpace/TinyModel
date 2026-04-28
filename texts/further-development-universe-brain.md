@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–55**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling; **H40–H41** **composite policy AND** and **geo-fence / residency** allow-lists; **H42–H43** **egress URL allow-lists** and **credential max-age** ceilings; **H44–H45** **optimistic concurrency** revisions and **payload size** ceilings; **H46–H47** **latency p99 budgets** and **global kill-switch** overrides; **H48–H49** **dual-control approvals** and **pinned artifact digests**; **H50–H51** **wire-format major-version compatibility** and **storage utilization headroom**; **H52–H53** **RBAC role-subset gates** and **dry-run mutation blocks**; **H54–H55** **backup recency ceilings** and **sensitive-tier encryption requirements**—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–57**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling; **H40–H41** **composite policy AND** and **geo-fence / residency** allow-lists; **H42–H43** **egress URL allow-lists** and **credential max-age** ceilings; **H44–H45** **optimistic concurrency** revisions and **payload size** ceilings; **H46–H47** **latency p99 budgets** and **global kill-switch** overrides; **H48–H49** **dual-control approvals** and **pinned artifact digests**; **H50–H51** **wire-format major-version compatibility** and **storage utilization headroom**; **H52–H53** **RBAC role-subset gates** and **dry-run mutation blocks**; **H54–H55** **backup recency ceilings** and **sensitive-tier encryption requirements**; **H56–H57** **TLS protocol version allow-lists** for ingress and **severity→pager routing** for incidents—then product layers beyond this repo. |
 
 ---
 
@@ -838,6 +838,30 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 56 — **TLS version allow-list (ingress handshake)**
+
+**Goal:** terminate TLS only on **approved protocol versions**—reject legacy **`tls1.0`/`tls1.1`** clients before cipher negotiation (**H34–H35** crypto complements protocol posture).
+
+**Exit criteria**
+
+- **Cipher suite policies**, **OCSP stapling**, **certificate transparency** monitors—not only version strings.
+
+**Implemented in this repository (MVP):** `texts/horizon56_tls_version_sample.json` + `scripts/horizon56_tls_version_smoke.py` — `--verify` marks **`allow`** iff **`offered_tls_version`** is in **`allowed_tls_versions`** (case-insensitive); writes `horizon56_tls_version_run/1.0` under `.tmp/horizon56-tls-version/run.json`. **Not done yet vs. full exit:** **real** handshake probes, **per-listener** matrices, **automated** downgrade detection.
+
+---
+
+### Horizon 57 — **Severity routing (pager required)**
+
+**Goal:** incidents classified **`sev1`**/**`critical`** must **page on-call**—no silent escalation gaps beside **Decision gates** ops discipline.
+
+**Exit criteria**
+
+- **Rotation calendars**, **customer comms**, **post-incident** blameless reviews—not only booleans.
+
+**Implemented in this repository (MVP):** `texts/horizon57_sev_pager_sample.json` + `scripts/horizon57_sev_pager_smoke.py` — `--verify` marks **`compliant`** iff **severity not in** **`severities_requiring_page`** **or** **`pager_sent`** is true; writes `horizon57_sev_pager_run/1.0` under `.tmp/horizon57-sev-pager/run.json`. **Not done yet vs. full exit:** **multi-channel** paging, **SLO burn** bridges, **customer-visible** status hooks.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -849,12 +873,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–55**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–57**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes; **H40–H41** add **composite policy AND** and **geo-fence residency** smokes; **H42–H43** add **egress URL allow-list** and **credential max-age** smokes; **H44–H45** add **optimistic concurrency revision match** and **payload max-bytes** smokes; **H46–H47** add **latency p99 budget** and **kill-switch global deny** smokes; **H48–H49** add **dual-control distinct approvers** and **pinned digest promote** smokes; **H50–H51** add **wire major-version compat** and **storage quota headroom** smokes; **H52–H53** add **RBAC role subset** and **dry-run mutation gate** smokes; **H54–H55** add **backup recency ceiling** and **sensitive-tier encryption** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes; **H40–H41** add **composite policy AND** and **geo-fence residency** smokes; **H42–H43** add **egress URL allow-list** and **credential max-age** smokes; **H44–H45** add **optimistic concurrency revision match** and **payload max-bytes** smokes; **H46–H47** add **latency p99 budget** and **kill-switch global deny** smokes; **H48–H49** add **dual-control distinct approvers** and **pinned digest promote** smokes; **H50–H51** add **wire major-version compat** and **storage quota headroom** smokes; **H52–H53** add **RBAC role subset** and **dry-run mutation gate** smokes; **H54–H55** add **backup recency ceiling** and **sensitive-tier encryption** smokes; **H56–H57** add **TLS version allow-list** and **severity pager routing** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H55** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H57** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

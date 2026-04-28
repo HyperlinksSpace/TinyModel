@@ -942,6 +942,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon55-smoke.yml`.
 
+## Horizon 56: TLS version allow-list (ingress)
+
+**What it is:** **`allow`** iff **`offered_tls_version`** is listed under **`allowed_tls_versions`** — see *TLS version allow-list* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **TLS version verify** | `python scripts/horizon56_tls_version_smoke.py --verify` | Loads [`texts/horizon56_tls_version_sample.json`](texts/horizon56_tls_version_sample.json); writes `.tmp/horizon56-tls-version/run.json` (`horizon56_tls_version_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H56 (full exit):** live handshake probes, per-listener matrices, downgrade monitors.
+
+**How to test (local):** `python scripts/horizon56_tls_version_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon56-smoke.yml`.
+
+## Horizon 57: severity routing (pager for critical severities)
+
+**What it is:** **`compliant`** iff severity does **not** require paging **or** **`pager_sent`** is true — see *Severity routing* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Severity pager verify** | `python scripts/horizon57_sev_pager_smoke.py --verify` | Loads [`texts/horizon57_sev_pager_sample.json`](texts/horizon57_sev_pager_sample.json); writes `.tmp/horizon57-sev-pager/run.json` (`horizon57_sev_pager_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H57 (full exit):** rotation calendars, multi-channel paging, customer status bridges.
+
+**How to test (local):** `python scripts/horizon57_sev_pager_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon57-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

@@ -1,0 +1,13 @@
+{
+  "schema": "horizon57_sev_pager_sample/1.0",
+  "note": "When severity matches severities_requiring_page, pager_sent must be true.",
+  "severities_requiring_page": ["sev1", "critical"],
+  "checks": [
+    { "severity": "info", "pager_sent": false, "expect_compliant": true },
+    { "severity": "sev2", "pager_sent": false, "expect_compliant": true },
+    { "severity": "sev1", "pager_sent": true, "expect_compliant": true },
+    { "severity": "sev1", "pager_sent": false, "expect_compliant": false },
+    { "severity": "Critical", "pager_sent": true, "expect_compliant": true },
+    { "severity": "critical", "pager_sent": false, "expect_compliant": false }
+  ]
+}

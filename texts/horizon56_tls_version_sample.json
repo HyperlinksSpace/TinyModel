@@ -1,0 +1,11 @@
+{
+  "schema": "horizon56_tls_version_sample/1.0",
+  "note": "Ingress allows only TLS protocol versions listed in allowed_tls_versions (case-insensitive labels).",
+  "allowed_tls_versions": ["tls1.2", "tls1.3"],
+  "checks": [
+    { "offered_tls_version": "tls1.2", "expect_allow": true },
+    { "offered_tls_version": "TLS1.3", "expect_allow": true },
+    { "offered_tls_version": "tls1.0", "expect_allow": false },
+    { "offered_tls_version": "tls1.1", "expect_allow": false }
+  ]
+}
