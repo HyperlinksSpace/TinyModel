@@ -1,0 +1,10 @@
+{
+  "schema": "horizon50_schema_compat_sample/1.0",
+  "note": "Wire compatibility when server_schema_major >= required_minimum_major.",
+  "checks": [
+    { "required_minimum_major": 1, "server_schema_major": 2, "expect_compatible": true },
+    { "required_minimum_major": 3, "server_schema_major": 2, "expect_compatible": false },
+    { "required_minimum_major": 2, "server_schema_major": 2, "expect_compatible": true },
+    { "required_minimum_major": 0, "server_schema_major": 1, "expect_compatible": true }
+  ]
+}

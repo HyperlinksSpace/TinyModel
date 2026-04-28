@@ -858,6 +858,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon49-smoke.yml`.
 
+## Horizon 50: wire-format major-version compatibility
+
+**What it is:** **`compatible`** iff **`server_schema_major ≥ required_minimum_major`** — see *Wire-format major-version compatibility* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Schema compat verify** | `python scripts/horizon50_schema_compat_smoke.py --verify` | Loads [`texts/horizon50_schema_compat_sample.json`](texts/horizon50_schema_compat_sample.json); writes `.tmp/horizon50-schema-compat/run.json` (`horizon50_schema_compat_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H50 (full exit):** minor negotiation, feature bits, codegen bridges.
+
+**How to test (local):** `python scripts/horizon50_schema_compat_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon50-smoke.yml`.
+
+## Horizon 51: quota headroom (storage utilization ceiling)
+
+**What it is:** **`under_budget`** iff **`utilization_pct ≤ max_utilization_pct`** — see *Quota headroom* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Quota headroom verify** | `python scripts/horizon51_quota_headroom_smoke.py --verify` | Loads [`texts/horizon51_quota_headroom_sample.json`](texts/horizon51_quota_headroom_sample.json); writes `.tmp/horizon51-quota-headroom/run.json` (`horizon51_quota_headroom_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H51 (full exit):** predictive capacity, inode caps, replication slack models.
+
+**How to test (local):** `python scripts/horizon51_quota_headroom_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon51-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

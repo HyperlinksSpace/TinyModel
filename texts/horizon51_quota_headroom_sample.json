@@ -1,0 +1,12 @@
+{
+  "schema": "horizon51_quota_headroom_sample/1.0",
+  "note": "Reject writes when utilization_pct exceeds max_utilization_pct (disk/object-store guardrail).",
+  "max_utilization_pct": 85,
+  "checks": [
+    { "utilization_pct": 0, "expect_under_budget": true },
+    { "utilization_pct": 50, "expect_under_budget": true },
+    { "utilization_pct": 85, "expect_under_budget": true },
+    { "utilization_pct": 86, "expect_under_budget": false },
+    { "utilization_pct": 100, "expect_under_budget": false }
+  ]
+}
