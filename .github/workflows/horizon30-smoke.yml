@@ -1,0 +1,27 @@
+# Horizon 30: lease TTL coordination (stdlib)
+name: horizon30-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 30 --verify
+        run: python scripts/horizon30_lease_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon30-lease/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==30; assert d['schema']=='horizon30_lease_run/1.0'; print('ok')"

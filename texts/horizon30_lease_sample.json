@@ -1,0 +1,21 @@
+{
+  "schema": "horizon30_lease_sample/1.0",
+  "note": "Lease valid when check_at in [acquired_at, acquired_at + ttl); end exclusive at exact expiry instant.",
+  "scenarios": [
+    {
+      "check_at": "2026-04-26T11:59:00Z",
+      "leases": [
+        { "id": "embed_job", "acquired_at": "2026-04-26T10:00:00Z", "ttl_sec": 7200 },
+        { "id": "train_lock", "acquired_at": "2026-04-26T08:00:00Z", "ttl_sec": 3600 }
+      ],
+      "expect_active_ids_sorted": ["embed_job"]
+    },
+    {
+      "check_at": "2026-04-26T11:00:00Z",
+      "leases": [
+        { "id": "future", "acquired_at": "2026-04-26T14:00:00Z", "ttl_sec": 300 }
+      ],
+      "expect_active_ids_sorted": []
+    }
+  ]
+}

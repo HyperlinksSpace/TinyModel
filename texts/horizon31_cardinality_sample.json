@@ -1,0 +1,32 @@
+{
+  "schema": "horizon31_cardinality_sample/1.0",
+  "note": "Distinct values per dimension in the batch must not exceed max_distinct caps.",
+  "scenarios": [
+    {
+      "max_distinct": { "user_id": 3, "region": 2 },
+      "rows": [
+        { "user_id": "u1", "region": "eu" },
+        { "user_id": "u2", "region": "eu" },
+        { "user_id": "u3", "region": "us" }
+      ],
+      "expect_within_budget": true
+    },
+    {
+      "max_distinct": { "user_id": 2 },
+      "rows": [
+        { "user_id": "a" },
+        { "user_id": "b" },
+        { "user_id": "c" }
+      ],
+      "expect_within_budget": false
+    },
+    {
+      "max_distinct": { "sku": 5, "warehouse": 1 },
+      "rows": [
+        { "sku": "x", "warehouse": "w1" },
+        { "sku": "x", "warehouse": "w1" }
+      ],
+      "expect_within_budget": true
+    }
+  ]
+}

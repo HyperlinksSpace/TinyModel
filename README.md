@@ -578,6 +578,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon29-smoke.yml`.
 
+## Horizon 30: leases & TTL (coordination smoke)
+
+**What it is:** **active leases** vs wall-clock **check_at** — see *Distributed coordination (leases)* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Lease verify** | `python scripts/horizon30_lease_smoke.py --verify` | Loads [`texts/horizon30_lease_sample.json`](texts/horizon30_lease_sample.json); writes `.tmp/horizon30-lease/run.json` (`horizon30_lease_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H30 (full exit):** fencing tokens, renewal loops, skew budgets.
+
+**How to test (local):** `python scripts/horizon30_lease_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon30-smoke.yml`.
+
+## Horizon 31: cardinality budgets (distinct values per dimension)
+
+**What it is:** batch **distinct-count** caps — see *Cardinality & observability budgets* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Cardinality verify** | `python scripts/horizon31_cardinality_smoke.py --verify` | Loads [`texts/horizon31_cardinality_sample.json`](texts/horizon31_cardinality_sample.json); writes `.tmp/horizon31-cardinality/run.json` (`horizon31_cardinality_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H31 (full exit):** approximate sketches, streaming windows, tenant isolation.
+
+**How to test (local):** `python scripts/horizon31_cardinality_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon31-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

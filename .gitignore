@@ -59,6 +59,8 @@ artifacts/horizon14/
 .tmp/horizon27-prompt-gate/
 .tmp/horizon28-idempotency/
 .tmp/horizon29-sbom-bounds/
+.tmp/horizon30-lease/
+.tmp/horizon31-cardinality/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -73,6 +75,8 @@ artifacts/horizon26/
 artifacts/horizon27/
 artifacts/horizon28/
 artifacts/horizon29/
+artifacts/horizon30/
+artifacts/horizon31/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
