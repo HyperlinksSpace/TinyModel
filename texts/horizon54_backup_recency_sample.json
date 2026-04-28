@@ -1,0 +1,10 @@
+{
+  "schema": "horizon54_backup_recency_sample/1.0",
+  "note": "Backup is recent enough iff backup_age_hours <= max_allowed_age_hours.",
+  "checks": [
+    { "backup_age_hours": 6, "max_allowed_age_hours": 24, "expect_compliant": true },
+    { "backup_age_hours": 24, "max_allowed_age_hours": 24, "expect_compliant": true },
+    { "backup_age_hours": 25, "max_allowed_age_hours": 24, "expect_compliant": false },
+    { "backup_age_hours": 168, "max_allowed_age_hours": 72, "expect_compliant": false }
+  ]
+}

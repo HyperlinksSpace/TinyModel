@@ -1,0 +1,10 @@
+{
+  "schema": "horizon55_encryption_required_sample/1.0",
+  "note": "Sensitive data tier requires encryption_at_rest_enabled.",
+  "checks": [
+    { "sensitive_tier": false, "encryption_at_rest_enabled": false, "expect_allow": true },
+    { "sensitive_tier": false, "encryption_at_rest_enabled": true, "expect_allow": true },
+    { "sensitive_tier": true, "encryption_at_rest_enabled": true, "expect_allow": true },
+    { "sensitive_tier": true, "encryption_at_rest_enabled": false, "expect_allow": false }
+  ]
+}

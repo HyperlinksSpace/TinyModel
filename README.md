@@ -914,6 +914,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon53-smoke.yml`.
 
+## Horizon 54: backup recency (RPO-style age ceiling)
+
+**What it is:** **`compliant`** iff **`backup_age_hours ≤ max_allowed_age_hours`** — see *Backup recency* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Backup recency verify** | `python scripts/horizon54_backup_recency_smoke.py --verify` | Loads [`texts/horizon54_backup_recency_sample.json`](texts/horizon54_backup_recency_sample.json); writes `.tmp/horizon54-backup-recency/run.json` (`horizon54_backup_recency_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H54 (full exit):** replication lag proofs, immutable vaults, restore drills.
+
+**How to test (local):** `python scripts/horizon54_backup_recency_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon54-smoke.yml`.
+
+## Horizon 55: encryption required for sensitive tier
+
+**What it is:** **`allow`** if **not sensitive** **or** **encryption at rest is enabled** — see *Encryption required* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Encryption tier verify** | `python scripts/horizon55_encryption_required_smoke.py --verify` | Loads [`texts/horizon55_encryption_required_sample.json`](texts/horizon55_encryption_required_sample.json); writes `.tmp/horizon55-encryption-required/run.json` (`horizon55_encryption_required_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H55 (full exit):** CMKs, field-level crypto, tenant KMS isolation.
+
+**How to test (local):** `python scripts/horizon55_encryption_required_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon55-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

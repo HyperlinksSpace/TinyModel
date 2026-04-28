@@ -83,6 +83,8 @@ artifacts/horizon14/
 .tmp/horizon51-quota-headroom/
 .tmp/horizon52-role-subset/
 .tmp/horizon53-dry-run-gate/
+.tmp/horizon54-backup-recency/
+.tmp/horizon55-encryption-required/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -121,6 +123,8 @@ artifacts/horizon50/
 artifacts/horizon51/
 artifacts/horizon52/
 artifacts/horizon53/
+artifacts/horizon54/
+artifacts/horizon55/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
