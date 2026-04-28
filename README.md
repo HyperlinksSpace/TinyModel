@@ -1026,6 +1026,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon61-smoke.yml`.
 
+## Horizon 62: protected-branch merge gate (approvals + CI)
+
+**What it is:** **`allow_merge`** iff the branch is **not** listed under **`protected_branches`**, **or** **`min_approvals_met`** and **`ci_green`** are both true — see *Protected-branch merge gate* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Branch protect verify** | `python scripts/horizon62_branch_protect_smoke.py --verify` | Loads [`texts/horizon62_branch_protect_sample.json`](texts/horizon62_branch_protect_sample.json); writes `.tmp/horizon62-branch-protect/run.json` (`horizon62_branch_protect_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H62 (full exit):** merge queues, required contexts lists, stacked PR semantics.
+
+**How to test (local):** `python scripts/horizon62_branch_protect_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon62-smoke.yml`.
+
+## Horizon 63: secret-scan sweep ceiling
+
+**What it is:** **`compliant`** iff **`open_secret_findings ≤ max_open_secret_findings`** — see *Secret-scan sweep ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Secret sweep verify** | `python scripts/horizon63_secret_sweep_smoke.py --verify` | Loads [`texts/horizon63_secret_sweep_sample.json`](texts/horizon63_secret_sweep_sample.json); writes `.tmp/horizon63-secret-sweep/run.json` (`horizon63_secret_sweep_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H63 (full exit):** entropy tuning, KMS-linked blast radius, waiver workflows.
+
+**How to test (local):** `python scripts/horizon63_secret_sweep_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon63-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

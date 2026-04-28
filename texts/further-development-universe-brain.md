@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–61**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling; **H40–H41** **composite policy AND** and **geo-fence / residency** allow-lists; **H42–H43** **egress URL allow-lists** and **credential max-age** ceilings; **H44–H45** **optimistic concurrency** revisions and **payload size** ceilings; **H46–H47** **latency p99 budgets** and **global kill-switch** overrides; **H48–H49** **dual-control approvals** and **pinned artifact digests**; **H50–H51** **wire-format major-version compatibility** and **storage utilization headroom**; **H52–H53** **RBAC role-subset gates** and **dry-run mutation blocks**; **H54–H55** **backup recency ceilings** and **sensitive-tier encryption requirements**; **H56–H57** **TLS protocol version allow-lists** for ingress and **severity→pager routing** for incidents; **H58–H59** **open advisory budgets** vs **critical/high ceilings** and **release-channel signature gates**; **H60–H61** **SPDX license allow-lists** for dependency policy and **maintainer quorum** floors for ownership—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–63**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling; **H40–H41** **composite policy AND** and **geo-fence / residency** allow-lists; **H42–H43** **egress URL allow-lists** and **credential max-age** ceilings; **H44–H45** **optimistic concurrency** revisions and **payload size** ceilings; **H46–H47** **latency p99 budgets** and **global kill-switch** overrides; **H48–H49** **dual-control approvals** and **pinned artifact digests**; **H50–H51** **wire-format major-version compatibility** and **storage utilization headroom**; **H52–H53** **RBAC role-subset gates** and **dry-run mutation blocks**; **H54–H55** **backup recency ceilings** and **sensitive-tier encryption requirements**; **H56–H57** **TLS protocol version allow-lists** for ingress and **severity→pager routing** for incidents; **H58–H59** **open advisory budgets** vs **critical/high ceilings** and **release-channel signature gates**; **H60–H61** **SPDX license allow-lists** for dependency policy and **maintainer quorum** floors for ownership; **H62–H63** **protected-branch merge gates** (approvals + CI) and **secret-scan finding ceilings**—then product layers beyond this repo. |
 
 ---
 
@@ -910,6 +910,30 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 62 — **Protected-branch merge gate (approvals + CI)**
+
+**Goal:** **`main`**/**`release`** (and similar) require **minimum approvals** **and** **green CI** before merge—pair **H52–H53** governance with SCM mechanics.
+
+**Exit criteria**
+
+- **Merge queues**, **merge trains**, **required status contexts** beyond booleans—not only scripted checks.
+
+**Implemented in this repository (MVP):** `texts/horizon62_branch_protect_sample.json` + `scripts/horizon62_branch_protect_smoke.py` — **`allow_merge`** iff **branch not protected** **or** (**`min_approvals_met`** **and** **`ci_green`**); writes `horizon62_branch_protect_run/1.0` under `.tmp/horizon62-branch-protect/run.json`. **Not done yet vs. full exit:** **branch-specific** policies, **stacked PR** semantics, **bot identity** carve-outs.
+
+---
+
+### Horizon 63 — **Secret-scan sweep ceiling**
+
+**Goal:** pipelines block promotion while **open secret-detector findings** exceed **`max_open_secret_findings`**—pairs **H58–H59** supply-chain hygiene with leak prevention.
+
+**Exit criteria**
+
+- **Entropy scoring**, **revocation drills**, **blast-radius maps** linked to scanners—not only counters.
+
+**Implemented in this repository (MVP):** `texts/horizon63_secret_sweep_sample.json` + `scripts/horizon63_secret_sweep_smoke.py` — **`compliant`** iff **`open_secret_findings ≤ max_open_secret_findings`** per check; writes `horizon63_secret_sweep_run/1.0` under `.tmp/horizon63-secret-sweep/run.json`. **Not done yet vs. full exit:** **false-positive** workflows with expiry, **custom detectors**, **historical scrub** attestations.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -921,12 +945,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–61**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–63**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes; **H40–H41** add **composite policy AND** and **geo-fence residency** smokes; **H42–H43** add **egress URL allow-list** and **credential max-age** smokes; **H44–H45** add **optimistic concurrency revision match** and **payload max-bytes** smokes; **H46–H47** add **latency p99 budget** and **kill-switch global deny** smokes; **H48–H49** add **dual-control distinct approvers** and **pinned digest promote** smokes; **H50–H51** add **wire major-version compat** and **storage quota headroom** smokes; **H52–H53** add **RBAC role subset** and **dry-run mutation gate** smokes; **H54–H55** add **backup recency ceiling** and **sensitive-tier encryption** smokes; **H56–H57** add **TLS version allow-list** and **severity pager routing** smokes; **H58–H59** add **vulnerability budget** and **release-channel signature gate** smokes; **H60–H61** add **SPDX license allow-list** and **maintainer quorum** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes; **H40–H41** add **composite policy AND** and **geo-fence residency** smokes; **H42–H43** add **egress URL allow-list** and **credential max-age** smokes; **H44–H45** add **optimistic concurrency revision match** and **payload max-bytes** smokes; **H46–H47** add **latency p99 budget** and **kill-switch global deny** smokes; **H48–H49** add **dual-control distinct approvers** and **pinned digest promote** smokes; **H50–H51** add **wire major-version compat** and **storage quota headroom** smokes; **H52–H53** add **RBAC role subset** and **dry-run mutation gate** smokes; **H54–H55** add **backup recency ceiling** and **sensitive-tier encryption** smokes; **H56–H57** add **TLS version allow-list** and **severity pager routing** smokes; **H58–H59** add **vulnerability budget** and **release-channel signature gate** smokes; **H60–H61** add **SPDX license allow-list** and **maintainer quorum** smokes; **H62–H63** add **protected-branch merge gate** and **secret-scan sweep ceiling** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H61** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H63** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

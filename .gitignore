@@ -91,6 +91,8 @@ artifacts/horizon14/
 .tmp/horizon59-signature-gate/
 .tmp/horizon60-license-allow/
 .tmp/horizon61-maintainer-quorum/
+.tmp/horizon62-branch-protect/
+.tmp/horizon63-secret-sweep/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -137,6 +139,8 @@ artifacts/horizon58/
 artifacts/horizon59/
 artifacts/horizon60/
 artifacts/horizon61/
+artifacts/horizon62/
+artifacts/horizon63/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

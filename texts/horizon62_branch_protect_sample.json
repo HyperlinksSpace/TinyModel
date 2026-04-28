@@ -1,0 +1,13 @@
+{
+  "schema": "horizon62_branch_protect_sample/1.0",
+  "note": "Listed branches require approvals and green CI before merge; others pass through.",
+  "protected_branches": ["main", "release"],
+  "checks": [
+    { "branch": "feature/foo", "min_approvals_met": false, "ci_green": false, "expect_allow_merge": true },
+    { "branch": "main", "min_approvals_met": true, "ci_green": true, "expect_allow_merge": true },
+    { "branch": "main", "min_approvals_met": false, "ci_green": true, "expect_allow_merge": false },
+    { "branch": "main", "min_approvals_met": true, "ci_green": false, "expect_allow_merge": false },
+    { "branch": "release", "min_approvals_met": true, "ci_green": true, "expect_allow_merge": true },
+    { "branch": "release", "min_approvals_met": false, "ci_green": true, "expect_allow_merge": false }
+  ]
+}

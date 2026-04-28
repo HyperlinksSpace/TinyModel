@@ -1,0 +1,27 @@
+# Horizon 62: protected-branch merge gate (stdlib)
+name: horizon62-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run Horizon 62 --verify
+        run: python scripts/horizon62_branch_protect_smoke.py --verify
+      - name: Check artifact
+        run: |
+          python -c "import json, pathlib; p=pathlib.Path('.tmp/horizon62-branch-protect/run.json'); d=json.loads(p.read_text()); assert d.get('ok') and d.get('horizon')==62; assert d['schema']=='horizon62_branch_protect_run/1.0'; print('ok')"
