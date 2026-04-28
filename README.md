@@ -606,6 +606,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon31-smoke.yml`.
 
+## Horizon 32: consumer lag (streaming backlog)
+
+**What it is:** **lag_units** vs **max_lag_allowed** — see *Streaming backlog & consumer lag* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Lag verify** | `python scripts/horizon32_consumer_lag_smoke.py --verify` | Loads [`texts/horizon32_consumer_lag_sample.json`](texts/horizon32_consumer_lag_sample.json); writes `.tmp/horizon32-consumer-lag/run.json` (`horizon32_consumer_lag_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H32 (full exit):** Kafka-specific semantics, consumer groups, checkpoint protocols.
+
+**How to test (local):** `python scripts/horizon32_consumer_lag_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon32-smoke.yml`.
+
+## Horizon 33: purpose limitation matrix (lawful basis × purpose)
+
+**What it is:** explicit **allowed_pairs** for (**legal_basis**, **processing_purpose**) — see *Purpose limitation* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Purpose verify** | `python scripts/horizon33_purpose_matrix_smoke.py --verify` | Loads [`texts/horizon33_purpose_matrix_sample.json`](texts/horizon33_purpose_matrix_sample.json); writes `.tmp/horizon33-purpose-matrix/run.json` (`horizon33_purpose_matrix_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H33 (full exit):** legal review, DPIAs, transfers, sector rules.
+
+**How to test (local):** `python scripts/horizon33_purpose_matrix_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon33-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

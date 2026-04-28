@@ -1,0 +1,24 @@
+{
+  "schema": "horizon32_consumer_lag_sample/1.0",
+  "note": "Lag = max(0, high_water_mark - consumer_position); OK when lag <= max_lag_allowed.",
+  "scenarios": [
+    {
+      "high_water_mark": 1000,
+      "consumer_position": 995,
+      "max_lag_allowed": 10,
+      "expect_within_lag_budget": true
+    },
+    {
+      "high_water_mark": 50000,
+      "consumer_position": 49980,
+      "max_lag_allowed": 25,
+      "expect_within_lag_budget": true
+    },
+    {
+      "high_water_mark": 100,
+      "consumer_position": 70,
+      "max_lag_allowed": 25,
+      "expect_within_lag_budget": false
+    }
+  ]
+}

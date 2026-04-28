@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–31**): through **H15** export envelopes and earlier governance lines; **H28–H29** **idempotency** and **SBOM bounds**; **H30–H31** **lease TTL** coordination and **cardinality budgets**—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–33**): through **H15** export envelopes and earlier governance lines; **H28–H31** idempotency → cardinality; **H32–H33** **streaming lag budgets** and **purpose-limitation matrices**—then product layers beyond this repo. |
 
 ---
 
@@ -520,6 +520,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 32 — **Streaming backlog & consumer lag**
+
+**Goal:** queued inference, **embedding** rebuilds, and **feedback** ingestion are **streams**—operators must see **lag** (high-water mark minus consumer position) versus **budget** before queues spill into **latency SLO** breaches (**H26**) or **tier downgrade** (**H17**).
+
+- Complements **H14** DAG steps when steps are **partition consumers**.
+
+**Exit criteria**
+
+- **Dashboards** on lag per partition; **auto-scale** hooks documented when sustained lag exceeds threshold.
+
+**Implemented in this repository (MVP):** `texts/horizon32_consumer_lag_sample.json` + `scripts/horizon32_consumer_lag_smoke.py` — `--verify` computes **lag_units** = max(0, **high_water_mark − consumer_position**) vs **max_lag_allowed**; writes `horizon32_consumer_lag_run/1.0` under `.tmp/horizon32-consumer-lag/run.json`. **Not done yet vs. full exit:** **Kafka/Orchestrator** semantics, **exactly-once** checkpoints, **consumer groups**.
+
+---
+
+### Horizon 33 — **Purpose limitation (lawful basis × processing)**
+
+**Goal:** GDPR-shaped systems tie each **processing purpose** (**inference**, **analytics**, **marketing**) to an explicit **lawful basis** (**contract**, **consent**, etc.)—not “collect everything because ML.” Product policy must **encode** allowed combinations.
+
+- Aligns with **H15** export envelopes and **H21** retention when lawful basis drives deletion rules.
+
+**Exit criteria**
+
+- **Records of processing**, **DPIAs**, and **jurisdiction** overlays reviewed by counsel—not repo scripts alone.
+
+**Implemented in this repository (MVP):** `texts/horizon33_purpose_matrix_sample.json` + `scripts/horizon33_purpose_matrix_smoke.py` — `--verify` checks (**legal_basis**, **processing_purpose**) pairs against an explicit **allowed_pairs** set; writes `horizon33_purpose_matrix_run/1.0` under `.tmp/horizon33-purpose-matrix/run.json`. **Not done yet vs. full exit:** **Art. 6** nuance per sector, **international transfers**, **automated decision-making** carve-outs.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -531,12 +559,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–31**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–33**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H31** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H33** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 
