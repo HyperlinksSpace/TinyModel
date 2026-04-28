@@ -1,0 +1,11 @@
+{
+  "schema": "horizon79_encryption_rest_sample/1.0",
+  "note": "Ship gate when fraction of classified volumes under KMS-managed encryption falls below floor.",
+  "min_fraction_encrypted_at_rest": 0.95,
+  "checks": [
+    { "fraction_encrypted_at_rest": 1.0, "expect_compliant": true },
+    { "fraction_encrypted_at_rest": 0.95, "expect_compliant": true },
+    { "fraction_encrypted_at_rest": 0.949, "expect_compliant": false },
+    { "fraction_encrypted_at_rest": 0.5, "expect_compliant": false }
+  ]
+}

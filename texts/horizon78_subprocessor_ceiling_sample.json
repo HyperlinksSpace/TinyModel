@@ -1,0 +1,11 @@
+{
+  "schema": "horizon78_subprocessor_ceiling_sample/1.0",
+  "note": "Governance gate when registered vendors/subprocessors exceed max_active_subprocessors.",
+  "max_active_subprocessors": 50,
+  "checks": [
+    { "active_subprocessors": 0, "expect_compliant": true },
+    { "active_subprocessors": 50, "expect_compliant": true },
+    { "active_subprocessors": 51, "expect_compliant": false },
+    { "active_subprocessors": 100, "expect_compliant": false }
+  ]
+}
