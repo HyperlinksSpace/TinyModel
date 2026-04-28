@@ -1,0 +1,13 @@
+{
+  "schema": "horizon73_contract_notice_sample/1.0",
+  "note": "Renewal runway satisfied if auto_renew or days_until_expiry ≥ min_notice_days_before_expiry.",
+  "min_notice_days_before_expiry": 30,
+  "checks": [
+    { "days_until_expiry": 90, "auto_renew": false, "expect_compliant": true },
+    { "days_until_expiry": 30, "auto_renew": false, "expect_compliant": true },
+    { "days_until_expiry": 29, "auto_renew": false, "expect_compliant": false },
+    { "days_until_expiry": 1, "auto_renew": false, "expect_compliant": false },
+    { "days_until_expiry": 5, "auto_renew": true, "expect_compliant": true },
+    { "days_until_expiry": 0, "auto_renew": true, "expect_compliant": true }
+  ]
+}

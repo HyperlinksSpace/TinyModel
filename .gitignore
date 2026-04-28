@@ -101,6 +101,8 @@ artifacts/horizon14/
 .tmp/horizon69-vendor-host/
 .tmp/horizon70-incident-backlog/
 .tmp/horizon71-payment-grace/
+.tmp/horizon72-ticket-backlog/
+.tmp/horizon73-contract-notice/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -157,6 +159,8 @@ artifacts/horizon68/
 artifacts/horizon69/
 artifacts/horizon70/
 artifacts/horizon71/
+artifacts/horizon72/
+artifacts/horizon73/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

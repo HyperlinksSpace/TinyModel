@@ -1,0 +1,12 @@
+{
+  "schema": "horizon72_ticket_backlog_sample/1.0",
+  "note": "Risky changes gated when open P1-class support tickets exceed max_open_p1_tickets.",
+  "max_open_p1_tickets": 3,
+  "checks": [
+    { "open_p1_tickets": 0, "expect_compliant": true },
+    { "open_p1_tickets": 2, "expect_compliant": true },
+    { "open_p1_tickets": 3, "expect_compliant": true },
+    { "open_p1_tickets": 4, "expect_compliant": false },
+    { "open_p1_tickets": 10, "expect_compliant": false }
+  ]
+}

@@ -1166,6 +1166,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon71-smoke.yml`.
 
+## Horizon 72: P1 ticket backlog ceiling (support load)
+
+**What it is:** **`compliant`** iff **`open_p1_tickets ≤ max_open_p1_tickets`** — see *P1 ticket backlog ceiling* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Ticket backlog verify** | `python scripts/horizon72_ticket_backlog_smoke.py --verify` | Loads [`texts/horizon72_ticket_backlog_sample.json`](texts/horizon72_ticket_backlog_sample.json); writes `.tmp/horizon72-ticket-backlog/run.json` (`horizon72_ticket_backlog_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H72 (full exit):** tier-specific SLAs, holiday staffing, multi-product queues.
+
+**How to test (local):** `python scripts/horizon72_ticket_backlog_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon72-smoke.yml`.
+
+## Horizon 73: contract renewal notice (vendor runway)
+
+**What it is:** **`compliant`** iff **`auto_renew`** is true **or** **`days_until_expiry ≥ min_notice_days_before_expiry`** — see *Contract renewal notice* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Contract notice verify** | `python scripts/horizon73_contract_notice_smoke.py --verify` | Loads [`texts/horizon73_contract_notice_sample.json`](texts/horizon73_contract_notice_sample.json); writes `.tmp/horizon73-contract-notice/run.json` (`horizon73_contract_notice_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H73 (full exit):** procurement workflows, BAAs, termination clauses.
+
+**How to test (local):** `python scripts/horizon73_contract_notice_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon73-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
