@@ -1,0 +1,13 @@
+{
+  "schema": "horizon59_signature_gate_sample/1.0",
+  "note": "Listed channels require a valid cryptographic signature on promoted artifacts.",
+  "channels_requiring_signature": ["prod", "release"],
+  "checks": [
+    { "channel": "dev", "signature_valid": false, "expect_allow": true },
+    { "channel": "staging", "signature_valid": false, "expect_allow": true },
+    { "channel": "prod", "signature_valid": true, "expect_allow": true },
+    { "channel": "prod", "signature_valid": false, "expect_allow": false },
+    { "channel": "release", "signature_valid": true, "expect_allow": true },
+    { "channel": "release", "signature_valid": false, "expect_allow": false }
+  ]
+}

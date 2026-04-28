@@ -970,6 +970,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon57-smoke.yml`.
 
+## Horizon 58: vulnerability budget (critical/high ceilings)
+
+**What it is:** **`compliant`** iff **`critical_open`** and **`high_open`** counts stay within **`max_critical_open`** / **`max_high_open`** — see *Vulnerability budget* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Vuln budget verify** | `python scripts/horizon58_vuln_budget_smoke.py --verify` | Loads [`texts/horizon58_vuln_budget_sample.json`](texts/horizon58_vuln_budget_sample.json); writes `.tmp/horizon58-vuln-budget/run.json` (`horizon58_vuln_budget_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H58 (full exit):** scanner quorum, reachability proofs, waiver workflows.
+
+**How to test (local):** `python scripts/horizon58_vuln_budget_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon58-smoke.yml`.
+
+## Horizon 59: signature gate (release channels)
+
+**What it is:** **`allow`** iff the channel does **not** require signatures **or** **`signature_valid`** is true — see *Signature gate* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Signature gate verify** | `python scripts/horizon59_signature_gate_smoke.py --verify` | Loads [`texts/horizon59_signature_gate_sample.json`](texts/horizon59_signature_gate_sample.json); writes `.tmp/horizon59-signature-gate/run.json` (`horizon59_signature_gate_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H59 (full exit):** Sigstore transparency, threshold signing, attestations.
+
+**How to test (local):** `python scripts/horizon59_signature_gate_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon59-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

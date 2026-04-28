@@ -1,0 +1,13 @@
+{
+  "schema": "horizon58_vuln_budget_sample/1.0",
+  "note": "Promotion passes only when open advisory counts stay within tier ceilings.",
+  "max_critical_open": 0,
+  "max_high_open": 2,
+  "checks": [
+    { "critical_open": 0, "high_open": 0, "expect_compliant": true },
+    { "critical_open": 0, "high_open": 2, "expect_compliant": true },
+    { "critical_open": 0, "high_open": 3, "expect_compliant": false },
+    { "critical_open": 1, "high_open": 0, "expect_compliant": false },
+    { "critical_open": 0, "high_open": 1, "expect_compliant": true }
+  ]
+}
