@@ -15,7 +15,7 @@ This note is a **synthesis** for stakeholders. Authoritative checklists stay in 
 
 **Engineering in this repository:**
 
-The horizon ladder in [`further-development-universe-brain.md`](further-development-universe-brain.md) runs **0–39** (semver through job-mutex smokes as later MVPs).
+The horizon ladder in [`further-development-universe-brain.md`](further-development-universe-brain.md) runs **0–41** (semver through geo-fence smokes as later MVPs).
 
 | Area | What exists |
 | ---- | ----------- |
@@ -26,7 +26,7 @@ The horizon ladder in [`further-development-universe-brain.md`](further-developm
 | **Generative (H2)** | Local / Hub causal LM path with JSON run artifacts; smoke tests in CI. |
 | **Memory (H3)** | SQLite **session vs long-term** store, audit, export, forget; CLI + optional HTTP. |
 | **Multimodal (H4)** | CLIP-style **image + caption** alignment and JSON runs; CI uses **offline** synthetic CLIP. |
-| **Convergence & governance (H6–H39)** | Through **H15**: chained smokes, tenant isolation, probes, policy, budget, feedback JSONL, hashes, circuit breaker, DAG smoke, export envelopes; **H16–H17**: **semver** manifest smoke, **degradation tier** smoke; **H18–H19**: **readiness checklist** smoke, **audit hash chain** smoke; **H20–H21**: **feature-flag rollout** smoke, **retention purge** smoke; **H22–H23**: **token bucket** smoke, **blast radius** smoke; **H24–H25**: **canary regression gate** smoke, **failover route** smoke; **H26–H27**: **error budget** smoke, **prompt gate** smoke; **H28–H29**: **idempotency ledger** smoke, **SBOM semver bounds** smoke; **H30–H31**: **lease TTL** smoke, **cardinality budget** smoke; **H32–H33**: **consumer lag** smoke, **purpose matrix** smoke; **H34–H35**: **quorum majority** smoke, **crypto suite** smoke; **H36–H37**: **maintenance freeze** smoke, **pair cardinality** smoke; **H38–H39**: **watermark monotonicity** smoke, **job mutex** smoke. |
+| **Convergence & governance (H6–H41)** | Through **H15**: chained smokes, tenant isolation, probes, policy, budget, feedback JSONL, hashes, circuit breaker, DAG smoke, export envelopes; **H16–H17**: **semver** manifest smoke, **degradation tier** smoke; **H18–H19**: **readiness checklist** smoke, **audit hash chain** smoke; **H20–H21**: **feature-flag rollout** smoke, **retention purge** smoke; **H22–H23**: **token bucket** smoke, **blast radius** smoke; **H24–H25**: **canary regression gate** smoke, **failover route** smoke; **H26–H27**: **error budget** smoke, **prompt gate** smoke; **H28–H29**: **idempotency ledger** smoke, **SBOM semver bounds** smoke; **H30–H31**: **lease TTL** smoke, **cardinality budget** smoke; **H32–H33**: **consumer lag** smoke, **purpose matrix** smoke; **H34–H35**: **quorum majority** smoke, **crypto suite** smoke; **H36–H37**: **maintenance freeze** smoke, **pair cardinality** smoke; **H38–H39**: **watermark monotonicity** smoke, **job mutex** smoke; **H40–H41**: **composite policy AND** smoke, **geo-fence residency** smoke. |
 
 **What this is *not* yet:** a **single** hosted product with **multi-tenant** auth, **billing**, **abuse and safety** at scale, **signed** policy distribution, or a **unified** production runtime that replaces ad hoc scripts. Those are **staged** in the plan and horizons as **targets**, with many items explicitly **TBD** outside the repo (legal, ops, org process).
 
@@ -46,9 +46,9 @@ The horizon ladder in [`further-development-universe-brain.md`](further-developm
 - **C:** **RAG/retrieval** as a **repeatable** story on top of `TinyModelRuntime`, not a one-off script.  
 - **D (optional):** a **generative** hook aligned with the same logging/eval contract.
 
-**Long-horizon (Horizons 0–39, “universe brain” *design target*):**
+**Long-horizon (Horizons 0–41, “universe brain” *design target*):**
 
-- Move from “good encoder + scripts” toward **integrated** **perception, memory, generation, and policy**—with **decision gates** (evidence, safety, economics, operations) before each jump. The repo’s **H6–H39** work is **MVP / smoke / contracts**; full **H7+** (compliance, ecosystem, assurances) is mostly **out of band** in product and legal.
+- Move from “good encoder + scripts” toward **integrated** **perception, memory, generation, and policy**—with **decision gates** (evidence, safety, economics, operations) before each jump. The repo’s **H6–H41** work is **MVP / smoke / contracts**; full **H7+** (compliance, ecosystem, assurances) is mostly **out of band** in product and legal.
 
 **Commercial / market context:** [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) — buyers care about **retrieval, classification, extraction, RAG, assistants, vision**; the roadmap stays **sober** about what a tiny encoder is for versus LLM-class systems.
 

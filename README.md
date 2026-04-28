@@ -718,6 +718,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon39-smoke.yml`.
 
+## Horizon 40: composite policy AND (all gates)
+
+**What it is:** **composite_ok** iff **every** gate passes — see *Composite policy AND* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Policy AND verify** | `python scripts/horizon40_policy_and_smoke.py --verify` | Loads [`texts/horizon40_policy_and_sample.json`](texts/horizon40_policy_and_sample.json); writes `.tmp/horizon40-policy-and/run.json` (`horizon40_policy_and_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H40 (full exit):** OR groups, weighted scores, dynamic gate lists.
+
+**How to test (local):** `python scripts/horizon40_policy_and_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon40-smoke.yml`.
+
+## Horizon 41: geo-fence / data residency (region allow-list)
+
+**What it is:** **allowed** iff **`region ∈ allowed_regions`** — see *Geo-fence / data residency* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Geo-fence verify** | `python scripts/horizon41_geo_fence_smoke.py --verify` | Loads [`texts/horizon41_geo_fence_sample.json`](texts/horizon41_geo_fence_sample.json); writes `.tmp/horizon41-geo-fence/run.json` (`horizon41_geo_fence_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H41 (full exit):** multi-region failover semantics, lineage proofs, private interconnect routing.
+
+**How to test (local):** `python scripts/horizon41_geo_fence_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon41-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

@@ -1,0 +1,27 @@
+{
+  "schema": "horizon40_policy_and_sample/1.0",
+  "note": "Composite AND: promotion allowed only when every named gate passes.",
+  "scenarios": [
+    {
+      "gates": [
+        { "id": "ci_green", "pass": true },
+        { "id": "sec_scan", "pass": true },
+        { "id": "budget_ok", "pass": true }
+      ],
+      "expect_all_pass": true
+    },
+    {
+      "gates": [
+        { "id": "ci_green", "pass": true },
+        { "id": "budget_ok", "pass": false }
+      ],
+      "expect_all_pass": false
+    },
+    {
+      "gates": [
+        { "id": "manual_ack", "pass": false }
+      ],
+      "expect_all_pass": false
+    }
+  ]
+}

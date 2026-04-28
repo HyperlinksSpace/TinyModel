@@ -69,6 +69,8 @@ artifacts/horizon14/
 .tmp/horizon37-pair-cardinality/
 .tmp/horizon38-watermark/
 .tmp/horizon39-job-mutex/
+.tmp/horizon40-policy-and/
+.tmp/horizon41-geo-fence/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -93,6 +95,8 @@ artifacts/horizon36/
 artifacts/horizon37/
 artifacts/horizon38/
 artifacts/horizon39/
+artifacts/horizon40/
+artifacts/horizon41/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

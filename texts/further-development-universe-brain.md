@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–39**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–41**): through **H36–H37** freezes and pair cardinality; **H38–H39** **monotonic checkpoints** and **mutually exclusive job** scheduling; **H40–H41** **composite policy AND** and **geo-fence / residency** allow-lists—then product layers beyond this repo. |
 
 ---
 
@@ -632,6 +632,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 40 — **Composite policy AND (all gates)**
+
+**Goal:** production policies often bundle **many** checks (**budget**, **prompt**, **crypto**, region)—the **composite** decision **permits** only when **every** constituent gate passes (**logical AND**), not when any single score looks green.
+
+- Composes **H9**, **H27**, **H35**, **H41**, and similar gates into one **enforceable** bundle.
+
+**Exit criteria**
+
+- **Policy-as-code** with **explicit AND/OR** algebra, **exceptions** under audit, and **version pins** shipped with deployments.
+
+**Implemented in this repository (MVP):** `texts/horizon40_policy_and_sample.json` + `scripts/horizon40_policy_and_smoke.py` — `--verify` asserts **`composite_ok`** matches **`expect_all_pass`** when **`all(gate.pass)`** per scenario; writes `horizon40_policy_and_run/1.0` under `.tmp/horizon40-policy-and/run.json`. **Not done yet vs. full exit:** **OR** groups, **weighted** scores, **dynamic** gate lists.
+
+---
+
+### Horizon 41 — **Geo-fence / data residency (region allow-list)**
+
+**Goal:** regulated workloads require **hard** boundaries—**processing** and **storage** must occur only in **approved regions**; deny-by-default when jurisdiction does not match contract.
+
+- Aligns with **H15** export envelopes and **H35** crypto posture when regions imply **key material** locality.
+
+**Exit criteria**
+
+- **Cloud/private link** topology maps; **transfer impact** assessments; **continuous** residency proofs—not only spreadsheet attestations.
+
+**Implemented in this repository (MVP):** `texts/horizon41_geo_fence_sample.json` + `scripts/horizon41_geo_fence_smoke.py` — `--verify` marks **allowed** iff **`region ∈ allowed_regions`** per check; writes `horizon41_geo_fence_run/1.0` under `.tmp/horizon41-geo-fence/run.json`. **Not done yet vs. full exit:** **multi-region** failover semantics, **data lineage** proofs, **private** interconnect routing.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -643,12 +671,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–39**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–41**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes; **H38–H39** add **watermark monotonicity** and **job mutex** smokes; **H40–H41** add **composite policy AND** and **geo-fence residency** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H39** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H41** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

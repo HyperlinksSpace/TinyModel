@@ -1,0 +1,11 @@
+{
+  "schema": "horizon41_geo_fence_sample/1.0",
+  "note": "Data residency stub: request region must appear in allowed_regions allow-list.",
+  "allowed_regions": ["eu-west-1", "us-east-1", "eu-central-1"],
+  "checks": [
+    { "region": "eu-west-1", "expect_allowed": true },
+    { "region": "us-east-1", "expect_allowed": true },
+    { "region": "ap-south-1", "expect_allowed": false },
+    { "region": "cn-north-1", "expect_allowed": false }
+  ]
+}
