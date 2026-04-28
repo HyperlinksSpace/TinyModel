@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–35**): through **H15** export envelopes and earlier governance lines; **H32–H33** lag and purpose matrices; **H34–H35** **distributed quorum** votes and **cryptographic suite** policy—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–37**): through **H34–H35** quorum and crypto suites; **H36–H37** **maintenance freeze calendars** and **pair cardinality** telemetry budgets—then product layers beyond this repo. |
 
 ---
 
@@ -576,6 +576,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 36 — **Maintenance freeze windows**
+
+**Goal:** coordinated **infra / model deploy** freezes (**game days**, holidays, regulated quiet periods) block risky automation unless someone invokes **break-glass**—encoded as UTC windows over operator tooling.
+
+- Aligns with **H18** readiness checklists and **H24** canary gates when freezes overlap promotions.
+
+**Exit criteria**
+
+- **Immutable calendar** feeds CI/CD; **pager + audit** when freezes are overridden.
+
+**Implemented in this repository (MVP):** `texts/horizon36_maintenance_freeze_sample.json` + `scripts/horizon36_maintenance_freeze_smoke.py` — `--verify` marks **frozen** when **check_at ∈ [start, end)** for any listed interval; writes `horizon36_maintenance_freeze_run/1.0` under `.tmp/horizon36-maintenance-freeze/run.json`. **Not done yet vs. full exit:** **recurring** RRULE calendars, **multi-region** tz joins.
+
+---
+
+### Horizon 37 — **Pair cardinality (Cartesian explosion guard)**
+
+**Goal:** observability labels compound—**(tenant × SKU)** pairs can multiply faster than single dimensions (**H31**) alone—enforce **distinct pair budgets** before dashboards melt billing or query caches.
+
+- Together with **H31** single-dimension caps and **H22** token buckets as shaping layers.
+
+**Exit criteria**
+
+- **Sampling**, **high-cardinality drop**, or **pre-aggregation** runbooks before breach.
+
+**Implemented in this repository (MVP):** `texts/horizon37_pair_cardinality_sample.json` + `scripts/horizon37_pair_cardinality_smoke.py` — `--verify` counts unique **(dim_a, dim_b)** tuples vs **max_distinct_pairs** per scenario; writes `horizon37_pair_cardinality_run/1.0` under `.tmp/horizon37-pair-cardinality/run.json`. **Not done yet vs. full exit:** **triple** products, **approximate** sketches per pair key.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -587,12 +615,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–35**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–37**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes; **H26–H27** add **error budget** and **prompt gate** smokes; **H28–H29** add **idempotency ledger** and **SBOM semver bounds** smokes; **H30–H31** add **lease TTL** and **cardinality budget** smokes; **H32–H33** add **consumer lag** and **purpose matrix** smokes; **H34–H35** add **quorum majority** and **crypto suite** smokes; **H36–H37** add **maintenance freeze** and **pair cardinality** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H35** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H37** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

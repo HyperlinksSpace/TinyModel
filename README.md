@@ -662,6 +662,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon35-smoke.yml`.
 
+## Horizon 36: maintenance freeze windows (UTC intervals)
+
+**What it is:** **frozen** inside **[start, end)** intervals — see *Maintenance freeze windows* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Freeze verify** | `python scripts/horizon36_maintenance_freeze_smoke.py --verify` | Loads [`texts/horizon36_maintenance_freeze_sample.json`](texts/horizon36_maintenance_freeze_sample.json); writes `.tmp/horizon36-maintenance-freeze/run.json` (`horizon36_maintenance_freeze_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H36 (full exit):** RRULE calendars, regional tz overlays, break-glass audit hooks.
+
+**How to test (local):** `python scripts/horizon36_maintenance_freeze_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon36-smoke.yml`.
+
+## Horizon 37: pair cardinality (dim_a × dim_b explosion guard)
+
+**What it is:** cap **distinct pairs** across **dim_a** × **dim_b** — see *Pair cardinality* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Pair cardinality verify** | `python scripts/horizon37_pair_cardinality_smoke.py --verify` | Loads [`texts/horizon37_pair_cardinality_sample.json`](texts/horizon37_pair_cardinality_sample.json); writes `.tmp/horizon37-pair-cardinality/run.json` (`horizon37_pair_cardinality_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H37 (full exit):** three-way tuples, streaming sketches.
+
+**How to test (local):** `python scripts/horizon37_pair_cardinality_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon37-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.

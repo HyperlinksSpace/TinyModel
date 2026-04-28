@@ -1,0 +1,35 @@
+{
+  "schema": "horizon37_pair_cardinality_sample/1.0",
+  "note": "Distinct (dim_a, dim_b) pairs in batch vs max_distinct_pairs budget.",
+  "scenarios": [
+    {
+      "max_distinct_pairs": 6,
+      "rows": [
+        { "dim_a": "t1", "dim_b": "sku-a" },
+        { "dim_a": "t1", "dim_b": "sku-b" },
+        { "dim_a": "t2", "dim_b": "sku-a" }
+      ],
+      "expect_within_budget": true
+    },
+    {
+      "max_distinct_pairs": 3,
+      "rows": [
+        { "dim_a": "a", "dim_b": "1" },
+        { "dim_a": "a", "dim_b": "2" },
+        { "dim_a": "b", "dim_b": "1" },
+        { "dim_a": "b", "dim_b": "2" }
+      ],
+      "expect_within_budget": false
+    },
+    {
+      "max_distinct_pairs": 4,
+      "rows": [
+        { "dim_a": "a", "dim_b": "1" },
+        { "dim_a": "a", "dim_b": "2" },
+        { "dim_a": "b", "dim_b": "1" },
+        { "dim_a": "b", "dim_b": "2" }
+      ],
+      "expect_within_budget": true
+    }
+  ]
+}

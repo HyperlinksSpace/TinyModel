@@ -65,6 +65,8 @@ artifacts/horizon14/
 .tmp/horizon33-purpose-matrix/
 .tmp/horizon34-quorum/
 .tmp/horizon35-crypto-suite/
+.tmp/horizon36-maintenance-freeze/
+.tmp/horizon37-pair-cardinality/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -85,6 +87,8 @@ artifacts/horizon32/
 artifacts/horizon33/
 artifacts/horizon34/
 artifacts/horizon35/
+artifacts/horizon36/
+artifacts/horizon37/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log
