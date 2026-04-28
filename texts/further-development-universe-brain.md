@@ -12,7 +12,7 @@ This file is a **long-horizon** plan—separate from the **near-term engineering
 | -------- | ---- |
 | [`further-development-plan.md`](further-development-plan.md) | Concrete **Phases 1–3**: comparison matrix, eval artifacts, ONNX, benchmarks, reference API—**ship-shaped** work. |
 | [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) | **Market-realistic** ladder from small encoder → LLM → multimodal; what companies pay for. |
-| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–23**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18–H19** readiness gates and tamper-evident audit chains; **H20–H21** feature flags and retention; **H22–H23** **token-bucket** fairness and **blast-radius** dependency impact—then product layers beyond this repo. |
+| **This file** | **Vision + staged capabilities** toward a unified “brain-like” stack (Horizons **0–25**): through **H15** export envelopes; **H16–H17** semver and degradation tiers; **H18–H19** readiness gates and tamper-evident audit chains; **H20–H21** feature flags and retention; **H22–H23** **token-bucket** fairness and **blast-radius** dependency impact; **H24–H25** **canary regression gates** and **regional failover routing**—then product layers beyond this repo. |
 
 ---
 
@@ -408,6 +408,34 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ---
 
+### Horizon 24 — **Canary promotion & regression gates**
+
+**Goal:** shipping a **candidate** model or binary next to a **baseline** must be a **metric-disciplined** decision—latency, accuracy, error slices—with explicit **maximum regression** budgets before traffic shifts (**canary**, **shadow**, **A/B**).
+
+- Connects to Phase **benchmark** artifacts and **H20** flags that gate rollout percentages.
+
+**Exit criteria**
+
+- **Automated** promote/deny from CI + offline eval JSON; **manual** override logged.
+
+**Implemented in this repository (MVP):** `texts/horizon24_canary_gate_sample.json` + `scripts/horizon24_canary_gate_smoke.py` — `--verify` computes **regression %** vs baseline per metric (**worse_direction** `up` or `down`), compares to **max_regression_pct**; writes `horizon24_canary_gate_run/1.0` under `.tmp/horizon24-canary-gate/run.json`. **Not done yet vs. full exit:** **shadow traffic**, **multi-objective** Pareto gates, **Bayesian** stops.
+
+---
+
+### Horizon 25 — **Regional failover & traffic steering**
+
+**Goal:** inference endpoints span **regions**; during outages or latency spikes you need a **deterministic preference order** (latency, compliance, cost) over **healthy** replicas—not random DNS luck.
+
+- Complements **H23** blast radius (know dependencies) and **H17** degradation (when to steer traffic).
+
+**Exit criteria**
+
+- **Documented** fallback order per SKU; **game-days** validate probes flip routing.
+
+**Implemented in this repository (MVP):** `texts/horizon25_failover_sample.json` + `scripts/horizon25_failover_smoke.py` — `--verify` selects the **first** region in **preference_order** not listed **unhealthy** (including empty-unhealthy → primary); writes `horizon25_failover_run/1.0` under `.tmp/horizon25-failover/run.json`. **Not done yet vs. full exit:** **latency-weighted** routing, **data residency**, **sticky sessions**.
+
+---
+
 ## Decision gates (before funding each jump)
 
 1. **Evidence gate** — the previous horizon’s metrics and incident data justify the next **scope** increase.
@@ -419,12 +447,12 @@ The long **Horizons** below are deliberately **not** dated. This block is a **se
 
 ## What to do next in practice (from where TinyModel sits)
 
-Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–23**, without waiting for a “brain” label:
+Short list that connects **this** repo to **Horizon 1** and, later, **Horizons 6–25**, without waiting for a “brain” label:
 
 - **Harden data + eval** across more tasks; treat [`further-development-plan.md`](further-development-plan.md) as the **tactical** spine.
-- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes—still **scripts**, not full product.
+- **Know what exists:** H0 (plan), **H1** short-term scripts (handbook), **H2** generative, **H3** memory, **H4** image–text CLIP each have a **local MVP**; **H5** remains lab-only. **H6–H15** cover **composition** through **export** envelopes; **H16–H17** add **semver** contracts and **degradation** tiers; **H18–H19** add **readiness gates** and **audit hash chains**; **H20–H21** add **feature-flag rollout** and **retention purge** smokes; **H22–H23** add **token-bucket** and **blast-radius** smokes; **H24–H25** add **canary gates** and **failover routing** smokes—still **scripts**, not full product.
 - **Prototyping lane:** follow [`optional-rd-backlog.md`](optional-rd-backlog.md) for spikes (PEFT, retrieval pooling, etc.).
-- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H23** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
+- **System thinking:** as soon as you add an LLM, invest in **RAG, policies, and logs** in parallel with weights—not after; **H8–H25** add **operational** and **governance** shapes as **tests and contracts**, not only narrative.
 
 ---
 

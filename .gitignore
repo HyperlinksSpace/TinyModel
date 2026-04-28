@@ -53,6 +53,8 @@ artifacts/horizon14/
 .tmp/horizon21-retention/
 .tmp/horizon22-token-bucket/
 .tmp/horizon23-blast-radius/
+.tmp/horizon24-canary-gate/
+.tmp/horizon25-failover/
 artifacts/horizon16/
 artifacts/horizon17/
 artifacts/horizon18/
@@ -61,6 +63,8 @@ artifacts/horizon20/
 artifacts/horizon21/
 artifacts/horizon22/
 artifacts/horizon23/
+artifacts/horizon24/
+artifacts/horizon25/
 # Local debug/runtime crash files
 debug.log
 texts/debug.log

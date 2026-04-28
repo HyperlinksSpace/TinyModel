@@ -1,0 +1,30 @@
+{
+  "schema": "horizon24_canary_gate_sample/1.0",
+  "note": "Candidate vs baseline; worse_direction up means higher values are worse (latency); down means lower is worse (accuracy).",
+  "gates": [
+    {
+      "metric": "latency_p99_ms",
+      "baseline": 100,
+      "candidate": 105,
+      "worse_direction": "up",
+      "max_regression_pct": 10,
+      "expect_pass": true
+    },
+    {
+      "metric": "accuracy_macro_f1",
+      "baseline": 0.92,
+      "candidate": 0.915,
+      "worse_direction": "down",
+      "max_regression_pct": 2,
+      "expect_pass": true
+    },
+    {
+      "metric": "error_rate",
+      "baseline": 0.02,
+      "candidate": 0.019,
+      "worse_direction": "up",
+      "max_regression_pct": 5,
+      "expect_pass": true
+    }
+  ]
+}

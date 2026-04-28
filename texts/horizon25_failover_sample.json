@@ -1,0 +1,23 @@
+{
+  "schema": "horizon25_failover_sample/1.0",
+  "note": "Pick first region in preference_order that is not in unhealthy.",
+  "preference_order": ["us-east-1", "eu-west-1", "ap-south-1"],
+  "scenarios": [
+    {
+      "unhealthy": ["us-east-1"],
+      "expect_route": "eu-west-1"
+    },
+    {
+      "unhealthy": ["us-east-1", "eu-west-1"],
+      "expect_route": "ap-south-1"
+    },
+    {
+      "unhealthy": [],
+      "expect_route": "us-east-1"
+    },
+    {
+      "unhealthy": ["us-east-1", "eu-west-1", "ap-south-1"],
+      "expect_route": null
+    }
+  ]
+}

@@ -494,6 +494,34 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 
 **CI:** `.github/workflows/horizon23-smoke.yml`.
 
+## Horizon 24: canary regression gates (baseline vs candidate)
+
+**What it is:** bounded **metric regression** before promoting a candidate — see *Canary promotion & regression gates* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Canary verify** | `python scripts/horizon24_canary_gate_smoke.py --verify` | Loads [`texts/horizon24_canary_gate_sample.json`](texts/horizon24_canary_gate_sample.json); writes `.tmp/horizon24-canary-gate/run.json` (`horizon24_canary_gate_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H24 (full exit):** shadow traffic wiring, CI ingestion of benchmark JSON from runners.
+
+**How to test (local):** `python scripts/horizon24_canary_gate_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon24-smoke.yml`.
+
+## Horizon 25: regional failover (preference order)
+
+**What it is:** **first healthy region** from an ordered list — see *Regional failover & traffic steering* in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md).
+
+| Piece | What you run | Why it helps |
+| ----- | ------------ | ------------ |
+| **Failover verify** | `python scripts/horizon25_failover_smoke.py --verify` | Loads [`texts/horizon25_failover_sample.json`](texts/horizon25_failover_sample.json); writes `.tmp/horizon25-failover/run.json` (`horizon25_failover_run/1.0`). **Stdlib only.** |
+
+**What is still *not* H25 (full exit):** latency-aware steering, residency constraints, sticky routing.
+
+**How to test (local):** `python scripts/horizon25_failover_smoke.py --verify`.
+
+**CI:** `.github/workflows/horizon25-smoke.yml`.
+
 ### Training script: evaluation and artifacts
 
 The canonical training implementation is [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py). [`scripts/train_tinymodel1_agnews.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_agnews.py) is a thin wrapper that calls the same `main()` with AG News–friendly defaults.
