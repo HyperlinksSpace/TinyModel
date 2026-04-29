@@ -1,5 +1,7 @@
 name: Deploy versioned space artifact to Hugging Face
 
+# Publishes Universal Brain chat UI (universal_brain_chat) via scripts/build_space_artifact.py.
+
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +14,7 @@ on:
         required: true
         default: "HyperlinksSpace"
       model_id:
-        description: "HF model repo id used by Space, e.g. HyperlinksSpace/TinyModel1"
+        description: "HF classifier repo for the Space encoder (--encoder), e.g. HyperlinksSpace/TinyModel1"
         required: true
         default: ""
 

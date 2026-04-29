@@ -38,10 +38,15 @@ def _fingerprint(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:32]
 
 
-def connect(db_path: str | Path) -> sqlite3.Connection:
+def connect(db_path: str | Path, *, check_same_thread: bool = True) -> sqlite3.Connection:
+    """Open SQLite. Set ``check_same_thread=False`` for Gradio/WSGI workers (default True for CLI)."""
     p = Path(db_path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(p), isolation_level=None)  # autocommit; we use BEGIN manually
+    conn = sqlite3.connect(
+        str(p),
+        isolation_level=None,
+        check_same_thread=check_same_thread,
+    )  # autocommit; we use BEGIN manually
     conn.row_factory = sqlite3.Row
     return conn
 

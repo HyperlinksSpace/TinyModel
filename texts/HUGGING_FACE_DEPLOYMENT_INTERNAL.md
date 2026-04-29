@@ -50,29 +50,27 @@ Space tests are part of release gating and must run after model publish.
 
 ### Space artifact setup
 
-1. Keep Space template generator code in `scripts/build_space_artifact.py`.
+1. `scripts/build_space_artifact.py` bundles **Universal Brain chat** (`universal_brain_chat.py` + `horizon2_core`, `horizon3_store`, `rag_faq_smoke`, `tinymodel_runtime`, FAQ corpus) and a root `app.py` that listens on `0.0.0.0` and passes `--encoder` = released classifier id.
 2. Space artifact is generated per release into temporary workflow output.
-3. Configure the Space to load the released model revision (not an unversioned draft).
+3. Configure the workflow `model_id` to the released classifier revision on the Hub.
 
 ### Test flow on Hugging Face
 
 1. Deploy/update the Space from CI after model publish succeeds.
 2. Run automated Space smoke tests against public Space endpoints:
-   - app loads successfully
-   - inference request returns HTTP 200
-   - output format matches expected schema
+   - app loads successfully (Gradio UI)
+   - at least one chat interaction completes (HTTP 200 from API)
+   - optional: `/status` or a routed tool path if automated UI tests exist
    - p95 latency is within release threshold
-3. Run semantic checks on fixed examples (golden set):
-   - at least one sample for each target class
-   - confidence scores are present and numeric
+3. Golden checks can still target the **classifier** via natural-language “classify …” or `/classify` and expect label scores.
 4. Mark release as failed if Space checks fail; do not promote release tag.
 
 ### Minimum pass criteria
 
 - Space is reachable and healthy
-- Prediction path works end-to-end
+- Chat / routing path works end-to-end (no startup tracebacks)
 - No runtime errors in Space logs
-- Latency and response schema satisfy policy thresholds
+- Latency and response sanity satisfy policy thresholds
 
 ## Current repo mode (transition state)
 

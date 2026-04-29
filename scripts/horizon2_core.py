@@ -83,6 +83,68 @@ def build_user_prompt(
     raise ValueError(f"unknown task: {task!r} (use summarize, reformulate, or grounded)")
 
 
+DEFAULT_CHAT_SYSTEM = (
+    "You are Universal Brain, a concise and accurate assistant. "
+    "Answer the user clearly. If you lack information, say so. "
+    "Keep replies focused unless the user asks for depth."
+)
+
+
+ChatMessage = dict[str, str]  # role, content
+
+
+def format_multiturn_for_model(
+    tokenizer: Any,
+    messages: list[ChatMessage],
+) -> str:
+    """Build a single prompt string from chat history (OpenAI-style role dicts)."""
+    clean: list[dict[str, str]] = []
+    for m in messages:
+        role = (m.get("role") or "").strip().lower()
+        content = (m.get("content") or "").strip()
+        if not content or role not in ("system", "user", "assistant"):
+            continue
+        clean.append({"role": role, "content": content})
+    if not clean:
+        raise ValueError("no valid chat messages")
+
+    if getattr(tokenizer, "chat_template", None):
+        try:
+            return tokenizer.apply_chat_template(
+                clean,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+        except Exception:
+            pass
+
+    chunks: list[str] = []
+    for m in clean:
+        label = m["role"].upper()
+        chunks.append(f"{label}: {m['content']}")
+    chunks.append("ASSISTANT:")
+    return "\n\n".join(chunks)
+
+
+def generate_chat_reply(
+    lm: LoadedLM,
+    messages: list[ChatMessage],
+    *,
+    max_new_tokens: int,
+    seed: int,
+    do_sample: bool = True,
+) -> tuple[str, int, int, float]:
+    """Complete the next assistant turn given full message list (incl. system/user/assistant)."""
+    prompt = format_multiturn_for_model(lm.tokenizer, messages)
+    return generate_completion(
+        lm,
+        prompt,
+        max_new_tokens=max_new_tokens,
+        seed=seed,
+        do_sample=do_sample,
+    )
+
+
 def format_for_model(
     tokenizer: Any,
     user_prompt: str,
