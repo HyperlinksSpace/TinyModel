@@ -28,6 +28,8 @@ import sys
 import warnings
 from pathlib import Path
 
+import torch
+
 _scripts = Path(__file__).resolve().parent
 _REPO = _scripts.parent
 DEFAULT_MEMORY_DB = str(_REPO / ".tmp" / "ub_chat_memory.sqlite")
@@ -52,7 +54,7 @@ from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 HELP_TEXT = """**How to use**
 - **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.).
-- **Shortcuts:** slash commands still work (`/help`, `/status`, …).
+- **Shortcuts:** `/help`, `/status`, `/classify`, `/retrieve`, `/summarize`, `/reformulate`, `/grounded q ||| ctx`, `/remember`, `/session`, `/memories`, `/clear-session`, **`/similarity a ||| b`**, **`/embed` / `/embedding`**, **`/nearest q ||| c1 ||| c2`**.
 
 **Intents the router understands** (examples, not exact wording):
 - Ordinary chat / questions
@@ -61,6 +63,9 @@ HELP_TEXT = """**How to use**
 - **Answer using only** these facts — include both facts and question
 - **Search** the FAQ / **find** in the knowledge base
 - **Classify** (topic model) this paragraph
+- **Similarity:** are these two snippets close in meaning? (encoder cosine)
+- **Embedding** stats for a passage (dimension, norm, preview)
+- **Nearest** among several options: which candidate is closest to a query? (`query ||| opt1 ||| opt2 …`)
 - **Remember** / note / store: **long-term** vs **this session only**
 - **Show** saved notes; **clear** session notes
 - **Status** of loaded models
@@ -81,6 +86,9 @@ intent must be one of:
 - grounded — answer only from given facts; put QUESTION in "question", FACTS in "context" (if user mixes both in one blob, split sensibly)
 - retrieve — search FAQ/knowledge; put search query in "text"
 - classify — show topic-classifier probabilities; put passage in "text"
+- similarity — cosine similarity between two texts; put "text_a ||| text_b" in "text"
+- embedding — embedding vector summary for one passage; put passage in "text"
+- nearest — encoder top-k over candidates; put "query ||| candidate1 ||| candidate2 ||| …" in "text" (at least one candidate)
 - remember — save a durable note; put note body in "text"
 - session_note — save a session-only note; put note in "text"
 - list_memories — user wants to see saved notes
@@ -101,6 +109,9 @@ VALID_INTENTS = frozenset(
         "grounded",
         "retrieve",
         "classify",
+        "similarity",
+        "embedding",
+        "nearest",
         "remember",
         "session_note",
         "list_memories",
@@ -117,7 +128,67 @@ _INTENT_ALIASES = {
     "search": "retrieve",
     "faq": "retrieve",
     "lookup": "retrieve",
+    "similar": "similarity",
+    "cosine": "similarity",
+    "embed": "embedding",
+    "embeddings": "embedding",
+    "knn": "nearest",
+    "triage": "nearest",
+    "encoder_retrieve": "nearest",
 }
+
+
+def _parse_two_segments(blob: str) -> tuple[str, str]:
+    if "|||" not in blob:
+        raise ValueError("Need two segments separated by `|||` (e.g. `text A ||| text B`).")
+    a, _, b = blob.partition("|||")
+    a, b = a.strip(), b.strip()
+    if not a or not b:
+        raise ValueError("Both sides of `|||` must be non-empty.")
+    return a, b
+
+
+def _parse_nearest_blob(blob: str) -> tuple[str, list[str]]:
+    parts = [p.strip() for p in blob.split("|||") if p.strip()]
+    if len(parts) < 2:
+        raise ValueError(
+            "Need `query ||| candidate1 ||| candidate2` (at least one candidate after `|||`)."
+        )
+    return parts[0], parts[1:]
+
+
+def _embedding_summary_markdown(encoder: TinyModelRuntime, passage: str) -> str:
+    vec = encoder.embed([passage], normalize=False)[0]
+    dim = int(vec.shape[0])
+    norm = float(torch.linalg.vector_norm(vec))
+    k = min(8, dim)
+    head = ", ".join(f"{float(vec[i]):.4f}" for i in range(k))
+    return "\n".join(
+        [
+            "### Encoder embedding (raw [CLS], not L2-normalized)\n",
+            f"- **dim:** {dim}",
+            f"- **L2 norm:** {norm:.4f}",
+            f"- **first {k} values:** {head}",
+        ]
+    )
+
+
+def _nearest_markdown(
+    encoder: TinyModelRuntime,
+    query: str,
+    candidates: list[str],
+    *,
+    top_k: int,
+) -> str:
+    hits = encoder.retrieve(query, candidates, top_k=top_k)
+    if not hits:
+        return "(No candidates.)"
+    lines = ["### Encoder nearest neighbors (cosine on pooled embeddings)\n"]
+    for rank, h in enumerate(hits, 1):
+        lines.append(
+            f"**#{rank}** score={h.score:.4f} · index={h.index}\n{_clip(h.text, 700)}\n"
+        )
+    return "\n".join(lines)
 
 
 def _classifier_result_markdown(probs: dict[str, float]) -> str:
@@ -323,6 +394,45 @@ def run_routed_tool(
             out.append(f"**#{i}** score={sc:.4f}\n{_clip(txt, 700)}\n")
         return "\n".join(out)
 
+    if intent == "similarity":
+        if not encoder:
+            return "Similarity needs the encoder (drop `--lm-only` / `--no-encoder`)."
+        blob = (text or msg).strip()
+        if not blob:
+            return "Provide two texts: `first ||| second`."
+        try:
+            ta, tb = _parse_two_segments(blob)
+        except ValueError as e:
+            return str(e)
+        score = encoder.similarity(ta, tb)
+        return (
+            "### Similarity (encoder cosine)\n"
+            f"**Score:** {score:.4f}\n\n"
+            f"**A:** {_clip(ta, 480)}\n\n"
+            f"**B:** {_clip(tb, 480)}"
+        )
+
+    if intent == "embedding":
+        if not encoder:
+            return "Embedding stats need the encoder (drop `--lm-only` / `--no-encoder`)."
+        passage = (text or msg).strip()
+        if not passage:
+            return "What text should I embed?"
+        return _embedding_summary_markdown(encoder, passage)
+
+    if intent == "nearest":
+        if not encoder:
+            return "Nearest-neighbor search needs the encoder (drop `--lm-only` / `--no-encoder`)."
+        blob = (text or msg).strip()
+        if not blob:
+            return "Usage: `query ||| option1 ||| option2 ...`"
+        try:
+            query, cands = _parse_nearest_blob(blob)
+        except ValueError as e:
+            return str(e)
+        k = max(1, min(rag_top_k, len(cands)))
+        return _nearest_markdown(encoder, query, cands, top_k=k)
+
     if intent in ("summarize", "reformulate", "grounded"):
         if intent == "grounded":
             qn = question or text
@@ -441,6 +551,39 @@ def handle_slash(
         for i, (sc, _idx, txt) in enumerate(hr, 1):
             out.append(f"**#{i}** score={sc:.4f}\n{_clip(txt, 700)}\n")
         return "\n".join(out)
+
+    if cmd == "/similarity":
+        if not encoder:
+            return "Encoder off. Drop `--lm-only` / `--no-encoder`."
+        if "|||" not in rest:
+            return "Usage: `/similarity text A ||| text B`"
+        try:
+            ta, tb = _parse_two_segments(rest)
+        except ValueError as e:
+            return str(e)
+        score = encoder.similarity(ta, tb)
+        return (
+            f"**Similarity:** {score:.4f}\n\n**A:** {_clip(ta, 480)}\n\n**B:** {_clip(tb, 480)}"
+        )
+
+    if cmd in ("/embedding", "/embed"):
+        if not encoder:
+            return "Encoder off. Drop `--lm-only` / `--no-encoder`."
+        if not rest:
+            return f"Usage: `{cmd} <text>`"
+        return _embedding_summary_markdown(encoder, rest)
+
+    if cmd == "/nearest":
+        if not encoder:
+            return "Encoder off. Drop `--lm-only` / `--no-encoder`."
+        if "|||" not in rest:
+            return "Usage: `/nearest query ||| cand1 ||| cand2 ...`"
+        try:
+            qn, cands = _parse_nearest_blob(rest)
+        except ValueError as e:
+            return str(e)
+        k = max(1, min(rag_top_k, len(cands)))
+        return _nearest_markdown(encoder, qn, cands, top_k=k)
 
     if cmd in ("/summarize", "/reformulate", "/grounded"):
         if lm is None:
