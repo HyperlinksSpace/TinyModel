@@ -9,6 +9,7 @@ This supports block **A–C** in [`further-development-universe-brain.md`](furth
 | **A — verify** | `scripts/horizon1_verify_short_term_a.py` | One command: Phase 1 smoke + fresh AG News train (Phase 2 eval) + Phase 3 ONNX export, parity, benchmark. |
 | **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) + `artifacts/horizon1/three-tasks-summary.json`. |
 | **C — RAG smoke** | `scripts/rag_faq_smoke.py` + [`rag_faq_corpus.md`](rag_faq_corpus.md) | FAQ chunks + **hybrid** (lexical + encoder) retrieval and cheap “citation” checks. |
+| **C — route→RAG glue** | `scripts/horizon1_route_then_retrieve.py` | Same corpus/ranker; runs **`TinyModelRuntime.classify` → `route_from_probs`**, and on **fallback** runs hybrid retrieval (product-shaped triage path). |
 | **Summary** | [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) | Table of `accuracy` / `macro_f1` per task (regenerated when you re-run B). |
 
 Weights for B live under `artifacts/horizon1/three-tasks/` (see `.gitignore`); the **summary markdown** in `texts/` is the portable artifact to commit.
@@ -59,6 +60,16 @@ python scripts/rag_faq_smoke.py --model artifacts/horizon1/three-tasks/ag_news
 With no `--model`, the script picks the first default local dir that has `config.json` (e.g. `artifacts/horizon1/three-tasks/ag_news` after B), otherwise loads **`HyperlinksSpace/TinyModel1`** from the Hub (needs network once).
 
 **Expect:** all three sample queries `ok` (hybrid ranker). Use `--semantic-only` to stress **pure** embedding retrieval (may fail on tiny encoders).
+
+### C′ — classify, then retrieve only if policy abstains
+
+```bash
+python scripts/horizon1_route_then_retrieve.py --demo
+python scripts/horizon1_route_then_retrieve.py --query "How do I reset my password?"
+python scripts/horizon1_route_then_retrieve.py --verify
+```
+
+**Expect:** `--demo` prints news vs. FAQ-style examples with routing lines; `--verify` exits 0 if forced-fallback RAG matches the same cheap gates as `rag_faq_smoke`, and a sports headline is **accepted** when thresholds are set to zero inside the check.
 
 ## How you benefit
 
