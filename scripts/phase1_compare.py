@@ -83,6 +83,24 @@ def parse_args() -> argparse.Namespace:
         default=True,
         help="If true, skip launching a run when required artifacts already exist.",
     )
+    p.add_argument(
+        "--max-misclassified-examples",
+        type=int,
+        default=50,
+        help="Forwarded to training scripts for Phase 2 misclassified_sample.jsonl.",
+    )
+    p.add_argument(
+        "--confidence-histogram-bins",
+        type=int,
+        default=10,
+        help="Forwarded to training scripts for calibration histogram in eval_report.json.",
+    )
+    p.add_argument(
+        "--top-confusions",
+        type=int,
+        default=15,
+        help="Forwarded to training scripts for error_analysis.top_confusions.",
+    )
     return p.parse_args()
 
 
@@ -232,6 +250,12 @@ def main() -> None:
                 str(preset_cfg["batch_size"]),
                 "--seed",
                 str(args.seed),
+                "--max-misclassified-examples",
+                str(args.max_misclassified_examples),
+                "--confidence-histogram-bins",
+                str(args.confidence_histogram_bins),
+                "--top-confusions",
+                str(args.top_confusions),
             ]
             required = ["eval_report.json", "artifact.json", "config.json"]
             missing_before = [name for name in required if not (run_dir / name).is_file()]

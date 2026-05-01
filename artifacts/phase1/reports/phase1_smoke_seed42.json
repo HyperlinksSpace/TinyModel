@@ -13,6 +13,19 @@
     "f1_Sci/Tech": 0.0
   },
   {
+    "dataset": "ag_news",
+    "model": "pretrained",
+    "seed": 42,
+    "max_train_samples": 120,
+    "max_eval_samples": 80,
+    "accuracy": 0.7125,
+    "macro_f1": 0.604038,
+    "f1_World": 0.742857,
+    "f1_Sports": 0.954545,
+    "f1_Business": 0.71875,
+    "f1_Sci/Tech": 0.0
+  },
+  {
     "dataset": "emotion",
     "model": "scratch",
     "seed": 42,
@@ -22,6 +35,21 @@
     "macro_f1": 0.063973,
     "f1_sadness": 0.383838,
     "f1_joy": 0.0,
+    "f1_love": 0.0,
+    "f1_anger": 0.0,
+    "f1_fear": 0.0,
+    "f1_surprise": 0.0
+  },
+  {
+    "dataset": "emotion",
+    "model": "pretrained",
+    "seed": 42,
+    "max_train_samples": 120,
+    "max_eval_samples": 80,
+    "accuracy": 0.25,
+    "macro_f1": 0.075379,
+    "f1_sadness": 0.387755,
+    "f1_joy": 0.064516,
     "f1_love": 0.0,
     "f1_anger": 0.0,
     "f1_fear": 0.0,

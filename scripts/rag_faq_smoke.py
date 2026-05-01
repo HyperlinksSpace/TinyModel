@@ -82,6 +82,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Use only TinyModelRuntime.retrieve (stricter; tiny encoders may fail on short FAQ chunks).",
     )
+    p.add_argument(
+        "--query",
+        type=str,
+        default=None,
+        help=(
+            "If set, run a single retrieval for this query and print top-k chunks with scores "
+            "(citation-style index into the chunk list). Skips the built-in smoke assertions."
+        ),
+    )
     return p.parse_args()
 
 
@@ -165,6 +174,23 @@ def main() -> None:
 
     chunks = load_chunks(corpus)
     rt = TinyModelRuntime(model_id, device="cpu", max_length=128)
+
+    if args.query:
+        q = args.query.strip()
+        print("=== RAG FAQ (single query) ===\n")
+        print(f"model={model_id!r}\ncorpus={corpus}\nquery={q!r}\n")
+        if args.semantic_only:
+            hits = rt.retrieve(q, chunks, top_k=args.top_k)
+            for rank, h in enumerate(hits, 1):
+                prev = h.text[:240].replace("\n", " ")
+                print(f"  #{rank}  idx={h.index}  score={h.score:.4f}  {prev!r}...")
+        else:
+            hr = hybrid_retrieve(rt, q, chunks, top_k=args.top_k)
+            for rank, (score, idx, text) in enumerate(hr, 1):
+                prev = text[:240].replace("\n", " ")
+                print(f"  #{rank}  idx={idx}  hybrid_score={score:.4f}  {prev!r}...")
+        return
+
     print("=== RAG FAQ smoke (retrieval) ===\n")
     # (query, substring that must appear in top-1 chunk for a pass — citation-style check)
     samples: list[tuple[str, str]] = [

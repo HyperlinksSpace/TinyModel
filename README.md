@@ -89,11 +89,21 @@ Training and pretrained fine-tuning now emit richer evaluation artifacts so repo
 
 **Routing threshold example (Phase 2 exit):** a worked **min_confidence** + **fallback** policy for triage is documented in [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md) (tune on your own validation data).
 
+**Runtime routing helper:** [`scripts/routing_policy.py`](scripts/routing_policy.py) applies **min-confidence** and **min-margin** gates to a label→probability dict (same shape as `TinyModelRuntime.classify` output). It does not load a model.
+
+```bash
+python scripts/routing_policy.py --demo
+python scripts/routing_policy.py --probs-json '{"Sports":0.55,"World":0.35,"Business":0.05,"Sci/Tech":0.05}' --min-confidence 0.5 --min-margin 0.1
+python scripts/routing_policy.py --from-eval-report .tmp/phase2-smoke/eval_report.json
+```
+
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
 - `--max-misclassified-examples` (default `100`)
 - `--confidence-histogram-bins` (default `10`)
 - `--top-confusions` (default `20`)
+
+[`scripts/phase1_compare.py`](scripts/phase1_compare.py) forwards the same three flags into each training subprocess (defaults there: `50` / `10` / `15` so matrix runs stay light). Override when you need deeper error samples in matrix runs.
 
 **Third reference dataset (SST-2)** — binary sentiment on GLUE, useful as an additional domain check:
 
@@ -180,7 +190,7 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 | ----- | ------------ | ------------ |
 | **A — Verify** | **Two commands** (do not put `then` on the `pip` line): `pip install -r optional-requirements-phase3.txt` then a **new** line: `python scripts/horizon1_verify_short_term_a.py`. Or: `pip install -r optional-requirements-phase3.txt && python scripts/horizon1_verify_short_term_a.py` (Git Bash / PowerShell 7+). Add `--skip-phase3` to skip ONNX. | Proves Phases 1–2 plus export/parity/benchmark in **one** local pass, aligned with `phase1-smoke` / `phase3-smoke` CI. |
 | **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary table: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md). Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
-| **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub) | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); template for support/FAQ products. |
+| **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub). **Ad-hoc query:** `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3` (prints chunk **index** + score for citation-style traceability). | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); template for support/FAQ products. |
 
 ## Horizon 2: generative core (open causal LM, JSON runs, optional API)
 
