@@ -38,6 +38,10 @@ jobs:
             --batch-size 8 \
             --seed 42
 
+      - name: Horizon 1 route-to-RAG glue (verify)
+        run: |
+          python scripts/horizon1_route_then_retrieve.py --verify --model .tmp/phase3-smoke
+
       - name: Export ONNX
         run: |
           python scripts/phase3_export_onnx.py --model .tmp/phase3-smoke

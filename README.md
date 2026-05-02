@@ -178,7 +178,7 @@ Expected local output folder:
    python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1
    ```
 
-5. **CI** — `.github/workflows/phase3-smoke.yml` trains a tiny model, exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
+5. **CI** — `.github/workflows/phase3-smoke.yml` trains a tiny model, runs **`horizon1_route_then_retrieve.py --verify`** on that checkpoint (classify → routing gates → hybrid FAQ retrieval), then exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
 
 **Optional R&D spike ideas (not part of the release path)** — see [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
 
