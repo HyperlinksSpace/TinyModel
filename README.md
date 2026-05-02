@@ -204,6 +204,17 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 | **`embeddings_smoke_test.py`** | Add **`--routing`** (and optional **`--min-confidence`** / **`--min-margin`**) to print **`RoutingDecision`** next to classifier top‑k without loading the FAQ corpus. |
 | **CI regression** | **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the smoke matrix. **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** runs the same verify on **`.tmp/phase3-smoke`** after the tiny train (before ONNX). |
 
+#### Quick local checklist (route-to-RAG)
+
+Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/runs/smoke/ag_news/scratch`** after Phase 1 smoke, **`artifacts/horizon1/three-tasks/ag_news`** after three-task training, or **`.tmp/phase3-smoke`** after a Phase 3 smoke train):
+
+1. **Policy only (no model):** `python scripts/routing_policy.py --demo`
+2. **FAQ retrieval:** `python scripts/rag_faq_smoke.py --model <dir>` or `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3 --model <dir>`
+3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>`
+4. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing`
+
+Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts/horizon1-short-term-handbook.md)** (blocks C, C′, C″).
+
 ## Horizon 2: generative core (open causal LM, JSON runs, optional API)
 
 **What it is:** a **local** [transformers](https://github.com/huggingface/transformers) path that turns text into new text: **summarize**, **reformulate**, and **grounded** (RAG context + answer) — aligned with the “Generative core” line in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md). It **does not** replace your classifier; it **complements** Horizon 1 (retrieval) and your Phase 1–3 stack.

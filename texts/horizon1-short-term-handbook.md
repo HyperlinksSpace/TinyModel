@@ -10,6 +10,7 @@ This supports block **A–C** in [`further-development-universe-brain.md`](furth
 | **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) + `artifacts/horizon1/three-tasks-summary.json`. |
 | **C — RAG smoke** | `scripts/rag_faq_smoke.py` + [`rag_faq_corpus.md`](rag_faq_corpus.md) | FAQ chunks + **hybrid** (lexical + encoder) retrieval and cheap “citation” checks. |
 | **C — route→RAG glue** | `scripts/horizon1_route_then_retrieve.py` | Same corpus/ranker; runs **`TinyModelRuntime.classify` → `route_from_probs`**, and on **fallback** runs hybrid retrieval (product-shaped triage path). |
+| **C″ — encoder smoke + gates** | `scripts/embeddings_smoke_test.py` | **`--routing`** prints **`RoutingDecision`** next to classifier top‑k (same thresholds as `routing_policy`); no FAQ corpus — quick local check after training. |
 | **Summary** | [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) | Table of `accuracy` / `macro_f1` per task (regenerated when you re-run B). |
 
 Weights for B live under `artifacts/horizon1/three-tasks/` (see `.gitignore`); the **summary markdown** in `texts/` is the portable artifact to commit.
@@ -70,6 +71,20 @@ python scripts/horizon1_route_then_retrieve.py --verify
 ```
 
 **Expect:** `--demo` prints news vs. FAQ-style examples with routing lines; `--verify` exits 0 if forced-fallback RAG matches the same cheap gates as `rag_faq_smoke`, and a sports headline is **accepted** when thresholds are set to zero inside the check.
+
+### C″ — embeddings smoke with routing lines (no FAQ file)
+
+After any AG News–style checkpoint exists (Phase 1 smoke, three-tasks AG News, or `.tmp/phase3-smoke`):
+
+```bash
+python scripts/embeddings_smoke_test.py \
+  --model artifacts/phase1/runs/smoke/ag_news/scratch \
+  --routing
+```
+
+Optional: **`--min-confidence`** / **`--min-margin`** match your production gates.
+
+**Expect:** each sample query prints **`routing_policy: RoutingDecision(...)`** after **`top labels`**; retrieval section unchanged (synthetic candidate strings).
 
 ## How you benefit
 
