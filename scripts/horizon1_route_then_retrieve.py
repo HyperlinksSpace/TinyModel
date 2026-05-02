@@ -26,7 +26,7 @@ from rag_faq_smoke import (  # noqa: E402
     load_chunks,
     overlap_faithfulness,
 )
-from routing_policy import route_from_probs  # noqa: E402
+from routing_policy import RoutingDecision, route_from_probs  # noqa: E402
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 
@@ -63,7 +63,47 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Exit 0 only if forced-fallback RAG and always-accept classify checks pass.",
     )
+    p.add_argument(
+        "--show-train-routing",
+        action="store_true",
+        help=(
+            "If --model is a local checkpoint dir with eval_report.json, print the top-level "
+            "`routing` section (Phase 2 training notes) before --demo / --query output."
+        ),
+    )
     return p.parse_args()
+
+
+def _train_routing_from_checkpoint(model_id: str) -> dict | None:
+    """Return eval_report.json `routing` object for a local directory, else None."""
+    p = Path(model_id)
+    if not p.is_dir():
+        return None
+    er = p / "eval_report.json"
+    if not er.is_file():
+        return None
+    try:
+        data = json.loads(er.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    r = data.get("routing")
+    return r if isinstance(r, dict) else None
+
+
+def _maybe_print_train_routing(model_id: str, *, want: bool) -> None:
+    if not want:
+        return
+    notes = _train_routing_from_checkpoint(model_id)
+    if notes is None:
+        print(
+            "horizon1_route_then_retrieve: no eval_report.json with top-level `routing` "
+            "(Hub id or missing artifact).",
+            file=sys.stderr,
+        )
+        return
+    print("=== eval_report.json routing (Phase 2 training notes) ===\n")
+    print(json.dumps(notes, indent=2))
+    print()
 
 
 def _print_human(
@@ -98,6 +138,7 @@ def _json_line(
     probs: dict[str, float],
     d: RoutingDecision,
     *,
+    model_id: str,
     top_k: int,
     rt: TinyModelRuntime,
     chunks: list[str],
@@ -105,6 +146,7 @@ def _json_line(
     row: dict = {
         "text": text,
         "probs": probs,
+        "train_routing": _train_routing_from_checkpoint(model_id),
         "routing": {
             "fallback": d.fallback,
             "label": d.label,
@@ -183,6 +225,7 @@ def main() -> None:
 
     if args.query is not None:
         q = args.query.strip()
+        _maybe_print_train_routing(model_id, want=args.show_train_routing)
         probs = rt.classify([q])[0]
         d = route_from_probs(
             probs,
@@ -190,12 +233,25 @@ def main() -> None:
             min_margin=args.min_margin,
         )
         if args.json:
-            print(json.dumps(_json_line(q, probs, d, top_k=args.top_k, rt=rt, chunks=chunks)))
+            print(
+                json.dumps(
+                    _json_line(
+                        q,
+                        probs,
+                        d,
+                        model_id=model_id,
+                        top_k=args.top_k,
+                        rt=rt,
+                        chunks=chunks,
+                    ),
+                ),
+            )
         else:
             _print_human(q, probs, d, top_k=args.top_k, rt=rt, chunks=chunks)
         return
 
     if args.demo:
+        _maybe_print_train_routing(model_id, want=args.show_train_routing)
         samples = [
             "Federal regulators approved the merger after markets closed.",
             "How do I get a refund for my order?",

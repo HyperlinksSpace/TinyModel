@@ -68,9 +68,11 @@ With no `--model`, the script picks the first default local dir that has `config
 python scripts/horizon1_route_then_retrieve.py --demo
 python scripts/horizon1_route_then_retrieve.py --query "How do I reset my password?"
 python scripts/horizon1_route_then_retrieve.py --verify
+# Optional: print Phase 2 `routing` notes from eval_report.json next to live decisions:
+python scripts/horizon1_route_then_retrieve.py --demo --show-train-routing --model artifacts/phase1/runs/smoke/ag_news/scratch
 ```
 
-**Expect:** `--demo` prints news vs. FAQ-style examples with routing lines; `--verify` exits 0 if forced-fallback RAG matches the same cheap gates as `rag_faq_smoke`, and a sports headline is **accepted** when thresholds are set to zero inside the check.
+**Expect:** `--demo` prints news vs. FAQ-style examples with routing lines; `--verify` exits 0 if forced-fallback RAG matches the same cheap gates as `rag_faq_smoke`, and a sports headline is **accepted** when thresholds are set to zero inside the check. **`--show-train-routing`** only applies to **`--demo`** / **`--query`** (local dirs with **`eval_report.json`**); **`--json`** includes **`train_routing`** when present.
 
 ### C″ — embeddings smoke with routing lines (no FAQ file)
 

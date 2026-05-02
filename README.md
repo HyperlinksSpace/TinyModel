@@ -200,7 +200,7 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 | ----- | ------------ |
 | **`routing_policy.py`** | CLI and `route_from_probs()` only; tune gates on your validation data (see [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md)). |
 | **`rag_faq_smoke.py`** | FAQ chunking, hybrid scores, cheap keyword overlap; **`--query`** for one-off citation-style traces. |
-| **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). |
+| **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). **`--show-train-routing`** prints the checkpoint’s **`eval_report.json`** top-level **`routing`** section (Phase 2 training notes) before **`--demo`** / **`--query`** text; **`--json`** adds a **`train_routing`** field when that file exists. |
 | **`embeddings_smoke_test.py`** | Add **`--routing`** (and optional **`--min-confidence`** / **`--min-margin`**) to print **`RoutingDecision`** next to classifier top‑k without loading the FAQ corpus. |
 | **CI regression** | **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the smoke matrix. **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** runs the same verify on **`.tmp/phase3-smoke`** after the tiny train (before ONNX). |
 
@@ -211,7 +211,8 @@ Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/ru
 1. **Policy only (no model):** `python scripts/routing_policy.py --demo`
 2. **FAQ retrieval:** `python scripts/rag_faq_smoke.py --model <dir>` or `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3 --model <dir>`
 3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>`
-4. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing`
+4. **Same + Phase 2 notes:** add **`--show-train-routing`** to **`--demo`** or **`--query`** to echo **`eval_report.json`**’s **`routing`** block next to live **`route_from_probs`** output.
+5. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing`
 
 Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts/horizon1-short-term-handbook.md)** (blocks C, C′, C″).
 
