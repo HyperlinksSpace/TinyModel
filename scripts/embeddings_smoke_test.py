@@ -3,6 +3,9 @@
 
 Scenario (support / triage): given a short customer message, route to the closest
 known intent bucket via embedding similarity, and show classifier probabilities.
+With **--routing**, each classify block also prints **`routing_policy.route_from_probs`**
+(min-confidence / min-margin gates) so the same thresholds as Horizon 1 glue are visible
+in one script.
 
 Requires a checkpoint directory or Hub id. On very small / undertrained checkpoints,
 similarity scores can look nearly flat; that is expected for a smoke run—use more data
@@ -19,6 +22,7 @@ _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
+from routing_policy import route_from_probs
 from tinymodel_runtime import TinyModelRuntime
 
 
@@ -36,6 +40,13 @@ def parse_args() -> argparse.Namespace:
         default="artifacts/eval-smoke",
         help="Path or Hub id to a TinyModel1-style classification checkpoint.",
     )
+    p.add_argument(
+        "--routing",
+        action="store_true",
+        help="After each classify query, print RoutingDecision from route_from_probs (Horizon 1 thresholds).",
+    )
+    p.add_argument("--min-confidence", type=float, default=0.55)
+    p.add_argument("--min-margin", type=float, default=0.10)
     return p.parse_args()
 
 
@@ -71,6 +82,13 @@ def main() -> None:
         top = sorted(probs.items(), key=lambda x: -x[1])[:3]
         print(f"Query: {q[:70]!r}...")
         print(f"  top labels: {top}")
+        if args.routing:
+            d = route_from_probs(
+                probs,
+                min_confidence=args.min_confidence,
+                min_margin=args.min_margin,
+            )
+            print(f"  routing_policy: {d}")
 
     print("\n=== Semantic similarity (pairwise) ===")
     a = "Inflation cooled more than economists expected."

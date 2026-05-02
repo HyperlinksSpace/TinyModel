@@ -192,6 +192,18 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 | **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary table: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md). Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
 | **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub). **Ad-hoc query:** `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3` (prints chunk **index** + score for citation-style traceability). **Classify → route → retrieve:** `python scripts/horizon1_route_then_retrieve.py --demo` (illustrates thresholds); `python scripts/horizon1_route_then_retrieve.py --verify` checks the full glue path. | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); [`routing_policy.py`](scripts/routing_policy.py) decides when to trust the label vs. open retrieval — template for support/FAQ products. |
 
+### Route-to-RAG stack (what shipped)
+
+End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](scripts/routing_policy.py)** (`min_confidence`, `min_margin`) → on **fallback**, **[`horizon1_route_then_retrieve.py`](scripts/horizon1_route_then_retrieve.py)** runs the same **hybrid** ranker as [`rag_faq_smoke.py`](scripts/rag_faq_smoke.py) over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md). **Phase 2** training still writes **`routing`** notes into **`eval_report.json`**; the runtime helper does not load weights.
+
+| Piece | What it does |
+| ----- | ------------ |
+| **`routing_policy.py`** | CLI and `route_from_probs()` only; tune gates on your validation data (see [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md)). |
+| **`rag_faq_smoke.py`** | FAQ chunking, hybrid scores, cheap keyword overlap; **`--query`** for one-off citation-style traces. |
+| **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). |
+| **`embeddings_smoke_test.py`** | Add **`--routing`** (and optional **`--min-confidence`** / **`--min-margin`**) to print **`RoutingDecision`** next to classifier top‑k without loading the FAQ corpus. |
+| **CI regression** | **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the smoke matrix. **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** runs the same verify on **`.tmp/phase3-smoke`** after the tiny train (before ONNX). |
+
 ## Horizon 2: generative core (open causal LM, JSON runs, optional API)
 
 **What it is:** a **local** [transformers](https://github.com/huggingface/transformers) path that turns text into new text: **summarize**, **reformulate**, and **grounded** (RAG context + answer) — aligned with the “Generative core” line in [`texts/further-development-universe-brain.md`](texts/further-development-universe-brain.md). It **does not** replace your classifier; it **complements** Horizon 1 (retrieval) and your Phase 1–3 stack.
