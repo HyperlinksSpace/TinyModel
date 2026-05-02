@@ -81,4 +81,6 @@ python scripts/horizon1_route_then_retrieve.py --verify
 
 `phase1-smoke.yml` and `phase3-smoke.yml` on GitHub mirror parts of **A**; B is not in CI by default (longer, three dataset downloads). Run B locally or in a release workflow when needed.
 
-`phase3-smoke.yml` also runs **`horizon1_route_then_retrieve.py --verify`** against the freshly trained `.tmp/phase3-smoke` checkpoint so the **C′** glue path is regression-tested on every PR (no extra Hub download).
+`phase1-smoke.yml` runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the Phase 1 matrix (lightweight PR coverage).
+
+`phase3-smoke.yml` runs the same verify against **`.tmp/phase3-smoke`** after its tiny train so the **C′** glue path is also covered on the ONNX workflow (no Hub download).

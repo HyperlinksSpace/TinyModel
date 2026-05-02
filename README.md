@@ -76,7 +76,7 @@ python scripts/phase1_compare.py \
   --seed 42
 ```
 
-This same default check is wired in `.github/workflows/phase1-smoke.yml`.
+This same default check is wired in `.github/workflows/phase1-smoke.yml`, which then runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** (classify → routing → hybrid FAQ retrieval) without Phase 3 / ONNX dependencies.
 
 ## Phase 2: Evaluation quality (datasets, errors, calibration)
 

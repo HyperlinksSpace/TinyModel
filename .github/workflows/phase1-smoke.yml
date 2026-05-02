@@ -31,6 +31,11 @@ jobs:
             --datasets ag_news,emotion \
             --seed 42
 
+      - name: Horizon 1 route-to-RAG glue (verify)
+        run: |
+          python scripts/horizon1_route_then_retrieve.py --verify \
+            --model artifacts/phase1/runs/smoke/ag_news/scratch
+
       - name: Verify comparison report exists
         run: |
           test -f artifacts/phase1/reports/phase1_smoke_seed42.md
