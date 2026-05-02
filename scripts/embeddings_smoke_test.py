@@ -5,7 +5,8 @@ Scenario (support / triage): given a short customer message, route to the closes
 known intent bucket via embedding similarity, and show classifier probabilities.
 With **--routing**, each classify block also prints **`routing_policy.route_from_probs`**
 (min-confidence / min-margin gates) so the same thresholds as Horizon 1 glue are visible
-in one script.
+in one script. **--show-train-routing** prints the checkpoint's **`eval_report.json`**
+**`routing`** section first (same helper as **`horizon1_route_then_retrieve`**).
 
 Requires a checkpoint directory or Hub id. On very small / undertrained checkpoints,
 similarity scores can look nearly flat; that is expected for a smoke run—use more data
@@ -22,8 +23,11 @@ _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
+from eval_report_routing import maybe_print_routing_section
 from routing_policy import route_from_probs
 from tinymodel_runtime import TinyModelRuntime
+
+_PROG = "embeddings_smoke_test"
 
 
 def _looks_like_hub_id(s: str) -> bool:
@@ -47,6 +51,11 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("--min-confidence", type=float, default=0.55)
     p.add_argument("--min-margin", type=float, default=0.10)
+    p.add_argument(
+        "--show-train-routing",
+        action="store_true",
+        help="Print eval_report.json top-level routing (Phase 2 notes) before classification output.",
+    )
     return p.parse_args()
 
 
@@ -65,6 +74,9 @@ def main() -> None:
         raise SystemExit(1)
 
     rt = TinyModelRuntime(args.model)
+    maybe_print_routing_section(
+        args.model, enabled=args.show_train_routing, prog=_PROG,
+    )
 
     queries = [
         "Stock markets rallied after the central bank statement.",

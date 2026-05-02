@@ -10,7 +10,7 @@ This supports block **A–C** in [`further-development-universe-brain.md`](furth
 | **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) + `artifacts/horizon1/three-tasks-summary.json`. |
 | **C — RAG smoke** | `scripts/rag_faq_smoke.py` + [`rag_faq_corpus.md`](rag_faq_corpus.md) | FAQ chunks + **hybrid** (lexical + encoder) retrieval and cheap “citation” checks. |
 | **C — route→RAG glue** | `scripts/horizon1_route_then_retrieve.py` | Same corpus/ranker; runs **`TinyModelRuntime.classify` → `route_from_probs`**, and on **fallback** runs hybrid retrieval (product-shaped triage path). |
-| **C″ — encoder smoke + gates** | `scripts/embeddings_smoke_test.py` | **`--routing`** prints **`RoutingDecision`** next to classifier top‑k (same thresholds as `routing_policy`); no FAQ corpus — quick local check after training. |
+| **C″ — encoder smoke + gates** | `scripts/embeddings_smoke_test.py` + `scripts/eval_report_routing.py` | **`--routing`** prints **`RoutingDecision`** next to classifier top‑k; **`--show-train-routing`** prints **`eval_report.json`** **`routing`** (same helper as **`horizon1_route_then_retrieve`**). |
 | **Summary** | [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) | Table of `accuracy` / `macro_f1` per task (regenerated when you re-run B). |
 
 Weights for B live under `artifacts/horizon1/three-tasks/` (see `.gitignore`); the **summary markdown** in `texts/` is the portable artifact to commit.
@@ -82,6 +82,10 @@ After any AG News–style checkpoint exists (Phase 1 smoke, three-tasks AG News,
 python scripts/embeddings_smoke_test.py \
   --model artifacts/phase1/runs/smoke/ag_news/scratch \
   --routing
+# Optional: Phase 2 training notes before the smoke output (needs `routing` in eval_report.json):
+python scripts/embeddings_smoke_test.py \
+  --model artifacts/phase1/runs/smoke/ag_news/scratch \
+  --routing --show-train-routing
 ```
 
 Optional: **`--min-confidence`** / **`--min-margin`** match your production gates.
