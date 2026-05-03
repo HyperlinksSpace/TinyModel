@@ -159,7 +159,21 @@ def main() -> None:
         except ValueError:
             out_show = outp.as_posix()
         lines.append(f"- **{r['task']}:** `{out_show}`")
+    first = rows[0]
+    outp0 = Path(str(first["output_dir"])).resolve()
+    try:
+        ex_show = outp0.relative_to(_REPO.resolve()).as_posix()
+    except ValueError:
+        ex_show = outp0.as_posix()
     lines += [
+        "",
+        "## Phase 2 `routing` quick check",
+        "",
+        "Each task directory contains **`eval_report.json`** with top-level **`routing`** when using current training scripts. Example for the **first table row** (`ag_news`):",
+        "",
+        f"`python scripts/routing_policy.py --from-checkpoint {ex_show}`",
+        "",
+        "See **README** (Phase 2 and Horizon 1 route-to-RAG).",
         "",
         "See [`further-development-universe-brain.md`](further-development-universe-brain.md) short-term block **B**.",
         "",
