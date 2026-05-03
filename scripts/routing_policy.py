@@ -12,9 +12,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+_scripts = Path(__file__).resolve().parent
+if str(_scripts) not in sys.path:
+    sys.path.insert(0, str(_scripts))
+
+from eval_report_routing import load_routing_from_eval_report  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -118,11 +125,33 @@ def parse_args() -> argparse.Namespace:
             "(training scripts embed policy notes there; does not re-run the model)."
         ),
     )
+    p.add_argument(
+        "--from-checkpoint",
+        type=str,
+        default=None,
+        help=(
+            "Classifier output directory: print the same `routing` JSON as "
+            "`--from-eval-report <dir>/eval_report.json` (uses eval_report_routing; no model call)."
+        ),
+    )
     return p.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    if args.from_eval_report and args.from_checkpoint:
+        raise SystemExit("Use only one of --from-eval-report or --from-checkpoint.")
+    if args.from_checkpoint:
+        routing = load_routing_from_eval_report(args.from_checkpoint)
+        if routing is None:
+            print(
+                "No top-level `routing` in checkpoint eval_report.json "
+                "(need a local dir with Phase 2 eval_report; Hub ids unsupported).",
+                file=sys.stderr,
+            )
+            raise SystemExit(1)
+        print(json.dumps(routing, indent=2))
+        return
     if args.from_eval_report:
         path = Path(args.from_eval_report)
         data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
@@ -160,7 +189,10 @@ def main() -> None:
         print(d)
         return
 
-    raise SystemExit("Pass --demo, --probs-json '{...}', or --from-eval-report path")
+    raise SystemExit(
+        "Pass --demo, --probs-json '{...}', --from-eval-report <eval_report.json>, "
+        "or --from-checkpoint <classifier_dir>",
+    )
 
 
 if __name__ == "__main__":

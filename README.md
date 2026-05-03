@@ -95,7 +95,10 @@ Training and pretrained fine-tuning now emit richer evaluation artifacts so repo
 python scripts/routing_policy.py --demo
 python scripts/routing_policy.py --probs-json '{"Sports":0.55,"World":0.35,"Business":0.05,"Sci/Tech":0.05}' --min-confidence 0.5 --min-margin 0.1
 python scripts/routing_policy.py --from-eval-report .tmp/phase2-smoke/eval_report.json
+python scripts/routing_policy.py --from-checkpoint .tmp/phase2-smoke
 ```
+
+**`--from-checkpoint <dir>`** prints the same top-level **`routing`** JSON as **`--from-eval-report <dir>/eval_report.json`**, using the shared **`eval_report_routing`** loader (local training output only).
 
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
@@ -198,7 +201,7 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 
 | Piece | What it does |
 | ----- | ------------ |
-| **`routing_policy.py`** | CLI and `route_from_probs()` only; tune gates on your validation data (see [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md)). |
+| **`routing_policy.py`** | CLI and `route_from_probs()`; **`--from-eval-report`** / **`--from-checkpoint`** print Phase 2 **`routing`** notes (same as **`eval_report_routing`**). Tune gates on your validation data (see [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md)). |
 | **`eval_report_routing.py`** | Loads **`routing`** from **`eval_report.json`** (`load_routing_from_eval_report`) and optional banner (`maybe_print_routing_section`); shared by **`horizon1_route_then_retrieve`** and **`embeddings_smoke_test`**. |
 | **`rag_faq_smoke.py`** | FAQ chunking, hybrid scores, cheap keyword overlap; **`--query`** for one-off citation-style traces. |
 | **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). **`--show-train-routing`** prints the checkpoint’s **`eval_report.json`** top-level **`routing`** section (Phase 2 training notes) before **`--demo`** / **`--query`** text; **`--json`** adds a **`train_routing`** field when that file exists. |
@@ -209,7 +212,7 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 
 Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/runs/smoke/ag_news/scratch`** after Phase 1 smoke, **`artifacts/horizon1/three-tasks/ag_news`** after three-task training, or **`.tmp/phase3-smoke`** after a Phase 3 smoke train):
 
-1. **Policy only (no model):** `python scripts/routing_policy.py --demo`
+1. **Policy only (no model):** `python scripts/routing_policy.py --demo` (or **`--from-checkpoint <dir>`** to dump Phase 2 **`routing`** JSON from **`eval_report.json`** without opening the file path manually).
 2. **FAQ retrieval:** `python scripts/rag_faq_smoke.py --model <dir>` or `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3 --model <dir>`
 3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>`
 4. **Same + Phase 2 notes:** add **`--show-train-routing`** to **`--demo`** or **`--query`** to echo **`eval_report.json`**’s **`routing`** block next to live **`route_from_probs`** output.

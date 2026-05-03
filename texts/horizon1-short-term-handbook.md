@@ -92,6 +92,8 @@ Optional: **`--min-confidence`** / **`--min-margin`** match your production gate
 
 **Expect:** each sample query prints **`routing_policy: RoutingDecision(...)`** after **`top labels`**; retrieval section unchanged (synthetic candidate strings).
 
+**Routing CLI:** `python scripts/routing_policy.py --from-checkpoint <trained_dir>` prints the **`routing`** block from that directory’s **`eval_report.json`** (same helper as **`eval_report_routing.py`**; no forward pass).
+
 ## How you benefit
 
 - **A:** Proves the same path CI uses works on your machine (matrices, Phase 2 eval, ONNX, bench).
