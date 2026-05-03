@@ -166,7 +166,13 @@ def _write_table_csv(path: Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
-def _write_table_md(path: Path, rows: list[dict]) -> None:
+def _write_table_md(
+    path: Path,
+    rows: list[dict],
+    *,
+    preset: str,
+    output_root: Path,
+) -> None:
     if not rows:
         path.write_text("# Phase 1 comparison\n\nNo rows.\n", encoding="utf-8")
         return
@@ -198,6 +204,24 @@ def _write_table_md(path: Path, rows: list[dict]) -> None:
         vals = [str(row.get(k, "")) for k in keys]
         lines.append("| " + " | ".join(vals) + " |")
     lines.append("")
+    first = rows[0]
+    ex_dir = (output_root / "runs" / preset / str(first["dataset"]) / str(first["model"])).resolve()
+    try:
+        ex_display = ex_dir.relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        ex_display = ex_dir.as_posix()
+    lines.extend(
+        [
+            "## Phase 2 `routing` quick check",
+            "",
+            "Each run directory contains **`eval_report.json`** with a top-level **`routing`** object when using current training scripts. Dump the embedded policy notes (no model load), e.g. for the **first row** of this matrix:",
+            "",
+            f"`python scripts/routing_policy.py --from-checkpoint {ex_display}`",
+            "",
+            "See **README** (Phase 2 and Horizon 1 route-to-RAG). CI (**`phase1-smoke.yml`**) runs the same check on **`ag_news/scratch`** when that cell is in the matrix.",
+            "",
+        ]
+    )
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -292,7 +316,12 @@ def main() -> None:
     stamp = f"phase1_{args.preset}_seed{args.seed}"
     _write_table_json(report_root / f"{stamp}.json", rows)
     _write_table_csv(report_root / f"{stamp}.csv", rows)
-    _write_table_md(report_root / f"{stamp}.md", rows)
+    _write_table_md(
+        report_root / f"{stamp}.md",
+        rows,
+        preset=args.preset,
+        output_root=output_root,
+    )
     print(f"Wrote comparison reports under: {report_root}")
 
 

@@ -62,7 +62,7 @@ python scripts/phase1_compare.py --preset smoke --seed 42
 Outputs:
 
 - `artifacts/phase1/runs/<preset>/<dataset>/<model>/...` (model artifacts per run)
-- `artifacts/phase1/reports/phase1_<preset>_seed<seed>.md` (human-readable table)
+- `artifacts/phase1/reports/phase1_<preset>_seed<seed>.md` (human-readable table plus a **Phase 2 `routing` quick check** footer with a copy-paste **`routing_policy.py --from-checkpoint …`** path taken from the **first matrix row**)
 - `artifacts/phase1/reports/phase1_<preset>_seed<seed>.csv` (spreadsheet-friendly)
 - `artifacts/phase1/reports/phase1_<preset>_seed<seed>.json` (machine-readable)
 
