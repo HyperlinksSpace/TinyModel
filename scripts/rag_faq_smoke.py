@@ -3,7 +3,9 @@
 
 Chunks a FAQ markdown corpus by `##` sections, embeds with TinyModelRuntime, retrieves top
 matches for a query, and reports **keyword overlap** in the top hit as a cheap faithfulness
-proxy (not neural entailment)."""
+proxy (not neural entailment). Optional **--show-train-routing** prints Phase 2 **`routing`**
+notes from the checkpoint's **eval_report.json** (same helper as **embeddings_smoke_test** /
+**horizon1_route_then_retrieve**)."""
 
 from __future__ import annotations
 
@@ -16,7 +18,10 @@ _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
+from eval_report_routing import maybe_print_routing_section
 from tinymodel_runtime import TinyModelRuntime
+
+_PROG = "rag_faq_smoke"
 
 _STOP = frozenset(
     "a an the to of and or for in on at is are was be as it with from by not"
@@ -90,6 +95,11 @@ def parse_args() -> argparse.Namespace:
             "If set, run a single retrieval for this query and print top-k chunks with scores "
             "(citation-style index into the chunk list). Skips the built-in smoke assertions."
         ),
+    )
+    p.add_argument(
+        "--show-train-routing",
+        action="store_true",
+        help="Print eval_report.json top-level routing (Phase 2 notes) before retrieval output.",
     )
     return p.parse_args()
 
@@ -173,6 +183,9 @@ def main() -> None:
         raise SystemExit(1)
 
     chunks = load_chunks(corpus)
+    maybe_print_routing_section(
+        model_id, enabled=args.show_train_routing, prog=_PROG,
+    )
     rt = TinyModelRuntime(model_id, device="cpu", max_length=128)
 
     if args.query:
