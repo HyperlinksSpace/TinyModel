@@ -76,7 +76,7 @@ python scripts/phase1_compare.py \
   --seed 42
 ```
 
-This same default check is wired in `.github/workflows/phase1-smoke.yml`, which then runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** (classify → routing → hybrid FAQ retrieval) without Phase 3 / ONNX dependencies.
+This same default check is wired in `.github/workflows/phase1-smoke.yml`, which then runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** (classify → routing → hybrid FAQ retrieval), then **`routing_policy.py --from-checkpoint`** on that directory so **`eval_report.json`** still contains a Phase 2 **`routing`** block on every PR.
 
 ## Phase 2: Evaluation quality (datasets, errors, calibration)
 
@@ -181,7 +181,7 @@ Expected local output folder:
    python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1
    ```
 
-5. **CI** — `.github/workflows/phase3-smoke.yml` trains a tiny model, runs **`horizon1_route_then_retrieve.py --verify`** on that checkpoint (classify → routing gates → hybrid FAQ retrieval), then exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
+5. **CI** — `.github/workflows/phase3-smoke.yml` trains a tiny model, runs **`horizon1_route_then_retrieve.py --verify`** on that checkpoint (classify → routing gates → hybrid FAQ retrieval), runs **`routing_policy.py --from-checkpoint`** on **`.tmp/phase3-smoke`** (Phase 2 **`routing`** JSON), then exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
 
 **Optional R&D spike ideas (not part of the release path)** — see [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
 
@@ -206,7 +206,7 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 | **`rag_faq_smoke.py`** | FAQ chunking, hybrid scores, cheap keyword overlap; **`--query`** for one-off citation-style traces; **`--show-train-routing`** prints Phase 2 **`routing`** from **`eval_report.json`** before retrieval (shared **`eval_report_routing`**). |
 | **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). **`--show-train-routing`** prints the checkpoint’s **`eval_report.json`** top-level **`routing`** section (Phase 2 training notes) before **`--demo`** / **`--query`** text; **`--json`** adds a **`train_routing`** field when that file exists. |
 | **`embeddings_smoke_test.py`** | **`--routing`** (and optional **`--min-confidence`** / **`--min-margin`**) prints **`RoutingDecision`** next to classifier top‑k; **`--show-train-routing`** prints **`eval_report.json`**’s **`routing`** block first (shared helper **`scripts/eval_report_routing.py`** with **`horizon1_route_then_retrieve`**). |
-| **CI regression** | **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** runs **`horizon1_route_then_retrieve.py --verify`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the smoke matrix. **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** runs the same verify on **`.tmp/phase3-smoke`** after the tiny train (before ONNX). |
+| **CI regression** | **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** runs **`horizon1_route_then_retrieve.py --verify`** and **`routing_policy.py --from-checkpoint`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the smoke matrix. **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** runs the same pair on **`.tmp/phase3-smoke`** after the tiny train (before ONNX). |
 
 #### Quick local checklist (route-to-RAG)
 
