@@ -107,3 +107,5 @@ Optional: **`--min-confidence`** / **`--min-margin`** match your production gate
 `phase1-smoke.yml` runs **`horizon1_route_then_retrieve.py --verify`** and **`routing_policy.py --from-checkpoint`** on **`artifacts/phase1/runs/smoke/ag_news/scratch`** after the Phase 1 matrix (lightweight PR coverage).
 
 `phase3-smoke.yml` runs the same pair against **`.tmp/phase3-smoke`** after its tiny train so the **C′** glue path and **Phase 2 `routing`** dump are covered on the ONNX workflow (no Hub download).
+
+If **`routing_policy.py --from-checkpoint`** fails locally on an old **`artifacts/phase1/runs/...`** tree, re-run the smoke matrix so **`eval_report.json`** picks up the current Phase 2 **`routing`** block (same fix CI expects).

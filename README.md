@@ -100,6 +100,8 @@ python scripts/routing_policy.py --from-checkpoint .tmp/phase2-smoke
 
 **`--from-checkpoint <dir>`** prints the same top-level **`routing`** JSON as **`--from-eval-report <dir>/eval_report.json`**, using the shared **`eval_report_routing`** loader (local training output only).
 
+**CI:** **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** and **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** each run **`python scripts/routing_policy.py --from-checkpoint …`** on the smoke-trained checkpoint so **`eval_report.json`** must still contain the Phase 2 **`routing`** object on every PR (same check you can run locally after any train).
+
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
 - `--max-misclassified-examples` (default `100`)
@@ -202,7 +204,7 @@ End-to-end story: **`TinyModelRuntime.classify`** → **[`routing_policy.py`](sc
 | Piece | What it does |
 | ----- | ------------ |
 | **`routing_policy.py`** | CLI and `route_from_probs()`; **`--from-eval-report`** / **`--from-checkpoint`** print Phase 2 **`routing`** notes (same as **`eval_report_routing`**). Tune gates on your validation data (see [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md)). |
-| **`eval_report_routing.py`** | Loads **`routing`** from **`eval_report.json`** (`load_routing_from_eval_report`) and optional banner (`maybe_print_routing_section`); shared by **`horizon1_route_then_retrieve`** and **`embeddings_smoke_test`**. |
+| **`eval_report_routing.py`** | Loads **`routing`** from **`eval_report.json`** (`load_routing_from_eval_report`) and optional banner (`maybe_print_routing_section`); used by **`rag_faq_smoke`**, **`embeddings_smoke_test`**, **`horizon1_route_then_retrieve`**, and **`routing_policy.py --from-checkpoint`**. |
 | **`rag_faq_smoke.py`** | FAQ chunking, hybrid scores, cheap keyword overlap; **`--query`** for one-off citation-style traces; **`--show-train-routing`** prints Phase 2 **`routing`** from **`eval_report.json`** before retrieval (shared **`eval_report_routing`**). |
 | **`horizon1_route_then_retrieve.py`** | **`--demo`**, **`--query`**, **`--json`**, **`--verify`** (same pass/fail gates as RAG smoke plus an “always accept” check at zero thresholds). **`--show-train-routing`** prints the checkpoint’s **`eval_report.json`** top-level **`routing`** section (Phase 2 training notes) before **`--demo`** / **`--query`** text; **`--json`** adds a **`train_routing`** field when that file exists. |
 | **`embeddings_smoke_test.py`** | **`--routing`** (and optional **`--min-confidence`** / **`--min-margin`**) prints **`RoutingDecision`** next to classifier top‑k; **`--show-train-routing`** prints **`eval_report.json`**’s **`routing`** block first (shared helper **`scripts/eval_report_routing.py`** with **`horizon1_route_then_retrieve`**). |
@@ -217,6 +219,8 @@ Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/ru
 3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>`
 4. **Same + Phase 2 notes:** add **`--show-train-routing`** to **`--demo`** or **`--query`** to echo **`eval_report.json`**’s **`routing`** block next to live **`route_from_probs`** output.
 5. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing` (add **`--show-train-routing`** to echo Phase 2 **`routing`** like step 4).
+
+**Stale tree:** if **`routing_policy.py --from-checkpoint <dir>`** exits **1** with “no top-level `routing`”, the directory’s **`eval_report.json`** predates Phase 2 fields — re-run **`train_tinymodel1_classifier.py`** (or the Phase 1 smoke matrix) on that machine so reports match CI.
 
 Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts/horizon1-short-term-handbook.md)** (blocks C, C′, C″).
 

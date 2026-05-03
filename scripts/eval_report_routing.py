@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read the Phase 2 **`routing`** object from a classifier checkpoint's **`eval_report.json`**.
 
-Used by Horizon 1 glue, **rag_faq_smoke**, **embeddings_smoke_test**, and related CLIs so training notes and runtime gates stay aligned."""
+Used by Horizon 1 glue, **rag_faq_smoke**, **embeddings_smoke_test**, **routing_policy** (**`--from-checkpoint`**), and **horizon1_route_then_retrieve** so training notes and runtime gates stay aligned."""
 
 from __future__ import annotations
 
