@@ -1,8 +1,8 @@
 """Regression tests for ``scripts/eval_report_routing`` (stdlib only; no torch).
 
 Covers tip-path helpers, ``load_routing_from_eval_report``, ``print_routing_policy_from_checkpoint_tip``,
-``maybe_print_routing_section`` (stdout/stderr behaviour), and stale ``eval_report.json`` shapes
-(no dict top-level ``routing``).
+``maybe_print_routing_section`` (stdout/stderr behaviour), stale ``eval_report.json`` shapes
+(no dict top-level ``routing``), path-is-file (not a checkpoint dir), and empty ``routing`` dict ``{}``.
 """
 
 from __future__ import annotations
@@ -60,6 +60,15 @@ class TestFormatRoutingPolicyCommand(unittest.TestCase):
 
 
 class TestLoadRoutingFromEvalReport(unittest.TestCase):
+    def test_file_path_not_directory_returns_none(self) -> None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as f:
+            f.write(b"{}")
+            path = f.name
+        try:
+            self.assertIsNone(load_routing_from_eval_report(path))
+        finally:
+            Path(path).unlink(missing_ok=True)
+
     def test_missing_dir_returns_none(self) -> None:
         self.assertIsNone(load_routing_from_eval_report("/nonexistent/path/xyz"))
 
@@ -112,6 +121,16 @@ class TestLoadRoutingFromEvalReport(unittest.TestCase):
             got = load_routing_from_eval_report(d)
             self.assertEqual(got, want)
 
+    def test_empty_routing_dict_returned(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"routing": {}}),
+                encoding="utf-8",
+            )
+            got = load_routing_from_eval_report(d)
+            self.assertEqual(got, {})
+
 
 class TestMaybePrintRoutingSection(unittest.TestCase):
     def test_disabled_emits_nothing(self) -> None:
@@ -162,6 +181,21 @@ class TestMaybePrintRoutingSection(unittest.TestCase):
             self.assertEqual(out.getvalue(), "")
             self.assertIn("stale", err.getvalue())
             self.assertIn("no eval_report.json", err.getvalue())
+
+    def test_enabled_empty_routing_dict_prints_json(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"routing": {}}),
+                encoding="utf-8",
+            )
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                maybe_print_routing_section(str(d), enabled=True, prog="p")
+            self.assertEqual(err.getvalue(), "")
+            self.assertIn("eval_report.json routing", out.getvalue())
+            self.assertIn("{}", out.getvalue())
 
 
 class TestPrintRoutingTip(unittest.TestCase):

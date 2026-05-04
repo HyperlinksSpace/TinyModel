@@ -1,0 +1,9 @@
+# Shared by phase1-smoke and phase3-smoke: fast stdlib tests before pip installs.
+name: Stdlib unit tests
+description: Run unittest discover on tests/ (no torch).
+runs:
+  using: composite
+  steps:
+    - name: unittest discover
+      run: python -m unittest discover -s tests -p "test_*.py" -v
+      shell: bash
