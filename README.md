@@ -222,7 +222,7 @@ Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/ru
 4. **Same + Phase 2 notes:** add **`--show-train-routing`** to **`--demo`** or **`--query`** to echo **`eval_report.json`**’s **`routing`** block next to live **`route_from_probs`** output.
 5. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing` (add **`--show-train-routing`** to echo Phase 2 **`routing`** like step 4).
 
-**Stale tree:** if **`routing_policy.py --from-checkpoint <dir>`** exits **1** with “no top-level `routing`”, the directory’s **`eval_report.json`** predates Phase 2 fields — re-run **`train_tinymodel1_classifier.py`** (or the Phase 1 smoke matrix) on that machine so reports match CI.
+**Stale tree:** if **`routing_policy.py --from-checkpoint <dir>`** exits **1** with “no top-level `routing`”, the directory’s **`eval_report.json`** predates Phase 2 fields — re-run **`train_tinymodel1_classifier.py`** (or the Phase 1 smoke matrix) on that machine so reports match CI. **`tests/test_eval_report_routing.py`** asserts the same “no dict **`routing`**” behaviour when the JSON is valid but the key is missing, **`null`**, or not an object (**`load_routing_from_eval_report`** returns **`None`**; **`maybe_print_routing_section`** prints the stderr hint).
 
 Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts/horizon1-short-term-handbook.md)** (blocks C, C′, C″).
 

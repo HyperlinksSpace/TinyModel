@@ -1,7 +1,8 @@
 """Regression tests for ``scripts/eval_report_routing`` (stdlib only; no torch).
 
 Covers tip-path helpers, ``load_routing_from_eval_report``, ``print_routing_policy_from_checkpoint_tip``,
-and ``maybe_print_routing_section`` (stdout/stderr behaviour).
+``maybe_print_routing_section`` (stdout/stderr behaviour), and stale ``eval_report.json`` shapes
+(no dict top-level ``routing``).
 """
 
 from __future__ import annotations
@@ -82,6 +83,24 @@ class TestLoadRoutingFromEvalReport(unittest.TestCase):
             )
             self.assertIsNone(load_routing_from_eval_report(d))
 
+    def test_no_routing_key_returns_none(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"eval_accuracy": 0.9}),
+                encoding="utf-8",
+            )
+            self.assertIsNone(load_routing_from_eval_report(d))
+
+    def test_routing_null_returns_none(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"routing": None}),
+                encoding="utf-8",
+            )
+            self.assertIsNone(load_routing_from_eval_report(d))
+
     def test_returns_routing_dict(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             d = Path(td)
@@ -128,6 +147,21 @@ class TestMaybePrintRoutingSection(unittest.TestCase):
             self.assertEqual(err.getvalue(), "")
             self.assertIn("eval_report.json routing", out.getvalue())
             self.assertIn("min_confidence", out.getvalue())
+
+    def test_enabled_stale_report_no_dict_routing_stderr(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"eval_accuracy": 0.99, "routing": None}),
+                encoding="utf-8",
+            )
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                maybe_print_routing_section(str(d), enabled=True, prog="stale")
+            self.assertEqual(out.getvalue(), "")
+            self.assertIn("stale", err.getvalue())
+            self.assertIn("no eval_report.json", err.getvalue())
 
 
 class TestPrintRoutingTip(unittest.TestCase):
