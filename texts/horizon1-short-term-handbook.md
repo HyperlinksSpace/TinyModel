@@ -6,7 +6,7 @@ This supports block **A–C** in [`further-development-universe-brain.md`](furth
 
 | Piece | File | Role |
 | ----- | ---- | ---- |
-| **A — verify** | `scripts/horizon1_verify_short_term_a.py` | One command: Phase 1 smoke + fresh AG News train (Phase 2 eval) + Phase 3 ONNX export, parity, benchmark. |
+| **A — verify** | `scripts/horizon1_verify_short_term_a.py` | One command: Phase 1 smoke + fresh AG News train (Phase 2 eval) + Phase 3 ONNX export, parity, benchmark; prints **`routing_policy.py --from-checkpoint`** for **`.tmp/horizon1-verify-a`** after Phase 2 keys pass. |
 | **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) (with **Phase 2 `routing` quick check** footer) + `artifacts/horizon1/three-tasks-summary.json`. |
 | **C — RAG smoke** | `scripts/rag_faq_smoke.py` + [`rag_faq_corpus.md`](rag_faq_corpus.md) | FAQ chunks + **hybrid** (lexical + encoder) retrieval and cheap “citation” checks; optional **`--show-train-routing`** (same **`eval_report_routing`** banner as glue / encoder smoke). |
 | **C — route→RAG glue** | `scripts/horizon1_route_then_retrieve.py` | Same corpus/ranker; runs **`TinyModelRuntime.classify` → `route_from_probs`**, and on **fallback** runs hybrid retrieval (product-shaped triage path). |
@@ -36,7 +36,7 @@ Faster check without ONNX (no Phase 3 file needed):
 python scripts/horizon1_verify_short_term_a.py --skip-phase3
 ```
 
-**Expect:** last line `horizon1_verify_short_term_a: OK …` and, under `artifacts/phase3/reports/`, `benchmark_horizon1-verify-a.md` when Phase 3 runs.
+**Expect:** last line `horizon1_verify_short_term_a: OK …` and, under `artifacts/phase3/reports/`, `benchmark_horizon1-verify-a.md` when Phase 3 runs. After Phase 2 keys are validated on **`.tmp/horizon1-verify-a`**, the script prints a copy-paste **`routing_policy.py --from-checkpoint …`** line (same JSON as **`eval_report.json`** → **`routing`**).
 
 ### B — three datasets (needs Hub data cached or network)
 

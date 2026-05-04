@@ -82,6 +82,16 @@ def main() -> None:
             print(f"eval_report.json missing Phase 2 key: {k}", file=sys.stderr)
             raise SystemExit(1)
 
+    try:
+        tip = out.resolve().relative_to(_REPO.resolve())
+    except ValueError:
+        tip = out.resolve()
+    print(
+        "Tip: dump Phase 2 `routing` JSON from this train dir (no model load):\n"
+        f"  python scripts/routing_policy.py --from-checkpoint {tip.as_posix()}",
+        flush=True,
+    )
+
     if args.skip_phase3:
         print("horizon1_verify_short_term_a: OK (Phase 1 + fresh train with Phase 2 fields).")
         return
