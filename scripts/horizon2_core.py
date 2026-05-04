@@ -173,8 +173,25 @@ def load_causal_lm(
     model_id: str,
     device: str,
 ) -> LoadedLM:
+    import os
+    import sys
+
+    # Must run before `import torch` on first use (e.g. horizon2_server on Windows).
+    if sys.platform == "win32":
+        os.environ.setdefault("OMP_NUM_THREADS", "1")
+        os.environ.setdefault("MKL_NUM_THREADS", "1")
+        os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+        os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    if sys.platform == "win32":
+        torch.set_num_threads(1)
+        try:
+            torch.set_num_interop_threads(1)
+        except RuntimeError:
+            pass
 
     d = device if device in ("cpu", "cuda", "mps") else "cpu"
     tok = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
@@ -187,15 +204,42 @@ def load_causal_lm(
         )
     else:
         dt = torch.float32
-    # Prefer `dtype` (newer Transformers); fall back to `torch_dtype` (older).
-    try:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id, trust_remote_code=True, dtype=dt
+
+    def _from_pretrained(extra: dict[str, Any]) -> Any:
+        # Prefer `dtype` (newer Transformers); fall back to `torch_dtype` (older).
+        try:
+            return AutoModelForCausalLM.from_pretrained(
+                model_id, trust_remote_code=True, dtype=dt, **extra
+            )
+        except TypeError:
+            return AutoModelForCausalLM.from_pretrained(
+                model_id, trust_remote_code=True, torch_dtype=dt, **extra
+            )
+
+    # Retry with progressively fewer options (compat + stability on Windows CPU).
+    if d == "cpu":
+        extras: tuple[dict[str, Any], ...] = (
+            {"low_cpu_mem_usage": True, "attn_implementation": "eager"},
+            {"low_cpu_mem_usage": True},
+            {},
         )
-    except TypeError:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id, trust_remote_code=True, torch_dtype=dt
-        )
+    else:
+        extras = ({"low_cpu_mem_usage": True}, {})
+
+    model = None
+    last_err: BaseException | None = None
+    for extra in extras:
+        try:
+            model = _from_pretrained(extra)
+            break
+        except (TypeError, ValueError, OSError) as e:
+            last_err = e
+            continue
+    if model is None:
+        raise RuntimeError(
+            f"Failed to load causal LM {model_id!r}; last error: {last_err!r}"
+        ) from last_err
+
     model.eval()
     model = model.to(d)
     return LoadedLM(model=model, tokenizer=tok, device=d)

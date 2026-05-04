@@ -28,7 +28,22 @@ import sys
 import warnings
 from pathlib import Path
 
+# Windows: avoid OpenMP/MKL oversubscription and duplicate CRT issues that can
+# segfault during large `from_pretrained` CPU loads (common with torch+transformers).
+if sys.platform == "win32":
+    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    os.environ.setdefault("MKL_NUM_THREADS", "1")
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+    os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 import torch
+
+if sys.platform == "win32":
+    torch.set_num_threads(1)
+    try:
+        torch.set_num_interop_threads(1)
+    except RuntimeError:
+        pass
 
 _scripts = Path(__file__).resolve().parent
 _REPO = _scripts.parent

@@ -1,0 +1,120 @@
+Universal Brain — improvement plan (from sample session output)
+================================================================
+Context: SmolLM2-360M-Instruct (generative), TinyModel encoder checkpoint
+under artifacts/horizon1/three-tasks/ag_news, tiny RAG corpus (4 chunks),
+SQLite memory. This plan is derived from the behaviors and numbers shown
+in that session log.
+
+----------------------------------------------------------------
+1) Topic classifier — low margin / near-uniform probabilities
+----------------------------------------------------------------
+Observation: On "Oil prices fell after OPEC signaled a production cut."
+the winner was Business at p≈0.26 with World/Sci/Tech/Sports all ≈0.24–0.25.
+That is effectively flat; the model is not discriminative on this example.
+
+Actions:
+- Add fine-tuning or continued training on boundary cases (macro policy,
+  energy, commodities) where AG News "World" vs "Business" overlap.
+- Log and review calibration: consider temperature scaling or a small
+  validation set to report "low confidence" when top-1 minus top-2 < ε.
+- Optionally augment labels with a fifth "Economy/Markets" bucket or
+  hierarchical labels if product goals need finer splits than AG News.
+
+----------------------------------------------------------------
+2) Summarize intent — placeholder / instruction-only inputs
+----------------------------------------------------------------
+Observation: /summarize with "Paste a short paragraph here..." produced a
+meta line about the user wanting concision instead of refusing or asking
+for real content.
+
+Actions:
+- Pre-flight check: if the routed "text" is below a token threshold, is
+  mostly boilerplate, or matches known help strings, return a short prompt
+  asking for the passage instead of calling the LM.
+- Tighten router rules or examples so "summarize" carries actual source
+  text, not UI placeholders.
+
+----------------------------------------------------------------
+3) Reformulate — latency and over-length outputs
+----------------------------------------------------------------
+Observation: ~18 s for /summarize and /reformulate on CPU-ish stack; a
+one-line casual apology became a long formal email template.
+
+Actions:
+- Cap max_new_tokens for reformulate when input is short; add system
+  instruction: "Match length to input unless user asks for expansion."
+- Profile generation: consider smaller dedicated rewrite model, 4-bit
+  load, or batching; expose streaming so perceived latency drops.
+- A/B test prompts that forbid invented placeholders like [item] unless
+  the user supplied them.
+
+----------------------------------------------------------------
+4) RAG retrieve — corpus size and hybrid ranking
+----------------------------------------------------------------
+Observation: FAQ retrieval worked for refunds; corpus is only 4 chunks,
+so generalization and ranking headroom are limited. Second hit was shipping,
+still plausible but weaker.
+
+Actions:
+- Grow rag_faq_corpus.md with real FAQs, negatives, and paraphrases;
+  re-chunk with stable IDs and optional metadata (topic tags).
+- Tune hybrid weights (BM25 vs dense) on a small labeled query set.
+- Add a cross-encoder or small reranker on top-5 candidates if quality
+  plateaus.
+
+----------------------------------------------------------------
+5) Nearest / encoder — semantic mismatch on "refund policy"
+----------------------------------------------------------------
+Observation: Nearest picked "we offer exchanges only" over "returns within
+30 days" for query "refund policy" — plausible token overlap but wrong for
+user intent.
+
+Actions:
+- Use L2-normalized pooled vectors consistently for cosine nearest
+  (session noted raw [CLS] not L2-normalized for /embed — align all paths).
+- Try mean pooling over tokens vs [CLS]; compare on a tiny nearest-neighbor
+  eval set.
+- For product use, combine dense score with lexical match (BM25) on the
+  same candidate strings.
+
+----------------------------------------------------------------
+6) Grounded QA — keep as reference path
+----------------------------------------------------------------
+Observation: /grounded answered correctly and faster than open-ended
+rewrite (~5.6 s). Good baseline for factual UI.
+
+Actions:
+- Prefer grounded + RAG for policy questions when chunks exist; route
+  "return window" style queries to retrieve→grounded pipeline.
+
+----------------------------------------------------------------
+7) Smart routing and "brain trace" clarity
+----------------------------------------------------------------
+Observation: Final one-liner about session vs long-term memory was fine,
+but brain trace showed classify:World(0.27) · RAG · mem — which can look
+misaligned if users think that trace is only for the last reply.
+
+Actions:
+- Make trace explicitly per-turn (intent chosen, tools invoked) or move
+  classifier trace behind a verbose flag unless /classify was used.
+- Add regression tests for router JSON on ambiguous short questions.
+
+----------------------------------------------------------------
+8) Memory — product copy
+----------------------------------------------------------------
+Observation: Session vs long-term behavior matches design; ensure UI/help
+  states retention (e.g., long-term persists until deleted/export).
+
+Actions:
+- Document scope keys and backup path for ub_chat_memory.sqlite.
+
+----------------------------------------------------------------
+Priority order (suggested)
+----------------------------------------------------------------
+P0: Summarize placeholder guard; normalize embeddings for nearest.
+P1: Classifier confidence UX + data for World/Business boundaries.
+P2: Reformulate length limits + latency (tokens/model/quantization).
+P3: Enlarge RAG corpus + hybrid tuning + optional reranker.
+P4: Router/trace clarity and tests.
+
+End of plan.

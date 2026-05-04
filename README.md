@@ -245,6 +245,10 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 - **One JSON contract** per run (`horizon2_generative_run/1.0`) for dashboards and regression checks (see [`texts/horizon2-handbook.md`](texts/horizon2-handbook.md)).
 - **Tier awareness:** smoke vs. default Instruct vs. your own API — documented in the handbook; latencies are recorded in the artifact.
 
+**Windows (CPU):** [`horizon2_core.py`](scripts/horizon2_core.py) (`load_causal_lm`) and [`universal_brain_chat.py`](scripts/universal_brain_chat.py) set conservative OpenMP/MKL / **`TOKENIZERS_PARALLELISM`** defaults and cap **`torch`** thread counts before large **`from_pretrained`** loads; causal LM loading retries with **`low_cpu_mem_usage`** and, on **CPU**, **`attn_implementation="eager"`** when the installed **transformers** build accepts it (then falls back) to reduce native instability.
+
+**Product notes (sample UB session):** backlog ideas live in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt) (not a release checklist).
+
 **CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
 ## Horizon 3: persistent mind (session + long-term memory, audit, DSR-shaped export)
