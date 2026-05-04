@@ -1488,6 +1488,7 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
 | -------- | ---- |
 | **PR smoke: Phase 1 matrix** (scratch, small caps) | [`phase1-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase1-smoke.yml) |
 | **PR smoke: Phase 3** (train tiny → ONNX → parity → bench) | [`phase3-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase3-smoke.yml) |
+| **Shared PR step: stdlib `unittest` on `tests/`** (composite; both smokes above call it before torch) | [`stdlib-unittest/action.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/actions/stdlib-unittest/action.yml) |
 | **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
 | **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
 
