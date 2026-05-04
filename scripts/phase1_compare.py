@@ -323,6 +323,20 @@ def main() -> None:
         output_root=output_root,
     )
     print(f"Wrote comparison reports under: {report_root}")
+    if rows:
+        first = rows[0]
+        ex_dir = (
+            output_root / "runs" / args.preset / str(first["dataset"]) / str(first["model"])
+        ).resolve()
+        try:
+            tip = ex_dir.relative_to(Path.cwd().resolve()).as_posix()
+        except ValueError:
+            tip = ex_dir.as_posix()
+        print(
+            "Tip: Phase 2 `routing` JSON for first matrix row (also in the .md footer):\n"
+            f"  python scripts/routing_policy.py --from-checkpoint {tip}",
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

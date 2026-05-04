@@ -66,6 +66,8 @@ Outputs:
 - `artifacts/phase1/reports/phase1_<preset>_seed<seed>.csv` (spreadsheet-friendly; matrix columns only)
 - `artifacts/phase1/reports/phase1_<preset>_seed<seed>.json` (machine-readable; matrix rows only — the **Phase 2 `routing` quick check** lives in the companion **`.md`**)
 
+When the matrix finishes, **`phase1_compare.py`** also prints a **`routing_policy.py --from-checkpoint`** **Tip:** line for the **first row** (same path as the **`.md`** footer).
+
 CI smoke check (no heavy pretrained download by default):
 
 ```bash
@@ -194,7 +196,7 @@ This is the **A–C** tranche from [`texts/further-development-universe-brain.md
 | Block | What you run | Why it helps |
 | ----- | ------------ | ------------ |
 | **A — Verify** | **Two commands** (do not put `then` on the `pip` line): `pip install -r optional-requirements-phase3.txt` then a **new** line: `python scripts/horizon1_verify_short_term_a.py`. Or: `pip install -r optional-requirements-phase3.txt && python scripts/horizon1_verify_short_term_a.py` (Git Bash / PowerShell 7+). Add `--skip-phase3` to skip ONNX. After the fresh AG News train it prints a **`routing_policy.py --from-checkpoint`** tip for **`.tmp/horizon1-verify-a`**. | Proves Phases 1–2 plus export/parity/benchmark in **one** local pass, aligned with `phase1-smoke` / `phase3-smoke` CI. |
-| **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md) (includes a **Phase 2 `routing` quick check** footer like Phase 1 matrix `.md` reports). Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
+| **B — Three tasks** | `python scripts/horizon1_three_datasets.py` (use `--offline-datasets` if Hugging Face download times out but data is already cached) | **AG News**, **Emotion**, and **SST-2** with shared caps; summary: [`texts/horizon1-three-tasks-summary.md`](texts/horizon1-three-tasks-summary.md) (includes a **Phase 2 `routing` quick check** footer like Phase 1 matrix `.md` reports). After each run the script prints the same **`routing_policy.py --from-checkpoint`** **Tip:** to the console. Weights go under `artifacts/horizon1/three-tasks/` (gitignored; commit the `texts/` summary). |
 | **C — RAG smoke** | `python scripts/rag_faq_smoke.py` (optional `--model`; defaults to a local checkpoint if present, else `HyperlinksSpace/TinyModel1` on the Hub). **Ad-hoc query:** `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3` (prints chunk **index** + score for citation-style traceability). **Classify → route → retrieve:** `python scripts/horizon1_route_then_retrieve.py --demo` (illustrates thresholds); `python scripts/horizon1_route_then_retrieve.py --verify` checks the full glue path. | Hybrid lexical + `TinyModelRuntime` retrieval over [`texts/rag_faq_corpus.md`](texts/rag_faq_corpus.md); [`routing_policy.py`](scripts/routing_policy.py) decides when to trust the label vs. open retrieval — template for support/FAQ products. |
 
 ### Route-to-RAG stack (what shipped)

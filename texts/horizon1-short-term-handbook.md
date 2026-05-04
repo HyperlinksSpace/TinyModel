@@ -7,7 +7,7 @@ This supports block **A–C** in [`further-development-universe-brain.md`](furth
 | Piece | File | Role |
 | ----- | ---- | ---- |
 | **A — verify** | `scripts/horizon1_verify_short_term_a.py` | One command: Phase 1 smoke + fresh AG News train (Phase 2 eval) + Phase 3 ONNX export, parity, benchmark; prints **`routing_policy.py --from-checkpoint`** for **`.tmp/horizon1-verify-a`** after Phase 2 keys pass. |
-| **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) (with **Phase 2 `routing` quick check** footer) + `artifacts/horizon1/three-tasks-summary.json`. |
+| **B — three tasks** | `scripts/horizon1_three_datasets.py` | Trains **AG News**, **Emotion**, **SST-2** with the same sample caps; writes [`horizon1-three-tasks-summary.md`](horizon1-three-tasks-summary.md) (with **Phase 2 `routing` quick check** footer) + `artifacts/horizon1/three-tasks-summary.json`; prints a **`routing_policy`** **Tip:** line after the summary. |
 | **C — RAG smoke** | `scripts/rag_faq_smoke.py` + [`rag_faq_corpus.md`](rag_faq_corpus.md) | FAQ chunks + **hybrid** (lexical + encoder) retrieval and cheap “citation” checks; optional **`--show-train-routing`** (same **`eval_report_routing`** banner as glue / encoder smoke). |
 | **C — route→RAG glue** | `scripts/horizon1_route_then_retrieve.py` | Same corpus/ranker; runs **`TinyModelRuntime.classify` → `route_from_probs`**, and on **fallback** runs hybrid retrieval (product-shaped triage path). |
 | **C″ — encoder smoke + gates** | `scripts/embeddings_smoke_test.py` + `scripts/eval_report_routing.py` | **`--routing`** prints **`RoutingDecision`** next to classifier top‑k; **`--show-train-routing`** prints **`eval_report.json`** **`routing`** (same helper as **`horizon1_route_then_retrieve`**). |
@@ -48,7 +48,7 @@ If `huggingface.co` times out, use offline cache only:
 python scripts/horizon1_three_datasets.py --offline-datasets
 ```
 
-**Expect:** `texts/horizon1-three-tasks-summary.md` updated (table + per-task paths + **`routing_policy.py --from-checkpoint`** example for **ag_news**); per-task `eval_report.json` with Phase 2 sections.
+**Expect:** `texts/horizon1-three-tasks-summary.md` updated (table + per-task paths + **`routing_policy.py --from-checkpoint`** example for **ag_news**); per-task `eval_report.json` with Phase 2 sections. Console ends with the same **`Tip:`** line as the summary footer.
 
 ### C — RAG smoke (after B, or any trained checkpoint)
 

@@ -180,6 +180,11 @@ def main() -> None:
     ]
     md.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Wrote {md}")
+    print(
+        "Tip: Phase 2 `routing` for first task row (also in the summary .md footer):\n"
+        f"  python scripts/routing_policy.py --from-checkpoint {ex_show}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
