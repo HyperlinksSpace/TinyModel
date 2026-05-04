@@ -303,6 +303,15 @@ def main() -> None:
 
     print(f"eval_accuracy={eval_metrics.accuracy:.4f} eval_macro_f1={eval_metrics.macro_f1:.4f}")
     print(f"Saved to {output_dir}")
+    try:
+        tip = output_dir.resolve().relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        tip = output_dir.resolve().as_posix()
+    print(
+        "Tip: dump Phase 2 `routing` JSON (no model load):\n"
+        f"  python scripts/routing_policy.py --from-checkpoint {tip}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
