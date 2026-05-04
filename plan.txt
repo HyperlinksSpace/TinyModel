@@ -1,5 +1,9 @@
 >>> Actual
 
+Open checks (product / infra):
+- Hub-published TinyModel vs same checkpoint evaluated locally: metrics and smoke parity.
+- Generative path (e.g. local SmolLM2) vs encoder/RAG backbone (`HyperlinksSpace/TinyModel1`): different roles — document when to compare which.
+
 Further development steps' 1 and 2 exits
 
 >>> Old plan (to think about):

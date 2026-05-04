@@ -247,7 +247,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Windows (CPU):** [`horizon2_core.py`](scripts/horizon2_core.py) (`load_causal_lm`) and [`universal_brain_chat.py`](scripts/universal_brain_chat.py) set conservative OpenMP/MKL / **`TOKENIZERS_PARALLELISM`** defaults and cap **`torch`** thread counts before large **`from_pretrained`** loads; causal LM loading retries with **`low_cpu_mem_usage`** and, on **CPU**, **`attn_implementation="eager"`** when the installed **transformers** build accepts it (then falls back) to reduce native instability.
 
-**Product notes (sample UB session):** backlog ideas live in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt) (not a release checklist).
+**Product notes (sample UB session):** backlog ideas in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt); **symptom → repo levers** (classifier, LM, RAG, prompts) in [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (not release checklists).
 
 **CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
