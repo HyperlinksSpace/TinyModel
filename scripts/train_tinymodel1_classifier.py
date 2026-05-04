@@ -1036,6 +1036,15 @@ def main() -> None:
         f"Wrote eval_report.json (dataset_quality, error_analysis, calibration, routing) "
         f"and misclassified_sample.jsonl ({n_mis} rows)."
     )
+    try:
+        tip = output_dir.resolve().relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        tip = output_dir.resolve().as_posix()
+    print(
+        "Tip: dump Phase 2 `routing` JSON (no model load):\n"
+        f"  python scripts/routing_policy.py --from-checkpoint {tip}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":

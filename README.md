@@ -137,7 +137,7 @@ python scripts/train_tinymodel1_classifier.py \
   --max-misclassified-examples 20
 ```
 
-Then inspect `.tmp/phase2-smoke/eval_report.json` (new sections) and `.tmp/phase2-smoke/misclassified_sample.jsonl`.
+Then inspect `.tmp/phase2-smoke/eval_report.json` (new sections) and `.tmp/phase2-smoke/misclassified_sample.jsonl`. On success, **`train_tinymodel1_classifier.py`** also prints a **`routing_policy.py --from-checkpoint`** **Tip:** for the output directory (same pattern as **`phase1_compare`** / **`horizon1_verify_short_term_a`**).
 
 Expected local output folder:
 
