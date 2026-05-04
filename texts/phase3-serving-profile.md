@@ -15,6 +15,7 @@ python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1 --h
 # On Windows Git Bash, do not use /path/... (shell maps it under C:/Program Files/Git/...); use a relative or c:/... path.
 ```
 
+- **Root:** `GET /` → small JSON map (`service`, `model`, `docs`, `openapi_json`, `health`, `classify`, `retrieve`) so opening the base URL in a browser is not a bare 404 (same idea as `horizon2_server.py` `GET /`).
 - **Health:** `GET /healthz` → `{"status":"ok"}`.
 
 ### `POST /v1/classify`

@@ -78,6 +78,19 @@ def main() -> None:
     class RetrieveOut(BaseModel):
         hits: list[RetrieveHit]
 
+    @app.get("/")
+    def root() -> dict[str, str]:  # type: ignore[no-untyped-def]
+        """So opening the base URL in a browser is not a bare 404 (matches Horizon 2 server shape)."""
+        return {
+            "service": "TinyModel Phase 3 reference API",
+            "model": args.model,
+            "docs": "/docs",
+            "openapi_json": "/openapi.json",
+            "health": "/healthz",
+            "classify": "POST /v1/classify (JSON: texts[])",
+            "retrieve": "POST /v1/retrieve (JSON: query, candidates[], top_k)",
+        }
+
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok"}

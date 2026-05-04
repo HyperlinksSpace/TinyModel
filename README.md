@@ -178,7 +178,7 @@ Expected local output folder:
 
    Artifacts: `artifacts/phase3/reports/benchmark_<name>.{json,md}`. (Example report may be present under that folder after a run.)
 
-4. **Serving contract + minimal API** — [`texts/phase3-serving-profile.md`](texts/phase3-serving-profile.md) (`GET /healthz`, `POST /v1/classify`, `POST /v1/retrieve`). Reference process:
+4. **Serving contract + minimal API** — [`texts/phase3-serving-profile.md`](texts/phase3-serving-profile.md) (`GET /` service map, `GET /healthz`, `POST /v1/classify`, `POST /v1/retrieve`). Reference process:
 
    ```bash
    pip install -r optional-requirements-phase3.txt
