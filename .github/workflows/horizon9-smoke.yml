@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Unit tests (stdlib, tests/)
+        uses: ./.github/actions/stdlib-unittest
       - name: Run Horizon 9 --verify
         run: python scripts/horizon9_policy_smoke.py --verify
       - name: Check artifact

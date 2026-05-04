@@ -32,6 +32,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Unit tests (stdlib, tests/)
+        uses: ./.github/actions/stdlib-unittest
+
       - name: Install dependencies
         run: pip install --upgrade huggingface_hub
 

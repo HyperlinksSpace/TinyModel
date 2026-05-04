@@ -102,7 +102,7 @@ python scripts/routing_policy.py --from-checkpoint .tmp/phase2-smoke
 
 **`--from-checkpoint <dir>`** prints the same top-level **`routing`** JSON as **`--from-eval-report <dir>/eval_report.json`**, using the shared **`eval_report_routing`** loader (local training output only).
 
-**CI:** **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** and **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** each call the shared composite action **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** (stdlib **`unittest`** on **`tests/`**, including **[`tests/test_eval_report_routing.py`](tests/test_eval_report_routing.py)**) **before** installing torch / Phase 3 extras. The same composite is the **first** step in **Horizon** PR / **`main`** smokes **[`horizon2-smoke.yml`](.github/workflows/horizon2-smoke.yml)**, **[`horizon3-smoke.yml`](.github/workflows/horizon3-smoke.yml)**, **[`horizon4-smoke.yml`](.github/workflows/horizon4-smoke.yml)**, **[`horizon6-smoke.yml`](.github/workflows/horizon6-smoke.yml)**, **[`horizon7-smoke.yml`](.github/workflows/horizon7-smoke.yml)**, and **[`horizon8-smoke.yml`](.github/workflows/horizon8-smoke.yml)** (before their pip installs or each workflow’s **`--verify`**). Phase 1 then runs the smoke matrix and routing gates; Phase 3 runs a tiny train, the same **`routing_policy.py --from-checkpoint …`** check on **`.tmp/phase3-smoke`**, ONNX, parity, and bench. In both Phase workflows **`eval_report.json`** must still contain the Phase 2 **`routing`** object on every PR (same check you can run locally after any train).
+**CI:** **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** and **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** each call the shared composite action **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** (stdlib **`unittest`** on **`tests/`**, including **[`tests/test_eval_report_routing.py`](tests/test_eval_report_routing.py)**) **before** installing torch / Phase 3 extras. The same composite is the **first** step in **Horizon** PR / **`main`** smokes **[`horizon2-smoke.yml`](.github/workflows/horizon2-smoke.yml)**, **[`horizon3-smoke.yml`](.github/workflows/horizon3-smoke.yml)**, **[`horizon4-smoke.yml`](.github/workflows/horizon4-smoke.yml)**, **[`horizon6-smoke.yml`](.github/workflows/horizon6-smoke.yml)**, **[`horizon7-smoke.yml`](.github/workflows/horizon7-smoke.yml)**, **[`horizon8-smoke.yml`](.github/workflows/horizon8-smoke.yml)**, and **[`horizon9-smoke.yml`](.github/workflows/horizon9-smoke.yml)** (before their pip installs or each workflow’s **`--verify`**). **[`deploy-hf-space-versioned.yml`](.github/workflows/deploy-hf-space-versioned.yml)** runs it before **`pip install huggingface_hub`** and building the Space artifact. Phase 1 then runs the smoke matrix and routing gates; Phase 3 runs a tiny train, the same **`routing_policy.py --from-checkpoint …`** check on **`.tmp/phase3-smoke`**, ONNX, parity, and bench. In both Phase workflows **`eval_report.json`** must still contain the Phase 2 **`routing`** object on every PR (same check you can run locally after any train).
 
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
@@ -340,7 +340,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **How to test (local):** `python scripts/horizon9_policy_smoke.py --verify` — expect `horizon9 verify: OK` and all case rows `ok: true`.
 
-**CI:** `.github/workflows/horizon9-smoke.yml`.
+**CI:** `.github/workflows/horizon9-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then **`horizon9_policy_smoke.py --verify`**.
 
 ## Horizon 10: budget & unit caps (FinOps-shaped)
 
@@ -1488,11 +1488,11 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
 | -------- | ---- |
 | **PR smoke: Phase 1 matrix** (scratch, small caps) | [`phase1-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase1-smoke.yml) |
 | **PR smoke: Phase 3** (train tiny → ONNX → parity → bench) | [`phase3-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase3-smoke.yml) |
-| **Shared PR step: stdlib `unittest` on `tests/`** (composite; Phase 1/3 + Horizon 2/3/4/6/7/8 smokes call it before torch / verify) | [`stdlib-unittest/action.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/actions/stdlib-unittest/action.yml) |
+| **Shared PR step: stdlib `unittest` on `tests/`** (composite; Phase 1/3 + Horizon 2/3/4/6/7/8/9 smokes + Space deploy call it before torch / verify / HF pip) | [`stdlib-unittest/action.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/actions/stdlib-unittest/action.yml) |
 | **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
 | **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
 
-- **[`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml)** — Bundles the **Universal Brain chat** UI (`scripts/universal_brain_chat.py` + dependencies) via `scripts/build_space_artifact.py` and uploads **`{namespace}/TinyModel{version}Space`**.  
+- **[`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml)** — Runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then bundles the **Universal Brain chat** UI (`scripts/universal_brain_chat.py` + dependencies) via `scripts/build_space_artifact.py` and uploads **`{namespace}/TinyModel{version}Space`**.  
   - **Secrets:** `HF_TOKEN`.  
   - **Workflow inputs:** `version`, `namespace`, `model_id` (classifier Hub id for `--encoder`, e.g. `HyperlinksSpace/TinyModel1`).
 
