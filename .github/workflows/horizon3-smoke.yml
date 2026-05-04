@@ -20,5 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Unit tests (stdlib, tests/)
+        uses: ./.github/actions/stdlib-unittest
       - name: Run Horizon 3 --verify
         run: python scripts/horizon3_memory_cli.py --verify

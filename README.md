@@ -102,7 +102,7 @@ python scripts/routing_policy.py --from-checkpoint .tmp/phase2-smoke
 
 **`--from-checkpoint <dir>`** prints the same top-level **`routing`** JSON as **`--from-eval-report <dir>/eval_report.json`**, using the shared **`eval_report_routing`** loader (local training output only).
 
-**CI:** **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** and **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** each call the shared composite action **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** (stdlib **`unittest`** on **`tests/`**, including **[`tests/test_eval_report_routing.py`](tests/test_eval_report_routing.py)**) **before** installing torch / Phase 3 extras. Phase 1 then runs the smoke matrix and routing gates; Phase 3 runs a tiny train, the same **`routing_policy.py --from-checkpoint …`** check on **`.tmp/phase3-smoke`**, ONNX, parity, and bench. In both workflows **`eval_report.json`** must still contain the Phase 2 **`routing`** object on every PR (same check you can run locally after any train).
+**CI:** **[`phase1-smoke.yml`](.github/workflows/phase1-smoke.yml)** and **[`phase3-smoke.yml`](.github/workflows/phase3-smoke.yml)** each call the shared composite action **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** (stdlib **`unittest`** on **`tests/`**, including **[`tests/test_eval_report_routing.py`](tests/test_eval_report_routing.py)**) **before** installing torch / Phase 3 extras. The same composite is the **first** step in **Horizon** PR / **`main`** smokes **[`horizon2-smoke.yml`](.github/workflows/horizon2-smoke.yml)**, **[`horizon3-smoke.yml`](.github/workflows/horizon3-smoke.yml)**, **[`horizon4-smoke.yml`](.github/workflows/horizon4-smoke.yml)**, **[`horizon6-smoke.yml`](.github/workflows/horizon6-smoke.yml)**, **[`horizon7-smoke.yml`](.github/workflows/horizon7-smoke.yml)**, and **[`horizon8-smoke.yml`](.github/workflows/horizon8-smoke.yml)** (before their pip installs or each workflow’s **`--verify`**). Phase 1 then runs the smoke matrix and routing gates; Phase 3 runs a tiny train, the same **`routing_policy.py --from-checkpoint …`** check on **`.tmp/phase3-smoke`**, ONNX, parity, and bench. In both Phase workflows **`eval_report.json`** must still contain the Phase 2 **`routing`** object on every PR (same check you can run locally after any train).
 
 CLI knobs (scratch and [`finetune_pretrained_classifier.py`](scripts/finetune_pretrained_classifier.py)):
 
@@ -245,7 +245,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 - **One JSON contract** per run (`horizon2_generative_run/1.0`) for dashboards and regression checks (see [`texts/horizon2-handbook.md`](texts/horizon2-handbook.md)).
 - **Tier awareness:** smoke vs. default Instruct vs. your own API — documented in the handbook; latencies are recorded in the artifact.
 
-**CI:** `.github/workflows/horizon2-smoke.yml` runs `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
+**CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
 ## Horizon 3: persistent mind (session + long-term memory, audit, DSR-shaped export)
 
@@ -265,7 +265,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Manual test recipe:** [`texts/horizon3-handbook.md`](texts/horizon3-handbook.md).
 
-**CI:** `.github/workflows/horizon3-smoke.yml` runs `horizon3_memory_cli.py --verify` (offline).
+**CI:** `.github/workflows/horizon3-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `horizon3_memory_cli.py --verify` (offline).
 
 ## Horizon 4: multimodal grounding (image + text, CLIP alignment)
 
@@ -282,7 +282,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Manual steps:** [`texts/horizon4-handbook.md`](texts/horizon4-handbook.md)
 
-**CI:** `.github/workflows/horizon4-smoke.yml` runs `horizon4_multimodal.py --verify` (no network).
+**CI:** `.github/workflows/horizon4-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `horizon4_multimodal.py --verify` (no network).
 
 ## Horizon 6: converged stack (chain H2 + H3 + H4)
 
@@ -298,7 +298,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **How to test (local):** install deps as above, then `python scripts/horizon6_converged_smoke.py --verify`. Expect exit **0** and `ok: true` in the JSON; H2 may hit the Hub once for `sshleifer/tiny-gpt2` if not cached. **Faster one-offs:** run each horizon’s `--verify` alone (see Horizon 2–4 sections above).
 
-**CI:** `.github/workflows/horizon6-smoke.yml` runs the same command on **CPU** in GitHub Actions.
+**CI:** `.github/workflows/horizon6-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then the same command on **CPU** in GitHub Actions.
 
 ## Horizon 7: assured platform (tenant isolation smoke)
 
@@ -312,7 +312,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **How to test (local):** `python scripts/horizon7_assured_smoke.py --verify` — should print `horizon7 verify: OK` and write JSON with all checks `ok: true`.
 
-**CI:** `.github/workflows/horizon7-smoke.yml` runs the same command (no extra pip deps).
+**CI:** `.github/workflows/horizon7-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then the same command (no extra pip deps).
 
 ## Horizon 8: observability probe bundle (environment + H7 probe)
 
@@ -326,7 +326,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **How to test (local):** `python scripts/horizon8_observability_probe.py --verify` — expect `horizon8 verify: OK` and `ok: true` with a `probes` list.
 
-**CI:** `.github/workflows/horizon8-smoke.yml`.
+**CI:** `.github/workflows/horizon8-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then **`horizon8_observability_probe.py --verify`**.
 
 ## Horizon 9: declarative policy (allow / deny matrix)
 
@@ -1488,7 +1488,7 @@ No other GitHub secrets are read by these workflows. Internal step outputs (`GIT
 | -------- | ---- |
 | **PR smoke: Phase 1 matrix** (scratch, small caps) | [`phase1-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase1-smoke.yml) |
 | **PR smoke: Phase 3** (train tiny → ONNX → parity → bench) | [`phase3-smoke.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/phase3-smoke.yml) |
-| **Shared PR step: stdlib `unittest` on `tests/`** (composite; both smokes above call it before torch) | [`stdlib-unittest/action.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/actions/stdlib-unittest/action.yml) |
+| **Shared PR step: stdlib `unittest` on `tests/`** (composite; Phase 1/3 + Horizon 2/3/4/6/7/8 smokes call it before torch / verify) | [`stdlib-unittest/action.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/actions/stdlib-unittest/action.yml) |
 | **Deploy versioned Space to Hugging Face** | [`deploy-hf-space-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/deploy-hf-space-versioned.yml) |
 | **Train on Hugging Face Jobs and publish versioned model** | [`train-hf-job-versioned.yml`](https://github.com/HyperlinksSpace/TinyModel/blob/main/.github/workflows/train-hf-job-versioned.yml) |
 

@@ -1,4 +1,4 @@
-# Shared by phase1-smoke and phase3-smoke: fast stdlib tests before pip installs.
+# Shared by Phase 1/3 and Horizon 2/3/4/6/7/8 smokes: fast stdlib tests before pip / --verify.
 name: Stdlib unit tests
 description: Run unittest discover on tests/ (no torch).
 runs:
