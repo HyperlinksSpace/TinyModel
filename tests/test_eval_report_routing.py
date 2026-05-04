@@ -1,4 +1,8 @@
-"""Regression tests for ``scripts/eval_report_routing`` (stdlib only; no torch)."""
+"""Regression tests for ``scripts/eval_report_routing`` (stdlib only; no torch).
+
+Covers tip-path helpers, ``load_routing_from_eval_report``, ``print_routing_policy_from_checkpoint_tip``,
+and ``maybe_print_routing_section`` (stdout/stderr behaviour).
+"""
 
 from __future__ import annotations
 
@@ -7,7 +11,7 @@ import json
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 _REPO = Path(__file__).resolve().parent.parent
@@ -19,6 +23,7 @@ from eval_report_routing import (  # noqa: E402
     format_checkpoint_tip_path,
     format_routing_policy_from_checkpoint_command,
     load_routing_from_eval_report,
+    maybe_print_routing_section,
     print_routing_policy_from_checkpoint_tip,
 )
 
@@ -87,6 +92,42 @@ class TestLoadRoutingFromEvalReport(unittest.TestCase):
             )
             got = load_routing_from_eval_report(d)
             self.assertEqual(got, want)
+
+
+class TestMaybePrintRoutingSection(unittest.TestCase):
+    def test_disabled_emits_nothing(self) -> None:
+        out = io.StringIO()
+        err = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            maybe_print_routing_section("/nonexistent/x", enabled=False, prog="t")
+        self.assertEqual(out.getvalue(), "")
+        self.assertEqual(err.getvalue(), "")
+
+    def test_enabled_missing_report_stderr(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                maybe_print_routing_section(str(d), enabled=True, prog="smoke_test")
+            self.assertEqual(out.getvalue(), "")
+            self.assertIn("smoke_test", err.getvalue())
+            self.assertIn("no eval_report.json", err.getvalue())
+
+    def test_enabled_prints_routing_banner(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            d = Path(td)
+            (d / "eval_report.json").write_text(
+                json.dumps({"routing": {"min_confidence": 0.4}}),
+                encoding="utf-8",
+            )
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                maybe_print_routing_section(str(d), enabled=True, prog="p")
+            self.assertEqual(err.getvalue(), "")
+            self.assertIn("eval_report.json routing", out.getvalue())
+            self.assertIn("min_confidence", out.getvalue())
 
 
 class TestPrintRoutingTip(unittest.TestCase):
