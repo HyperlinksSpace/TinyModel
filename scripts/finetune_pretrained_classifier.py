@@ -24,6 +24,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+from eval_report_routing import print_routing_policy_from_checkpoint_tip
+
 # Runtime stability knobs for Windows CPU environments.
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 os.environ.setdefault("OMP_NUM_THREADS", "1")
@@ -39,6 +41,7 @@ from transformers import (
 )
 
 _scripts = Path(__file__).resolve().parent
+_REPO_ROOT = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
@@ -303,15 +306,7 @@ def main() -> None:
 
     print(f"eval_accuracy={eval_metrics.accuracy:.4f} eval_macro_f1={eval_metrics.macro_f1:.4f}")
     print(f"Saved to {output_dir}")
-    try:
-        tip = output_dir.resolve().relative_to(Path.cwd().resolve()).as_posix()
-    except ValueError:
-        tip = output_dir.resolve().as_posix()
-    print(
-        "Tip: dump Phase 2 `routing` JSON (no model load):\n"
-        f"  python scripts/routing_policy.py --from-checkpoint {tip}",
-        flush=True,
-    )
+    print_routing_policy_from_checkpoint_tip(output_dir, cwd=_REPO_ROOT)
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import WordPieceTrainer
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from eval_report_routing import print_routing_policy_from_checkpoint_tip
 from transformers import (
     BertConfig,
     BertForSequenceClassification,
@@ -1036,15 +1037,7 @@ def main() -> None:
         f"Wrote eval_report.json (dataset_quality, error_analysis, calibration, routing) "
         f"and misclassified_sample.jsonl ({n_mis} rows)."
     )
-    try:
-        tip = output_dir.resolve().relative_to(Path.cwd().resolve()).as_posix()
-    except ValueError:
-        tip = output_dir.resolve().as_posix()
-    print(
-        "Tip: dump Phase 2 `routing` JSON (no model load):\n"
-        f"  python scripts/routing_policy.py --from-checkpoint {tip}",
-        flush=True,
-    )
+    print_routing_policy_from_checkpoint_tip(output_dir, cwd=_REPO_ROOT)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+from eval_report_routing import (
+    format_routing_policy_from_checkpoint_command,
+    print_routing_policy_from_checkpoint_tip,
+)
+
 _REPO = Path(__file__).resolve().parent.parent
 
 
@@ -161,17 +166,14 @@ def main() -> None:
         lines.append(f"- **{r['task']}:** `{out_show}`")
     first = rows[0]
     outp0 = Path(str(first["output_dir"])).resolve()
-    try:
-        ex_show = outp0.relative_to(_REPO.resolve()).as_posix()
-    except ValueError:
-        ex_show = outp0.as_posix()
+    cmd_line = format_routing_policy_from_checkpoint_command(outp0, cwd=_REPO)
     lines += [
         "",
         "## Phase 2 `routing` quick check",
         "",
         "Each task directory contains **`eval_report.json`** with top-level **`routing`** when using current training scripts. Example for the **first table row** (`ag_news`):",
         "",
-        f"`python scripts/routing_policy.py --from-checkpoint {ex_show}`",
+        f"`{cmd_line}`",
         "",
         "See **README** (Phase 2 and Horizon 1 route-to-RAG).",
         "",
@@ -180,10 +182,10 @@ def main() -> None:
     ]
     md.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Wrote {md}")
-    print(
-        "Tip: Phase 2 `routing` for first task row (also in the summary .md footer):\n"
-        f"  python scripts/routing_policy.py --from-checkpoint {ex_show}",
-        flush=True,
+    print_routing_policy_from_checkpoint_tip(
+        outp0,
+        headline="Tip: Phase 2 `routing` for first task row (also in the summary .md footer):",
+        cwd=_REPO,
     )
 
 

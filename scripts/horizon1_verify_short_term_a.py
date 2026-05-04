@@ -14,6 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from eval_report_routing import print_routing_policy_from_checkpoint_tip
+
 _REPO = Path(__file__).resolve().parent.parent
 
 
@@ -82,14 +84,10 @@ def main() -> None:
             print(f"eval_report.json missing Phase 2 key: {k}", file=sys.stderr)
             raise SystemExit(1)
 
-    try:
-        tip = out.resolve().relative_to(_REPO.resolve())
-    except ValueError:
-        tip = out.resolve()
-    print(
-        "Tip: dump Phase 2 `routing` JSON from this train dir (no model load):\n"
-        f"  python scripts/routing_policy.py --from-checkpoint {tip.as_posix()}",
-        flush=True,
+    print_routing_policy_from_checkpoint_tip(
+        out,
+        headline="Tip: dump Phase 2 `routing` JSON from this train dir (no model load):",
+        cwd=_REPO,
     )
 
     if args.skip_phase3:

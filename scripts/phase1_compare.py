@@ -11,6 +11,12 @@ import sys
 import time
 from pathlib import Path
 
+from eval_report_routing import (
+    format_routing_policy_from_checkpoint_command,
+    print_routing_policy_from_checkpoint_tip,
+)
+
+_REPO = Path(__file__).resolve().parent.parent
 
 PRESETS: dict[str, dict[str, int]] = {
     "smoke": {
@@ -206,17 +212,14 @@ def _write_table_md(
     lines.append("")
     first = rows[0]
     ex_dir = (output_root / "runs" / preset / str(first["dataset"]) / str(first["model"])).resolve()
-    try:
-        ex_display = ex_dir.relative_to(Path.cwd().resolve()).as_posix()
-    except ValueError:
-        ex_display = ex_dir.as_posix()
+    cmd_md = format_routing_policy_from_checkpoint_command(ex_dir, cwd=_REPO)
     lines.extend(
         [
             "## Phase 2 `routing` quick check",
             "",
             "Each run directory contains **`eval_report.json`** with a top-level **`routing`** object when using current training scripts. Dump the embedded policy notes (no model load), e.g. for the **first row** of this matrix:",
             "",
-            f"`python scripts/routing_policy.py --from-checkpoint {ex_display}`",
+            f"`{cmd_md}`",
             "",
             "See **README** (Phase 2 and Horizon 1 route-to-RAG). CI (**`phase1-smoke.yml`**) runs the same check on **`ag_news/scratch`** when that cell is in the matrix.",
             "",
@@ -328,14 +331,10 @@ def main() -> None:
         ex_dir = (
             output_root / "runs" / args.preset / str(first["dataset"]) / str(first["model"])
         ).resolve()
-        try:
-            tip = ex_dir.relative_to(Path.cwd().resolve()).as_posix()
-        except ValueError:
-            tip = ex_dir.as_posix()
-        print(
-            "Tip: Phase 2 `routing` JSON for first matrix row (also in the .md footer):\n"
-            f"  python scripts/routing_policy.py --from-checkpoint {tip}",
-            flush=True,
+        print_routing_policy_from_checkpoint_tip(
+            ex_dir,
+            headline="Tip: Phase 2 `routing` JSON for first matrix row (also in the .md footer):",
+            cwd=_REPO,
         )
 
 
