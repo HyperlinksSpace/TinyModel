@@ -137,6 +137,10 @@ Aligned with TinyModel’s current strengths and common demand:
 
 That path moves you toward **general-purpose *systems*** (orchestration + data + eval) even when the **core weights** are commodity LLMs or modest encoders.
 
+## See also (demo credibility and the Universal Brain Space)
+
+When **buyer-facing demos** misbehave (near-uniform classifier scores, placeholder summarization, slow CPU decode, tiny FAQ corpus), triage with [`model-output-improvement-guide.md`](model-output-improvement-guide.md) before expanding model size or scope—it maps **symptoms** to **repo levers** (training, `horizon2_core`, RAG corpus, prompts).
+
 ---
 
 *This document is planning guidance, not a commitment to any single architecture or timeline.*

@@ -55,4 +55,5 @@ Match the existing plan: **placeholder guard + embedding consistency (P0)**, **c
 - [`horizon1-short-term-handbook.md`](horizon1-short-term-handbook.md) — route-to-RAG, encoder smoke, three-task matrix  
 - [`horizon2-handbook.md`](horizon2-handbook.md) — generative CLI, server, tiers  
 - [`tinymodel-current-state-and-product-path.md`](tinymodel-current-state-and-product-path.md) — product framing  
+- [`commercial-models-and-artificial-brain-roadmap.md`](commercial-models-and-artificial-brain-roadmap.md) — demand categories vs “brain” direction  
 - [`README.md`](../README.md) — training phases and smoke commands  

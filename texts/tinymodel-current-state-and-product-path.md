@@ -13,6 +13,8 @@ This note is a **synthesis** for stakeholders. Authoritative checklists stay in 
 - **Hugging Face model** [HyperlinksSpace/TinyModel1](https://huggingface.co/HyperlinksSpace/TinyModel1) — weights, tokenizer, model card; load with `transformers` or related APIs where available.
 - **Gradio Space** [TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space) — a **live demo** for trying classification; suitable for **showcase and light use**, not a substitute for a full SaaS with auth, SLAs, and abuse handling.
 
+**Universal Brain / Space output triage:** stakeholders comparing **Hub** vs **local** runs or questioning **generative** vs **encoder** behavior should start with [`model-output-improvement-guide.md`](model-output-improvement-guide.md) (symptom → files and flags) and [`universal-brain-session-improvement-plan.txt`](universal-brain-session-improvement-plan.txt) (concrete backlog from a sample session).
+
 **Engineering in this repository:**
 
 The horizon ladder in [`further-development-universe-brain.md`](further-development-universe-brain.md) runs **0–77** (semver through legal-hold smokes as later MVPs).
