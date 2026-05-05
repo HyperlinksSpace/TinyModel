@@ -15,6 +15,7 @@ This note ties **what you see in the chat** to **what to change in the repo**. F
 | `/retrieve` second hit is **off-topic** but plausible | **Tiny corpus** (e.g. four chunks) limits ranking | Expand [`rag_faq_corpus.md`](rag_faq_corpus.md); tune hybrid weights in `rag_faq_smoke.py`; optional reranker later |
 | `/nearest` picks a candidate that is **lexically** close but **wrong intent** (e.g. “refund policy” → “exchanges only”) | **Pooled embedding** geometry vs query; `/embed` shows **raw [CLS]**, not necessarily the same normalization as retrieve | Align **L2-normalized** cosine everywhere; try **mean pooling** vs `[CLS]` after retrain; blend with **BM25** on the same strings |
 | “Brain trace” shows **classify:World** while the reply feels unrelated | Trace is an **encoder hint for the whole user line**, not a post-hoc explanation of the last sentence only | Use `--no-trace` if noisy; treat trace as **debug**, not ground truth |
+| **Header / menu flashes** when widening or narrowing the window | **Responsive layout** recomputes breakpoints; a brief resize can pick a **default variant** before the final width settles | Fix in the **hosting UI** (Space shell, Expo/web app): **debounce** resize, **hold the last stable layout** until a new breakpoint is stable (hysteresis), avoid rendering a “loading” layout between states |
 
 ---
 

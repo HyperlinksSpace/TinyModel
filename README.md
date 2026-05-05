@@ -248,7 +248,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Windows (CPU):** [`horizon2_core.py`](scripts/horizon2_core.py) (`load_causal_lm`) and [`universal_brain_chat.py`](scripts/universal_brain_chat.py) set conservative OpenMP/MKL / **`TOKENIZERS_PARALLELISM`** defaults and cap **`torch`** thread counts before large **`from_pretrained`** loads; causal LM loading retries with **`low_cpu_mem_usage`** and, on **CPU**, **`attn_implementation="eager"`** when the installed **transformers** build accepts it (then falls back) to reduce native instability.
 
-**Product notes (sample UB session):** backlog ideas in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt); **symptom → repo levers** (classifier, LM, RAG, prompts) in [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (not release checklists). Current open product/infra checks and repeatable parity commands live in [`plan.txt`](plan.txt) (`>>> Actual`).
+**Product notes (sample UB session):** backlog ideas in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt); **symptom → repo levers** (classifier, LM, RAG, prompts, **responsive UI flicker**) in [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (not release checklists). Current open product/infra checks and repeatable parity commands live in [`plan.txt`](plan.txt) (`>>> Actual`: Hub-vs-local parity plus generative-vs-encoder validation as maintainer exit gates).
 
 **CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
@@ -1547,7 +1547,7 @@ Nothing here is committed on a fixed timeline; treat it as a backlog of sensible
 
 ## 5) Further development plan: what was added and how to exit-check
 
-The living plan is in [`texts/further-development-plan.md`](texts/further-development-plan.md). Recent updates there:
+The living plan is in [`texts/further-development-plan.md`](texts/further-development-plan.md). For a **short maintainer checklist** (Hub vs local parity, generative vs encoder roles), see [`plan.txt`](plan.txt) **`>>> Actual`**. Recent updates in the long-form plan:
 
 - **Exit steps (verification)** for **Phase 1–3**, **optional R&D**, and each **decision gate** (concrete commands, **exit status 0**, artifacts).
 - **Phase 2 routing:** [`texts/phase2-routing-threshold-scenario.md`](texts/phase2-routing-threshold-scenario.md).

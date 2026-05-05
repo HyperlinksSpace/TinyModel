@@ -26,7 +26,7 @@ See also:
 - `texts/horizon1-short-term-handbook.md`
 - `texts/horizon2-handbook.md`
 
-Further development steps' 1 and 2 exits
+Maintainer focus: treat checks (1) Hub-vs-local parity and (2) generative vs encoder role validation as the current exit gates before scaling data or publishing a Hub refresh.
 
 >>> Old plan (to think about):
 
