@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Horizon 6: converged stack — run multiple horizon --verify steps and one JSON artifact.
+"""Horizon 6: converged stack - run multiple horizon --verify steps and one JSON artifact.
 
-Exercises (default): generative (H2), memory (H3), multimodal (H4) — three capability lanes with
+Exercises (default): generative (H2), memory (H3), multimodal (H4) - three capability lanes with
 a shared run contract. Optional --with-rag adds Horizon 1-style retrieval (needs a local encoder
 or Hub access). See README \"Horizon 6\" and texts/further-development-universe-brain.md."""
 
@@ -19,6 +19,7 @@ _REPO = Path(__file__).resolve().parent.parent
 _SCHEMA = "horizon6_converged_run/1.0"
 _OUT_DIR = _REPO / ".tmp" / "horizon6-converge"
 _DEFAULT_OUT = _OUT_DIR / "run.json"
+_PROG = "horizon6_converged_smoke"
 
 
 def _run_step(name: str, cmd: list[str]) -> dict:
@@ -35,8 +36,21 @@ def _run_step(name: str, cmd: list[str]) -> dict:
     }
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon6_converged_smoke.py --verify\n"
+        "  python scripts/horizon6_converged_smoke.py --verify --with-rag\n"
+        "  python scripts/horizon6_converged_smoke.py --verify --output-json .tmp/horizon6-converge/custom.json\n"
+        "The script only runs when you pass --verify (see stderr hint otherwise). "
+        "Install: torch + optional-requirements-horizon2.txt + optional-requirements-horizon4.txt (README Horizon 6)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--verify",
         action="store_true",
@@ -53,7 +67,11 @@ def parse_args() -> argparse.Namespace:
         default=str(_DEFAULT_OUT),
         help=f"Output path (default: {_DEFAULT_OUT}).",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> int:

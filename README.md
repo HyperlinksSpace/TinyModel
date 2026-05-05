@@ -305,10 +305,11 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | **Install** | `pip install` **torch** (CPU is fine) + `pip install -r optional-requirements-horizon2.txt` + `pip install -r optional-requirements-horizon4.txt` | H2 and H4 share a **transformers** stack; H3 stays **stdlib**-only. |
 | **Converged verify** | `python scripts/horizon6_converged_smoke.py --verify` | Chains: `horizon2_generative.py --verify` → `horizon3_memory_cli.py --verify` → `horizon4_multimodal.py --verify`. Output: `.tmp/horizon6-converge/run.json`. |
 | **Optional RAG** | same command with `--with-rag` | Also runs `rag_faq_smoke.py` (needs a **trained** `config.json` dir or Hub **download**; can fail in air-gapped envs). |
+| **CLI help** | `python scripts/horizon6_converged_smoke.py -h` | Epilog: **`--verify`**, **`--with-rag`**, **`--output-json`**; docstring ASCII for **`cp1251`**. **`tests/test_horizon6_converged_smoke_help.py`**. |
 
 **What is still *not* H6 (full exit):** a **single** production **runtime** and router, one **auth/tenant** story, and a real **incident runbook**—this repo only proves **component** smokes in sequence.
 
-**How to test (local):** install deps as above, then `python scripts/horizon6_converged_smoke.py --verify`. Expect exit **0** and `ok: true` in the JSON; H2 may hit the Hub once for `sshleifer/tiny-gpt2` if not cached. **Faster one-offs:** run each horizon’s `--verify` alone (see Horizon 2–4 sections above).
+**How to test (local):** install deps as above, then `python scripts/horizon6_converged_smoke.py --verify`. Expect exit **0** and `ok: true` in the JSON; H2 may hit the Hub once for `sshleifer/tiny-gpt2` if not cached. **`python scripts/horizon6_converged_smoke.py -h`** lists the same flags and example commands. **Faster one-offs:** run each horizon’s `--verify` alone (see Horizon 2–4 sections above).
 
 **CI:** `.github/workflows/horizon6-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then the same command on **CPU** in GitHub Actions.
 
