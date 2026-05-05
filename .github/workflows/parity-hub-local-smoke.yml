@@ -45,3 +45,10 @@ jobs:
       - name: Check parity report schema
         run: |
           python -c "import json, pathlib; p=pathlib.Path('.tmp/parity-check/hub-vs-local.json'); d=json.loads(p.read_text()); assert d.get('schema')=='tinymodel_hub_local_parity/1.0'; s=d.get('summary',{}); assert s.get('n_queries',0)>=1; assert 0.0<=float(s.get('top_label_match_rate',0.0))<=1.0; print('ok')"
+
+      - name: Upload parity report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-hub-vs-local-report
+          path: .tmp/parity-check/hub-vs-local.json
+          if-no-files-found: error
