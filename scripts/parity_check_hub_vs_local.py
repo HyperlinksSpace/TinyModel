@@ -75,6 +75,11 @@ def main() -> None:
     hub = TinyModelRuntime(args.hub_model, device=args.device)
     local_probs = local.classify(queries)
     hub_probs = hub.classify(queries)
+    if len(local_probs) != len(queries) or len(hub_probs) != len(queries):
+        raise RuntimeError(
+            "Parity classify output length mismatch: "
+            f"queries={len(queries)} local={len(local_probs)} hub={len(hub_probs)}"
+        )
 
     rows: list[dict[str, object]] = []
     label_match_count = 0

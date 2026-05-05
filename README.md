@@ -1385,6 +1385,7 @@ python scripts/parity_check_hub_vs_local.py \
 ```
 
 Writes `.tmp/parity-check/hub-vs-local.json` with `top_label_match_rate` and average probability deltas per query.
+The script has stdlib unit coverage in `tests/test_parity_check_hub_vs_local.py` (no Hub download).
 
 ### Pretrained encoder fine-tune (compare to scratch baseline)
 
