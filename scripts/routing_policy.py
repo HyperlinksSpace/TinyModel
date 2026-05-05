@@ -102,7 +102,20 @@ def route_from_probs(
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+    epilog = (
+        "Examples:\n"
+        "  python scripts/routing_policy.py --demo\n"
+        "  python scripts/routing_policy.py --probs-json "
+        '\'{"Sports":0.55,"World":0.35,"Business":0.05,"Sci/Tech":0.05}\' '
+        "--min-confidence 0.5 --min-margin 0.1\n"
+        "  python scripts/routing_policy.py --from-eval-report .tmp/phase2-smoke/eval_report.json\n"
+        "  python scripts/routing_policy.py --from-checkpoint .tmp/phase2-smoke"
+    )
+    p = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--demo",
         action="store_true",
