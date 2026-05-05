@@ -36,8 +36,21 @@ def _looks_like_hub_id(s: str) -> bool:
     return len(parts) == 2 and ".." not in parts and not Path(parts[0]).is_absolute()
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke\n"
+        "  python scripts/embeddings_smoke_test.py --model HyperlinksSpace/TinyModel1\n"
+        "  python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke "
+        "--routing --show-train-routing\n"
+        "Train artifacts/eval-smoke first (see README: Embeddings smoke test) if the path is missing."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
@@ -56,7 +69,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print eval_report.json top-level routing (Phase 2 notes) before classification output.",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> None:
