@@ -221,7 +221,7 @@ Use one checkpoint directory with **`config.json`** (e.g. **`artifacts/phase1/ru
 
 1. **Policy only (no model):** `python scripts/routing_policy.py --demo` (or **`--from-checkpoint <dir>`** to dump Phase 2 **`routing`** JSON from **`eval_report.json`** without opening the file path manually).
 2. **FAQ retrieval:** `python scripts/rag_faq_smoke.py --model <dir>` or `python scripts/rag_faq_smoke.py --query "How do I get a refund?" --top-k 3 --model <dir>` (optional **`--show-train-routing`**).
-3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>`
+3. **Full glue + CI parity:** `python scripts/horizon1_route_then_retrieve.py --verify --model <dir>` — run **`python scripts/horizon1_route_then_retrieve.py -h`** for copy-paste **`--demo`**, **`--verify`**, and **`--query`** examples (loads **`torch`**; not part of the stdlib-only **`tests/`** suite). The script **`--help`** text uses ASCII-only arrows in the description so **`cp1251`** consoles on Windows do not fail printing help.
 4. **Same + Phase 2 notes:** add **`--show-train-routing`** to **`--demo`** or **`--query`** to echo **`eval_report.json`**’s **`routing`** block next to live **`route_from_probs`** output.
 5. **Classifier + gates without corpus:** `python scripts/embeddings_smoke_test.py --model <dir> --routing` (add **`--show-train-routing`** to echo Phase 2 **`routing`** like step 4).
 

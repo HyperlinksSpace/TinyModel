@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Classifier gates + FAQ retrieval on fallback (Horizon 1 «route then retrieve» glue).
 
-Runs **TinyModelRuntime.classify** → **routing_policy.route_from_probs**. When the policy
+Runs **TinyModelRuntime.classify** -> **routing_policy.route_from_probs**. When the policy
 **abstains** (low confidence or ambiguous margin), runs the same **hybrid** ranker as
 `rag_faq_smoke.py` over `texts/rag_faq_corpus.md` so support-style queries still get a
 citation-style chunk index.
@@ -33,8 +33,22 @@ from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 _PROG = "horizon1_route_then_retrieve"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon1_route_then_retrieve.py --demo\n"
+        "  python scripts/horizon1_route_then_retrieve.py --verify "
+        "--model artifacts/phase1/runs/smoke/ag_news/scratch\n"
+        "  python scripts/horizon1_route_then_retrieve.py "
+        '--query "How do I get a refund?" --top-k 3\n'
+        "See the README Route-to-RAG quick checklist for --model defaults."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--model", type=str, default=None, help="Checkpoint dir or Hub id (see rag_faq_smoke).")
     p.add_argument(
         "--corpus",
@@ -74,7 +88,11 @@ def parse_args() -> argparse.Namespace:
             "`routing` section (Phase 2 training notes) before --demo / --query output."
         ),
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _print_human(
@@ -244,10 +262,9 @@ def main() -> None:
             print()
         return
 
-    p = argparse.ArgumentParser(description=__doc__)
-    p.print_help()
+    build_parser().print_help()
     print(
-        "\nPass --demo, --query \"...\", or --verify (see README Horizon 1 table).",
+        "\nPass --demo, --query \"...\", or --verify (see README Route-to-RAG checklist).",
         file=sys.stderr,
     )
     raise SystemExit(2)
