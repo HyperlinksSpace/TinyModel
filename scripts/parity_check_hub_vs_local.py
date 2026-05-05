@@ -35,7 +35,18 @@ def _l1_distance(a: dict[str, float], b: dict[str, float]) -> float:
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+    epilog = (
+        "Example (from repo root, after training to artifacts/parity-smoke):\n"
+        "  python scripts/parity_check_hub_vs_local.py \\\n"
+        "    --local-model artifacts/parity-smoke \\\n"
+        "    --hub-model HyperlinksSpace/TinyModel1 \\\n"
+        "    --output .tmp/parity-check/hub-vs-local.json"
+    )
+    p = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--local-model",
         default="artifacts/parity-smoke",

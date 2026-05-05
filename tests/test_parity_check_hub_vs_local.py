@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import sys
 import tempfile
@@ -47,6 +48,20 @@ class _MismatchRuntime:
 
     def classify(self, queries: list[str]) -> list[dict[str, float]]:
         return [{"World": 1.0}]
+
+
+class TestParityCli(unittest.TestCase):
+    def test_help_epilog_matches_plan_paths(self) -> None:
+        out = io.StringIO()
+        err = io.StringIO()
+        with patch.object(sys, "argv", ["parity_check_hub_vs_local.py", "-h"]):
+            with patch.object(sys, "stdout", out), patch.object(sys, "stderr", err):
+                with self.assertRaises(SystemExit) as ctx:
+                    parity.parse_args()
+        self.assertEqual(ctx.exception.code, 0)
+        combined = out.getvalue() + err.getvalue()
+        self.assertIn("artifacts/parity-smoke", combined)
+        self.assertIn(".tmp/parity-check/hub-vs-local.json", combined)
 
 
 class TestParityHelpers(unittest.TestCase):
