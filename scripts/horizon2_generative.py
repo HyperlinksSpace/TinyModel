@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 2: generative (causal LM) path — summarize / reformulate / grounded with JSON run artifacts.
+"""Horizon 2: generative (causal LM) path - summarize / reformulate / grounded with JSON run artifacts.
 
 Complements the encoder + RAG line from Horizon 1. Install: `pip install -r optional-requirements-horizon2.txt`
 (then ensure `torch` matches your environment)."""
@@ -25,6 +25,7 @@ from horizon2_core import (
 )
 
 _REPO = _scripts.parent
+_PROG = "horizon2_generative"
 
 DEFAULT_SAMPLES = [
     (
@@ -38,8 +39,20 @@ DEFAULT_SAMPLES = [
 ]
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples (after: pip install -r optional-requirements-horizon2.txt):\n"
+        "  python scripts/horizon2_generative.py --verify\n"
+        "  python scripts/horizon2_generative.py --smoke --task reformulate --max-new-tokens 96\n"
+        "  python scripts/horizon2_generative.py --task summarize\n"
+        "  python scripts/horizon2_generative.py --task grounded --context \"Snippet...\" --text \"User question...\""
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--task",
         choices=["summarize", "reformulate", "grounded"],
@@ -106,7 +119,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="After writing file, also print the JSON to stdout (Windows logs: set PYTHONIOENCODING=utf-8 if needed).",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _resolve_model(a: argparse.Namespace) -> str:

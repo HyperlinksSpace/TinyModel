@@ -16,6 +16,7 @@ How to validate now (fast, repeatable):
 2) Generative vs encoder role split (Universal Brain lane)
    - Run generation smoke with local instruct model:
      `python scripts/horizon2_generative.py --task reformulate --max-new-tokens 96`
+     (More modes: `python scripts/horizon2_generative.py -h`.)
    - Run encoder/RAG checks:
      `python scripts/horizon1_route_then_retrieve.py --verify --model artifacts/parity-smoke`
    - Use `texts/model-output-improvement-guide.md` to map observed symptom -> script/flag change.

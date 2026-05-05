@@ -241,6 +241,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | **Side-by-side** | add `--compare-with <other-hf-id>` | Same inputs, two model outputs in one JSON (Horizon 2 **exit** shaped like “A/B on domain tasks”). |
 | **+ RAG** | `--task grounded --context-file <chunk>` (or `--context "..."`) | Pairs [FAQ / retrieval](texts/rag_faq_corpus.md) with generation. |
 | **HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon2_server.py --smoke` | `GET /` lists routes; **Swagger UI:** `http://127.0.0.1:8766/docs` — `POST /v1/generate` (same product pattern as the Phase 3 reference server). |
+| **CLI help** | `python scripts/horizon2_generative.py -h` | Epilog mirrors **`plan.txt`** / table flows: **`--verify`**, **`--smoke --task reformulate --max-new-tokens 96`**, default summarize, grounded **`--context` + `--text`**. Description stays ASCII for **`cp1251`** Windows consoles. |
 
 **Benefits (product / engineering):**
 
