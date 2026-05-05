@@ -248,6 +248,8 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Windows (CPU):** [`horizon2_core.py`](scripts/horizon2_core.py) (`load_causal_lm`) and [`universal_brain_chat.py`](scripts/universal_brain_chat.py) set conservative OpenMP/MKL / **`TOKENIZERS_PARALLELISM`** defaults and cap **`torch`** thread counts before large **`from_pretrained`** loads; causal LM loading retries with **`low_cpu_mem_usage`** and, on **CPU**, **`attn_implementation="eager"`** when the installed **transformers** build accepts it (then falls back) to reduce native instability.
 
+**Windows (Git Bash):** if **`git`** prints Cygwin **`fork`** / **`MEM_COMMIT`** / **Win32 error 1455** noise, the command often still succeeds—retry once, close extra terminals to free address space, or run the same **`git`** command from **PowerShell** or **cmd** if bash keeps failing.
+
 **Product notes (sample UB session):** backlog ideas in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt); **symptom → repo levers** (classifier, LM, RAG, prompts, **responsive UI flicker**) in [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (not release checklists). Current open product/infra checks and repeatable parity commands live in [`plan.txt`](plan.txt) (`>>> Actual`: Hub-vs-local parity plus generative-vs-encoder validation as maintainer exit gates).
 
 **CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
@@ -1381,10 +1383,11 @@ python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke
 ```bash
 python scripts/parity_check_hub_vs_local.py \
   --local-model artifacts/eval-smoke \
-  --hub-model HyperlinksSpace/TinyModel1
+  --hub-model HyperlinksSpace/TinyModel1 \
+  --output .tmp/parity-check/hub-vs-local.json
 ```
 
-Writes `.tmp/parity-check/hub-vs-local.json` with `top_label_match_rate` and average probability deltas per query.
+Writes the report path you pass to **`--output`** (here: `.tmp/parity-check/hub-vs-local.json`) with `top_label_match_rate` and average probability deltas per query.
 The script has stdlib unit coverage in `tests/test_parity_check_hub_vs_local.py` (no Hub download).
 CI mirror: [`parity-hub-local-smoke.yml`](.github/workflows/parity-hub-local-smoke.yml) runs the same flow on PRs and uploads **`parity-hub-vs-local-report`** (file: `hub-vs-local.json`) in **Actions → workflow run → Artifacts**.
 
