@@ -52,5 +52,7 @@ Match the existing plan: **placeholder guard + embedding consistency (P0)**, **c
 ## Related docs
 
 - [`universal-brain-session-improvement-plan.txt`](universal-brain-session-improvement-plan.txt) — detailed actions from a real session log  
+- [`horizon1-short-term-handbook.md`](horizon1-short-term-handbook.md) — route-to-RAG, encoder smoke, three-task matrix  
+- [`horizon2-handbook.md`](horizon2-handbook.md) — generative CLI, server, tiers  
 - [`tinymodel-current-state-and-product-path.md`](tinymodel-current-state-and-product-path.md) — product framing  
 - [`README.md`](../README.md) — training phases and smoke commands  

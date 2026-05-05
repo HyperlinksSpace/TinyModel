@@ -5,6 +5,8 @@ under artifacts/horizon1/three-tasks/ag_news, tiny RAG corpus (4 chunks),
 SQLite memory. This plan is derived from the behaviors and numbers shown
 in that session log.
 
+See also: model-output-improvement-guide.md (symptom → repo levers table for chat, encoder, LM, RAG).
+
 ----------------------------------------------------------------
 1) Topic classifier — low margin / near-uniform probabilities
 ----------------------------------------------------------------

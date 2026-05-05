@@ -100,6 +100,11 @@ Optional: **`--min-confidence`** / **`--min-margin`** match your production gate
 - **B:** One table to compare **topic**, **emotion**, and **sentiment** tasks under identical training caps—good for “should we invest in more data or capacity?”
 - **C:** A **template** for support/FAQ products: chunk corpus → embed with **your** `TinyModelRuntime` → rank; extend with a real vector DB or cross-encoder later.
 
+## See also (outputs and UX)
+
+- [`model-output-improvement-guide.md`](model-output-improvement-guide.md) — map **chat / Space** symptoms (flat classifier, slow LM, weak RAG) to **repo levers** (train scripts, `horizon2_core`, corpus size, prompts).
+- [`universal-brain-session-improvement-plan.txt`](universal-brain-session-improvement-plan.txt) — detailed backlog from a **sample** Universal Brain session log.
+
 ## CI note
 
 `phase1-smoke.yml` and `phase3-smoke.yml` on GitHub mirror parts of **A**; B is not in CI by default (longer, three dataset downloads). Run B locally or in a release workflow when needed.

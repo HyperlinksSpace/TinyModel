@@ -1357,6 +1357,8 @@ Then check `artifacts/emotion-smoke/eval_report.json` — `reproducibility.datas
 
 [`scripts/embeddings_smoke_test.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/embeddings_smoke_test.py) runs [`TinyModelRuntime`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/tinymodel_runtime.py) on a few queries: **classification probabilities**, **pairwise similarity**, and **retrieval** over a toy candidate list (support/triage scenario).
 
+**Universal Brain / Space quality:** if live outputs look **flat**, **slow**, or **off-topic**, triage with [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (symptom → which script or flag to change) and the session backlog [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt).
+
 **What these terms mean**
 
 - **Classification probabilities** — Output of `TinyModelRuntime.classify(...)`: for each input text, the model returns a probability distribution across all labels (values sum to ~1.0). Use this for routing decisions and confidence-aware thresholds.

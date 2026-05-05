@@ -85,6 +85,10 @@ python scripts/horizon2_generative.py --verify
 - **Horizon 1** retrieval (`rag_faq_smoke`, FAQ corpus) supplies **context**; Horizon 2 answers or rewrites in a **grounded** task.
 - **Phase 3** reference server is the pattern for the HTTP shape; Horizon 2 adds **`/v1/generate`**.
 
+## Improving perceived quality
+
+If generations are **too long**, **slow**, or **mis-routed** in **Universal Brain** / Space, read [`model-output-improvement-guide.md`](model-output-improvement-guide.md) (symptom table + **`--task-max-new-tokens`**, `build_user_prompt`, router flags) and the encoder/RAG angles in [`horizon1-short-term-handbook.md`](horizon1-short-term-handbook.md).
+
 ## CI
 
 `horizon2-smoke.yml` runs `--verify` on the default branch when GitHub can reach the Hub. If the workflow fails with timeouts, re-run or rely on the local `--verify` command with a cached `tiny-gpt2`.
