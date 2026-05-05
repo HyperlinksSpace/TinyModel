@@ -1386,7 +1386,7 @@ python scripts/parity_check_hub_vs_local.py \
 
 Writes `.tmp/parity-check/hub-vs-local.json` with `top_label_match_rate` and average probability deltas per query.
 The script has stdlib unit coverage in `tests/test_parity_check_hub_vs_local.py` (no Hub download).
-CI mirror: [`parity-hub-local-smoke.yml`](.github/workflows/parity-hub-local-smoke.yml) runs the same flow on PRs.
+CI mirror: [`parity-hub-local-smoke.yml`](.github/workflows/parity-hub-local-smoke.yml) runs the same flow on PRs and uploads **`parity-hub-vs-local-report`** (file: `hub-vs-local.json`) in **Actions → workflow run → Artifacts**.
 
 ### Pretrained encoder fine-tune (compare to scratch baseline)
 
