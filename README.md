@@ -1376,6 +1376,16 @@ python scripts/embeddings_smoke_test.py --model artifacts/eval-smoke
 # Or: python scripts/embeddings_smoke_test.py --model HyperlinksSpace/TinyModel1
 ```
 
+**Hub vs local parity (one JSON):**
+
+```bash
+python scripts/parity_check_hub_vs_local.py \
+  --local-model artifacts/eval-smoke \
+  --hub-model HyperlinksSpace/TinyModel1
+```
+
+Writes `.tmp/parity-check/hub-vs-local.json` with `top_label_match_rate` and average probability deltas per query.
+
 ### Pretrained encoder fine-tune (compare to scratch baseline)
 
 [`scripts/finetune_pretrained_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/finetune_pretrained_classifier.py) fine-tunes **`AutoModelForSequenceClassification`** from `--base-model` (default `distilbert-base-uncased`) using the **same** splits and metrics as the scratch trainer. Use matching `--seed` and sample caps, then compare `eval_report.json` / `artifact.json` to a scratch run.
