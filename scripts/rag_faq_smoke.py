@@ -63,8 +63,22 @@ def _pick_model(explicit: str | None) -> str:
     return explicit  # Hub id, e.g. HyperlinksSpace/TinyModel1
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/rag_faq_smoke.py\n"
+        "  python scripts/rag_faq_smoke.py --query \"How do I get a refund?\" --top-k 3\n"
+        "  python scripts/rag_faq_smoke.py --model artifacts/phase1/runs/smoke/ag_news/scratch "
+        "--show-train-routing\n"
+        "If --model is omitted, the first default checkpoint dir with config.json is used, "
+        f"else {_DEFAULT_HUB!r} (see --model above)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
@@ -101,7 +115,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print eval_report.json top-level routing (Phase 2 notes) before retrieval output.",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def load_chunks(corpus: Path) -> list[str]:
