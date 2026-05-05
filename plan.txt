@@ -9,10 +9,9 @@ How to validate now (fast, repeatable):
 1) Hub vs local parity (encoder lane)
    - Train/eval local checkpoint with a fixed seed:
      `python scripts/train_tinymodel1_classifier.py --output-dir artifacts/parity-smoke --max-train-samples 120 --max-eval-samples 80 --epochs 1 --batch-size 8 --seed 42`
-   - Compare runtime behavior side-by-side:
-     `python scripts/embeddings_smoke_test.py --model artifacts/parity-smoke`
-     `python scripts/embeddings_smoke_test.py --model HyperlinksSpace/TinyModel1`
-   - Compare `eval_report.json` + confidence margins from both runs and decide if the Hub model needs a refresh.
+   - Run one-command parity report:
+     `python scripts/parity_check_hub_vs_local.py --local-model artifacts/parity-smoke --hub-model HyperlinksSpace/TinyModel1`
+   - Read `.tmp/parity-check/hub-vs-local.json` (`top_label_match_rate`, average probability deltas) + `eval_report.json` and decide if the Hub model needs a refresh.
 
 2) Generative vs encoder role split (Universal Brain lane)
    - Run generation smoke with local instruct model:
