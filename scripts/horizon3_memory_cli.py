@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 3 CLI: session + long-term memory, audit, TTL, DSR export/forget — no extra dependencies."""
+"""Horizon 3 CLI: session + long-term memory, audit, TTL, DSR export/forget - no extra dependencies."""
 
 from __future__ import annotations
 
@@ -19,10 +19,23 @@ import horizon3_store as h3  # noqa: E402
 
 _REPO = _scripts.parent
 _DEFAULT_DB = str(_REPO / ".tmp" / "horizon3" / "memory.db")
+_PROG = "horizon3_memory_cli"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon3_memory_cli.py --verify\n"
+        "  python scripts/horizon3_memory_cli.py put --scope user:demo --kind session --text \"Hello\"\n"
+        "  python scripts/horizon3_memory_cli.py list --scope user:demo\n"
+        "Each subcommand accepts its own -h (put, get, list, export, prune, delete, forget-scope, clear-session, audit)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--db", type=str, default=_DEFAULT_DB, help="SQLite path (created if missing).")
     p.add_argument(
         "--verify",
@@ -65,7 +78,11 @@ def parse_args() -> argparse.Namespace:
     a_audit = sub.add_parser("audit", help="Print audit log lines (JSONL).")
     a_audit.add_argument("--scope", type=str, default="")
 
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _conn(db: str) -> sqlite3.Connection:

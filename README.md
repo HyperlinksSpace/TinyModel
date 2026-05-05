@@ -264,7 +264,8 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | Piece | What you run | Why it helps |
 | ----- | ------------ | ------------ |
 | **Self-test** | `python scripts/horizon3_memory_cli.py --verify` | No network; validates CRUD, export, session clear, TTL prune, forget. |
-| **Daily use** | `python scripts/horizon3_memory_cli.py put|get|list|export|forget-scope|clear-session|prune|audit` (see `-h`) | Editable, auditable, deletable memory — not an opaque vector dump. |
+| **Daily use** | `python scripts/horizon3_memory_cli.py put|get|list|export|forget-scope|clear-session|prune|audit` (each subcommand has `-h`) | Editable, auditable, deletable memory — not an opaque vector dump. |
+| **CLI help** | `python scripts/horizon3_memory_cli.py -h` | Top-level epilog: **`--verify`**, sample **`put`** / **`list`**, reminder that every subcommand has its own **`-h`**. Covered by **`tests/test_horizon3_memory_cli_help.py`**. |
 | **Optional HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon3_memory_api.py` | **http://127.0.0.1:8767/docs** — `put` / `list` / `export` / `forget` (default port **8767**; set `HORIZON3_DB`). |
 
 **Benefits**
