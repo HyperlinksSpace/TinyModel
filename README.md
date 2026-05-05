@@ -288,6 +288,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | **CI / offline verify** | `python scripts/horizon4_multimodal.py --verify` | **No Hub download** — random `CLIPConfig` + `CLIPModel` forward; proves the wiring. On **Windows** this uses a **subprocess** and OpenMP env defaults to avoid native crashes; if PyTorch still fails, see the handbook. |
 | **Pretrained check** | `python scripts/horizon4_multimodal.py --verify-pretrained` | Loads **`HORIZON4_CLIP_MODEL`** (default `openai/clip-vit-base-patch32`) if cached/online. |
 | **Real photo + text** | `python scripts/horizon4_multimodal.py --image <file> --text "<caption>"` | JSON under `.tmp/horizon4/last_run.json` with `logit_image_text` for triage, QA, or internal benchmarks. |
+| **CLI help** | `python scripts/horizon4_multimodal.py -h` | Epilog lists **`--verify`**, **`--verify-pretrained`**, and **`--image` / `--text`**; docstring uses ASCII for **`cp1251`** consoles. **`tests/test_horizon4_multimodal_help.py`**. |
 
 **Benefits:** one **concrete** image–text score next to your text-only classifiers; **governance** still needs human/review for abuse; **smoke** stays **offline** and fast in CI.
 

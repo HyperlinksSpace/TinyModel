@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 4: multimodal grounding MVP — image + text via CLIP (cosine in logit space).
+"""Horizon 4: multimodal grounding MVP - image + text via CLIP (cosine in logit space).
 
 Audio and full moderation are out of scope for this script; see texts/horizon4-handbook.md.
 Install: pip install -r optional-requirements-horizon4.txt (plus torch, transformers in your env)."""
@@ -50,10 +50,23 @@ DEFAULT_CLIP_MODEL = "openai/clip-vit-base-patch32"
 
 _SCRIPTS = Path(__file__).resolve().parent
 _REPO = _SCRIPTS.parent
+_PROG = "horizon4_multimodal"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples (after: pip install -r optional-requirements-horizon4.txt):\n"
+        "  python scripts/horizon4_multimodal.py --verify\n"
+        "  python scripts/horizon4_multimodal.py --verify-pretrained\n"
+        "  python scripts/horizon4_multimodal.py --image photo.png --text \"a diagram of a product\"\n"
+        "See texts/horizon4-handbook.md for Windows subprocess notes on --verify."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
@@ -95,7 +108,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=argparse.SUPPRESS,
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _pick_device(s: str) -> str:
