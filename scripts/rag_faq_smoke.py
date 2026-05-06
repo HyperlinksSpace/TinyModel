@@ -13,13 +13,13 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
 from eval_report_routing import maybe_print_routing_section
-from tinymodel_runtime import TinyModelRuntime
 
 _PROG = "rag_faq_smoke"
 
@@ -204,6 +204,8 @@ def main() -> None:
     maybe_print_routing_section(
         model_id, enabled=args.show_train_routing, prog=_PROG,
     )
+    from tinymodel_runtime import TinyModelRuntime
+
     rt = TinyModelRuntime(model_id, device="cpu", max_length=128)
 
     if args.query:
