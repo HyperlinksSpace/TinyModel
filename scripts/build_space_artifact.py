@@ -17,6 +17,8 @@ import json
 import shutil
 from pathlib import Path
 
+_PROG = "build_space_artifact"
+
 SCRIPT_FILES = (
     "universal_brain_chat.py",
     "horizon2_core.py",
@@ -26,25 +28,42 @@ SCRIPT_FILES = (
 )
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Generate Space files for TinyModel{version}Space (Universal Brain chat)."
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/build_space_artifact.py --namespace HyperlinksSpace --version 1 "
+        "--output-dir .tmp/TinyModel1Space-bundle\n"
+        "  python scripts/build_space_artifact.py --namespace MyOrg --version 2 --output-dir .tmp/space2 "
+        "--model-id MyOrg/TinyModel2"
     )
-    parser.add_argument("--namespace", required=True, help="HF org/user namespace")
-    parser.add_argument("--version", required=True, help="Artifact version number")
-    parser.add_argument("--output-dir", required=True, help="Output directory path")
-    parser.add_argument(
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=(
+            "Generate Space files for TinyModel{version}Space (Universal Brain chat). "
+            "Copies the in-repo chat stack into a flat layout under --output-dir."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    p.add_argument("--namespace", required=True, help="HF org/user namespace")
+    p.add_argument("--version", required=True, help="Artifact version number")
+    p.add_argument("--output-dir", required=True, help="Output directory path")
+    p.add_argument(
         "--model-id",
         required=False,
         default="",
         help="HF classifier model repo id for --encoder (default: {namespace}/TinyModel{version}).",
     )
-    parser.add_argument(
+    p.add_argument(
         "--github-repo-url",
         default="https://github.com/HyperlinksSpace/TinyModel",
         help="GitHub repo URL shown in the Space UI.",
     )
-    return parser.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> None:
