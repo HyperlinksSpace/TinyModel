@@ -16,10 +16,24 @@ from eval_report_routing import (
 )
 
 _REPO = Path(__file__).resolve().parent.parent
+_PROG = "horizon1_three_datasets"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon1_three_datasets.py\n"
+        "  python scripts/horizon1_three_datasets.py --offline-datasets\n"
+        "  python scripts/horizon1_three_datasets.py --seed 42 --output-root artifacts/horizon1/three-tasks\n"
+        "Runs train_tinymodel1_agnews.py, train_tinymodel1_emotion.py, train_tinymodel1_sst2.py "
+        "with shared caps; needs torch/transformers when training executes."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--output-root",
         type=str,
@@ -53,7 +67,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Set HF_DATASETS_OFFLINE=1 so Hugging Face uses only local cache (avoids Hub timeouts).",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def run_one(
