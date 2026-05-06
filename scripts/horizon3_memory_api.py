@@ -20,14 +20,32 @@ import horizon3_store as h3  # noqa: E402
 
 _REPO = _scripts.parent
 _DEFAULT = str(_REPO / ".tmp" / "horizon3" / "memory.db")
+_PROG = "horizon3_memory_api"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Install (HTTP): pip install -r optional-requirements-phase3.txt (fastapi, uvicorn, pydantic).\n"
+        "Examples:\n"
+        "  python scripts/horizon3_memory_api.py\n"
+        "  python scripts/horizon3_memory_api.py --db .tmp/horizon3/memory.db --host 127.0.0.1 --port 8767\n"
+        "Defaults: DB from HORIZON3_DB or repo .tmp/horizon3/memory.db; port 8767. "
+        "Open http://127.0.0.1:8767/docs for Swagger when using default port."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--db", type=str, default=os.environ.get("HORIZON3_DB", _DEFAULT))
     p.add_argument("--host", type=str, default="127.0.0.1")
     p.add_argument("--port", type=int, default=8767)
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> None:

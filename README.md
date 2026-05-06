@@ -273,6 +273,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | **Daily use** | `python scripts/horizon3_memory_cli.py put|get|list|export|forget-scope|clear-session|prune|audit` (each subcommand has `-h`) | Editable, auditable, deletable memory — not an opaque vector dump. |
 | **CLI help** | `python scripts/horizon3_memory_cli.py -h` | Top-level epilog: **`--verify`**, sample **`put`** / **`list`**, reminder that every subcommand has its own **`-h`**. Covered by **`tests/test_horizon3_memory_cli_help.py`**. |
 | **Optional HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon3_memory_api.py` | **http://127.0.0.1:8767/docs** — `put` / `list` / `export` / `forget` (default port **8767**; set `HORIZON3_DB`). |
+| **Memory API CLI help** | `python scripts/horizon3_memory_api.py -h` | Epilog: Phase 3 install line, **`--db`** / **`HORIZON3_DB`**, host/port, **Swagger** URL; **`tests/test_horizon3_memory_api_help.py`** (**stdlib** **`horizon3_store`** only at import). |
 
 **Benefits**
 
@@ -282,7 +283,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Manual test recipe:** [`texts/horizon3-handbook.md`](texts/horizon3-handbook.md).
 
-**CI:** `.github/workflows/horizon3-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then `horizon3_memory_cli.py --verify` (offline).
+**CI:** `.github/workflows/horizon3-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first (includes **`tests/test_horizon3_memory_api_help.py`** for **`horizon3_memory_api.py -h`** alongside **`test_horizon3_memory_cli_help.py`**), then `horizon3_memory_cli.py --verify` (offline).
 
 ## Horizon 4: multimodal grounding (image + text, CLIP alignment)
 
