@@ -17,6 +17,7 @@ from eval_report_routing import (
 )
 
 _REPO = Path(__file__).resolve().parent.parent
+_PROG = "phase1_compare"
 
 PRESETS: dict[str, dict[str, int]] = {
     "smoke": {
@@ -53,8 +54,20 @@ DATASETS: dict[str, dict[str, str]] = {
 }
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/phase1_compare.py --preset smoke --seed 42\n"
+        "  python scripts/phase1_compare.py --preset smoke --models scratch "
+        "--datasets ag_news,emotion --seed 42\n"
+        "Presets: smoke, dev, full. Requires torch/transformers when runs execute (see README Phase 1)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--preset", choices=sorted(PRESETS), default="smoke")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument(
@@ -107,7 +120,11 @@ def parse_args() -> argparse.Namespace:
         default=15,
         help="Forwarded to training scripts for error_analysis.top_confusions.",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _split_csv(raw: str) -> list[str]:

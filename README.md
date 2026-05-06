@@ -47,6 +47,7 @@ python -c "from transformers import pipeline; p=pipeline('text-classification', 
 `scripts/phase1_compare.py` standardizes run profiles and prevents ad-hoc parameter drift.
 It executes matching-seed runs and writes a comparison matrix with `accuracy`, `macro_f1`,
 and per-class F1 for each run.
+**`python scripts/phase1_compare.py -h`** lists all flags plus the same **`--preset smoke`** / CI-style **`--models scratch --datasets ag_news,emotion`** examples (stdlib-only until training subprocesses start; **`tests/test_phase1_compare_help.py`** covers **`-h`**).
 
 Presets:
 
