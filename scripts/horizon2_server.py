@@ -25,9 +25,25 @@ from horizon2_core import (
     pick_device,
 )
 
+_PROG = "horizon2_server"
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Install (local API): pip install -r optional-requirements-horizon2.txt "
+        "and pip install -r optional-requirements-phase3.txt (or fastapi uvicorn pydantic).\n"
+        "Examples:\n"
+        "  python scripts/horizon2_server.py --smoke\n"
+        "  python scripts/horizon2_server.py --smoke --host 127.0.0.1 --port 8766\n"
+        "  python scripts/horizon2_server.py --model HuggingFaceTB/SmolLM2-360M-Instruct --device auto\n"
+        "Then open http://127.0.0.1:8766/docs for Swagger (default port 8766)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
@@ -40,7 +56,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--port", type=int, default=8766)
     p.add_argument("--max-new-tokens", type=int, default=128)
     p.add_argument("--seed", type=int, default=42)
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> None:
