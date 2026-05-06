@@ -17,6 +17,7 @@ from pathlib import Path
 from eval_report_routing import print_routing_policy_from_checkpoint_tip
 
 _REPO = Path(__file__).resolve().parent.parent
+_PROG = "horizon1_verify_short_term_a"
 
 
 def run(cmd: list[str]) -> None:
@@ -27,14 +28,35 @@ def run(cmd: list[str]) -> None:
     subprocess.run(cmd, cwd=str(_REPO), check=True, env=env)
 
 
-def main() -> None:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon1_verify_short_term_a.py\n"
+        "  python scripts/horizon1_verify_short_term_a.py --skip-phase3\n"
+        "Runs: phase1_compare (smoke, scratch, ag_news+emotion) -> train to .tmp/horizon1-verify-a "
+        "-> Phase 3 export/parity/benchmark (unless --skip-phase3). Needs torch/transformers; "
+        "Phase 3 extras unless --skip-phase3. See README Horizon 1 block A."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--skip-phase3",
         action="store_true",
         help="Only Phase 1 + fresh train (no ONNX; needs optional Phase 3 deps).",
     )
-    args = p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
+
+
+def main() -> None:
+    args = parse_args()
 
     run(
         [
