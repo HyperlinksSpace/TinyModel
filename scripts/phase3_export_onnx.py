@@ -23,16 +23,30 @@ except Exception:  # noqa: BLE001
     quantize_dynamic = None  # type: ignore[assignment, misc]
     QuantType = None  # type: ignore[assignment, misc]
 
+_PROG = "phase3_export_onnx"
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/phase3_export_onnx.py --model artifacts/phase1/runs/smoke/ag_news/scratch\n"
+        "  python scripts/phase3_export_onnx.py --model HyperlinksSpace/TinyModel1\n"
+        "  python scripts/phase3_export_onnx.py --model .tmp/phase3-smoke --dynamic-quantize\n"
+        "On Windows Git Bash use a repo-relative or c:/... path for --model (not /unix/style)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
         required=True,
         help=(
             "Path to a saved model directory, or Hub id (org/model). "
-            "On Windows Git Bash, do not use /path/... placeholders — use a relative repo path."
+            "On Windows Git Bash, do not use /path/... placeholders - use a relative repo path."
         ),
     )
     p.add_argument(
@@ -63,7 +77,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fallback: old torch.onnx export (may fail on recent transformers + BERT; prefer default dynamo).",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def default_out_dir(model_arg: str) -> Path:

@@ -166,7 +166,7 @@ Expected local output folder:
 
    On **Windows Git Bash**, do **not** use a Unix-style placeholder like `/path/to/checkpoint` — the shell rewrites it under `C:/Program Files/Git/...`. Use a **relative** path from the repo or a `c:/...` path.
 
-   Writes `onnx/classifier.onnx` (logits) and `onnx/encoder.onnx` (pooled token for embeddings). The default dynamo path traces at **batch size 1**; use tokenizer **padding to `max_seq_length`** (e.g. 128) to match. Optional `--dynamic-quantize` attempts INT8 sidecars (may be skipped on some graphs).
+   Writes `onnx/classifier.onnx` (logits) and `onnx/encoder.onnx` (pooled token for embeddings). The default dynamo path traces at **batch size 1**; use tokenizer **padding to `max_seq_length`** (e.g. 128) to match. Optional `--dynamic-quantize` attempts INT8 sidecars (may be skipped on some graphs). **`python scripts/phase3_export_onnx.py -h`** repeats these **`--model`** examples and Windows path notes (loads **torch**; not covered by stdlib-only **`tests/`** before Phase 3 **`pip install`** in CI).
 
 2. **Parity (PyTorch vs ONNX Runtime):**
 
