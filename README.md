@@ -191,7 +191,9 @@ Expected local output folder:
    python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1
    ```
 
-5. **CI** — `.github/workflows/phase3-smoke.yml` invokes **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first (same **`tests/`** suite as Phase 1 smoke), then trains a tiny model, runs **`horizon1_route_then_retrieve.py --verify`** on that checkpoint (classify → routing gates → hybrid FAQ retrieval), runs **`routing_policy.py --from-checkpoint`** on **`.tmp/phase3-smoke`** (Phase 2 **`routing`** JSON), then exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
+   **`python scripts/phase3_reference_server.py -h`** repeats **`--model`**, **`TINYMODEL_PATH`**, host/port, and **Swagger** defaults. The module defers **torch** / **`TinyModelRuntime`** imports until **`main()`** runs so **`tests/test_phase3_reference_server_help.py`** can exercise **`-h`** in the stdlib-only **`unittest`** step.
+
+5. **CI** — `.github/workflows/phase3-smoke.yml` invokes **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first (same **`tests/`** suite as Phase 1 smoke, including **`tests/test_phase3_reference_server_help.py`** for **`phase3_reference_server.py -h`**), then trains a tiny model, runs **`horizon1_route_then_retrieve.py --verify`** on that checkpoint (classify → routing gates → hybrid FAQ retrieval), runs **`routing_policy.py --from-checkpoint`** on **`.tmp/phase3-smoke`** (Phase 2 **`routing`** JSON), then exports ONNX, runs parity, and writes a benchmark under `artifacts/phase3/reports/`.
 
 **Optional R&D spike ideas (not part of the release path)** — see [`texts/optional-rd-backlog.md`](texts/optional-rd-backlog.md).
 

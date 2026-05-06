@@ -16,13 +16,26 @@ _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from phase3_common import resolve_checkpoint_or_hub
-
-from tinymodel_runtime import TinyModelRuntime
+_PROG = "phase3_reference_server"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Install: pip install -r optional-requirements-phase3.txt "
+        "(fastapi, uvicorn, pydantic; torch and transformers load when the server starts).\n"
+        "Examples:\n"
+        "  python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1\n"
+        "  python scripts/phase3_reference_server.py --model artifacts/phase1/runs/smoke/ag_news/scratch "
+        "--host 127.0.0.1 --port 8765\n"
+        "Environment: TINYMODEL_PATH overrides the default Hub id for --model. "
+        "Swagger: http://127.0.0.1:8765/docs with default host/port."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--model",
         type=str,
@@ -31,10 +44,17 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("--host", type=str, default="127.0.0.1")
     p.add_argument("--port", type=int, default=8765)
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> None:
+    from phase3_common import resolve_checkpoint_or_hub
+    from tinymodel_runtime import TinyModelRuntime
+
     args = parse_args()
     args.model = resolve_checkpoint_or_hub(args.model)
     try:
