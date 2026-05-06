@@ -350,10 +350,11 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | Piece | What you run | Why it helps |
 | ----- | ------------ | ------------ |
 | **Policy verify** | `python scripts/horizon9_policy_smoke.py --verify` | Writes `.tmp/horizon9-policy/run.json` (`horizon9_policy_run/1.0`). Optional `--policy path.json`. **Stdlib only.** |
+| **CLI help** | `python scripts/horizon9_policy_smoke.py -h` | Epilog: **`--verify`**, **`--policy`**, **`--output-json`**; docstring ASCII for **`cp1251`**. **`tests/test_horizon9_policy_smoke_help.py`**. |
 
 **What is still *not* H9 (full exit):** **AuthN**, **OPA**, **signed** policy, **dynamic** attributes, **audit** of policy edits in production.
 
-**How to test (local):** `python scripts/horizon9_policy_smoke.py --verify` — expect `horizon9 verify: OK` and all case rows `ok: true`.
+**How to test (local):** `python scripts/horizon9_policy_smoke.py --verify` — expect `horizon9 verify: OK` and all case rows `ok: true`. **`python scripts/horizon9_policy_smoke.py -h`** lists the same flags.
 
 **CI:** `.github/workflows/horizon9-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then **`horizon9_policy_smoke.py --verify`**.
 

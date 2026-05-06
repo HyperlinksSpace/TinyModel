@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 9: declarative capability policy — allow/deny matrix with deny precedence.
+"""Horizon 9: declarative capability policy - allow/deny matrix with deny precedence.
 
 Evaluates a small JSON policy (default: texts/horizon9_policy_sample.json) and writes
 horizon9_policy_run/1.0. Not a full authorization server; a contract + smoke for governance."""
@@ -15,6 +15,7 @@ _REPO = Path(__file__).resolve().parent.parent
 _DEFAULT_POLICY = _REPO / "texts" / "horizon9_policy_sample.json"
 _SCHEMA = "horizon9_policy_run/1.0"
 _OUT = _REPO / ".tmp" / "horizon9-policy" / "run.json"
+_PROG = "horizon9_policy_smoke"
 
 
 def load_policy(path: Path) -> dict:
@@ -79,17 +80,33 @@ def run_verify(policy_path: Path) -> tuple[dict, bool]:
     )
 
 
-def parse_args() -> argparse.Namespace:
-    a = argparse.ArgumentParser(description=__doc__)
-    a.add_argument("--verify", action="store_true", help="Run policy table check; write run.json.")
-    a.add_argument(
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon9_policy_smoke.py --verify\n"
+        "  python scripts/horizon9_policy_smoke.py --verify --policy texts/horizon9_policy_sample.json\n"
+        "  python scripts/horizon9_policy_smoke.py --verify --output-json .tmp/horizon9-policy/custom.json\n"
+        "Without --verify the script exits 2 (see stderr). Stdlib only."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
+    p.add_argument("--verify", action="store_true", help="Run policy table check; write run.json.")
+    p.add_argument(
         "--policy",
         type=str,
         default=str(_DEFAULT_POLICY),
         help="Path to policy JSON (default: texts/horizon9_policy_sample.json).",
     )
-    a.add_argument("--output-json", type=str, default=str(_OUT))
-    return a.parse_args()
+    p.add_argument("--output-json", type=str, default=str(_OUT))
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> int:
