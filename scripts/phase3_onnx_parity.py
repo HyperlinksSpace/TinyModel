@@ -19,9 +19,22 @@ if str(_scripts) not in sys.path:
 
 from phase3_common import PooledClfToken, resolve_checkpoint_or_hub
 
+_PROG = "phase3_onnx_parity"
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/phase3_onnx_parity.py --model artifacts/phase1/runs/smoke/ag_news/scratch\n"
+        "  python scripts/phase3_onnx_parity.py --model HyperlinksSpace/TinyModel1\n"
+        "Needs classifier.onnx and encoder.onnx (run phase3_export_onnx.py first; see its -h)."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--model", type=str, required=True, help="HuggingFace model path or Hub id.")
     p.add_argument(
         "--onnx-dir",
@@ -38,7 +51,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--max-seq-length", type=int, default=128, help="Tokenization max length (match export)."
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def resolve_onnx_dir(model_arg: str, onnx_dir: str | None) -> Path:

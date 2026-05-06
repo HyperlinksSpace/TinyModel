@@ -174,13 +174,15 @@ Expected local output folder:
    python scripts/phase3_onnx_parity.py --model artifacts/phase1/runs/smoke/ag_news/scratch
    ```
 
+   **`python scripts/phase3_onnx_parity.py -h`** lists **`--model`** examples and points at export (**torch** + ORT; not in stdlib-only **`tests/`** before Phase 3 deps).
+
 3. **CPU benchmark report** (PyTorch `TinyModelRuntime` vs ORT, classify / embed / retrieve patterns):
 
    ```bash
    python scripts/phase3_benchmark.py --model artifacts/phase1/runs/smoke/ag_news/scratch --compare-model .tmp/phase3-smoke
    ```
 
-   Artifacts: `artifacts/phase3/reports/benchmark_<name>.{json,md}`. (Example report may be present under that folder after a run.)
+   Artifacts: `artifacts/phase3/reports/benchmark_<name>.{json,md}`. (Example report may be present under that folder after a run.) **`python scripts/phase3_benchmark.py -h`** lists **`--model`**, **`--compare-model`**, and timing flags (**torch**; not in stdlib-only **`tests/`** before Phase 3 deps).
 
 4. **Serving contract + minimal API** — [`texts/phase3-serving-profile.md`](texts/phase3-serving-profile.md) (`GET /` service map, `GET /healthz`, `POST /v1/classify`, `POST /v1/retrieve`). Reference process:
 

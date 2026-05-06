@@ -25,9 +25,23 @@ from phase3_common import resolve_checkpoint_or_hub
 
 from tinymodel_runtime import TinyModelRuntime
 
+_PROG = "phase3_benchmark"
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/phase3_benchmark.py --model artifacts/phase1/runs/smoke/ag_news/scratch\n"
+        "  python scripts/phase3_benchmark.py --model .tmp/phase3-smoke --repeats 8 --warmup 2\n"
+        "  python scripts/phase3_benchmark.py --model <dir> --compare-model <other_dir>\n"
+        "ONNX under <model>/onnx is used when present; export first with phase3_export_onnx.py -h."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument("--model", type=str, required=True, help="Path or Hub id to checkpoint.")
     p.add_argument(
         "--onnx-dir",
@@ -55,7 +69,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Write human-readable report (default: same dir as JSON, .md).",
     )
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def resolve_onnx_dir(model_arg: str, onnx_dir: str | None) -> Path | None:
