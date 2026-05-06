@@ -335,10 +335,11 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | Piece | What you run | Why it helps |
 | ----- | ------------ | ------------ |
 | **Probe verify** | `python scripts/horizon8_observability_probe.py --verify` | Writes `.tmp/horizon8-probe/run.json` (`horizon8_probe_run/1.0`). **No torch**; needs `git` only for `git_rev` when available. |
+| **CLI help** | `python scripts/horizon8_observability_probe.py -h` | Epilog: **`--verify`**, **`--output-json`**, H7 subprocess probe; docstring ASCII for **`cp1251`**. **`tests/test_horizon8_observability_probe_help.py`**. |
 
 **What is still *not* H8 (full exit):** **SLOs**, **alerting**, streaming **metrics**, and **dashboards**—this is a **file-shaped** probe for CI and manual triage.
 
-**How to test (local):** `python scripts/horizon8_observability_probe.py --verify` — expect `horizon8 verify: OK` and `ok: true` with a `probes` list.
+**How to test (local):** `python scripts/horizon8_observability_probe.py --verify` — expect `horizon8 verify: OK` and `ok: true` with a `probes` list. **`python scripts/horizon8_observability_probe.py -h`** lists the same flags.
 
 **CI:** `.github/workflows/horizon8-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then **`horizon8_observability_probe.py --verify`**.
 

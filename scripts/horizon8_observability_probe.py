@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 8: observability probe bundle — build snapshot + run dependent health (H7) in one JSON.
+"""Horizon 8: observability probe bundle - build snapshot + run dependent health (H7) in one JSON.
 
 Collects Python/platform (and optional git revision), runs horizon7_assured_smoke --verify as a
 dependency probe, and writes horizon8_probe_run/1.0. Not a full APM stack; a correlation-friendly
@@ -19,6 +19,7 @@ from pathlib import Path
 _REPO = Path(__file__).resolve().parent.parent
 _SCHEMA = "horizon8_probe_run/1.0"
 _OUT = _REPO / ".tmp" / "horizon8-probe" / "run.json"
+_PROG = "horizon8_observability_probe"
 
 
 def _git_rev() -> str | None:
@@ -53,15 +54,32 @@ def _run_h7_probe(py: str) -> dict:
     }
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon8_observability_probe.py --verify\n"
+        "  python scripts/horizon8_observability_probe.py --verify "
+        "--output-json .tmp/horizon8-probe/custom.json\n"
+        "Without --verify the script exits 2 (see stderr). Subprocess probe: "
+        "horizon7_assured_smoke.py --verify. No torch."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--verify",
         action="store_true",
         help="Run H7 probe and write .tmp/horizon8-probe/run.json",
     )
     p.add_argument("--output-json", type=str, default=str(_OUT))
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def main() -> int:
