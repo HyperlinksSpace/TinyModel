@@ -247,7 +247,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | **+ RAG** | `--task grounded --context-file <chunk>` (or `--context "..."`) | Pairs [FAQ / retrieval](texts/rag_faq_corpus.md) with generation. |
 | **HTTP** | `pip install -r optional-requirements-phase3.txt` then `python scripts/horizon2_server.py --smoke` | `GET /` lists routes; **Swagger UI:** `http://127.0.0.1:8766/docs` — `POST /v1/generate` (same product pattern as the Phase 3 reference server). |
 | **HTTP server CLI help** | `python scripts/horizon2_server.py -h` | Epilog: install lines (**`optional-requirements-horizon2.txt`** + Phase 3 stack for **FastAPI**), **`--smoke`** / **`--model`**, host/port, default **8766** / **`/docs`**; **`tests/test_horizon2_server_help.py`** (**stdlib-only** import of **`horizon2_server`**; loads **`horizon2_core`** only). |
-| **CLI help** | `python scripts/horizon2_generative.py -h` | Epilog mirrors **`plan.txt`** / table flows: **`--verify`**, **`--smoke --task reformulate --max-new-tokens 96`**, default summarize, grounded **`--context` + `--text`**. Description stays ASCII for **`cp1251`** Windows consoles. |
+| **CLI help** | `python scripts/horizon2_generative.py -h` | Epilog mirrors **`plan.txt`** / table flows: **`--verify`**, **`--smoke --task reformulate --max-new-tokens 96`**, default summarize, grounded **`--context` + `--text`**. Description stays ASCII for **`cp1251`** Windows consoles. **`tests/test_horizon2_generative_help.py`** covers **`-h`** (**stdlib-only** import via **`horizon2_core`**). |
 
 **Benefits (product / engineering):**
 
@@ -261,7 +261,7 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 
 **Product notes (sample UB session):** backlog ideas in [`texts/universal-brain-session-improvement-plan.txt`](texts/universal-brain-session-improvement-plan.txt); **symptom → repo levers** (classifier, LM, RAG, prompts, **responsive UI flicker**) in [`texts/model-output-improvement-guide.md`](texts/model-output-improvement-guide.md) (not release checklists). Current open product/infra checks and repeatable parity commands live in [`plan.txt`](plan.txt) (`>>> Actual`: Hub-vs-local parity plus generative-vs-encoder validation as maintainer exit gates).
 
-**CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first (includes **`tests/test_horizon2_server_help.py`** for **`horizon2_server.py -h`**), then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
+**CI:** `.github/workflows/horizon2-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first (includes **`tests/test_horizon2_generative_help.py`** and **`tests/test_horizon2_server_help.py`** for **`-h`** on the generative CLI and HTTP server), then `--verify` on pushes to `main` (requires Hub access in GitHub’s network; local verify is the fallback).
 
 ## Horizon 3: persistent mind (session + long-term memory, audit, DSR-shaped export)
 
