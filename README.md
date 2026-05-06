@@ -320,10 +320,11 @@ Longer notes and expectations: **[`texts/horizon1-short-term-handbook.md`](texts
 | Piece | What you run | Why it helps |
 | ----- | ------------ | ------------ |
 | **Self-test** | `python scripts/horizon7_assured_smoke.py --verify` | No **torch**; output `.tmp/horizon7-assured/run.json` (`horizon7_assured_run/1.0`) with per-check `ok` flags. |
+| **CLI help** | `python scripts/horizon7_assured_smoke.py -h` | Epilog: **`--verify`**, **`--output-json`**; docstring ASCII for **`cp1251`**. **`tests/test_horizon7_assured_smoke_help.py`**. |
 
 **What is still *not* H7 (full exit):** **repeatable** tenant onboarding, **regulatory** evidence packs, **external** audit, **SLAs**, **quotas**—treat the script as a **developer** check only.
 
-**How to test (local):** `python scripts/horizon7_assured_smoke.py --verify` — should print `horizon7 verify: OK` and write JSON with all checks `ok: true`.
+**How to test (local):** `python scripts/horizon7_assured_smoke.py --verify` — should print `horizon7 verify: OK` and write JSON with all checks `ok: true`. **`python scripts/horizon7_assured_smoke.py -h`** lists the same flags.
 
 **CI:** `.github/workflows/horizon7-smoke.yml` runs **[`stdlib-unittest`](.github/actions/stdlib-unittest/action.yml)** first, then the same command (no extra pip deps).
 

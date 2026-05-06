@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Horizon 7: assured platform — minimal tenant **isolation** demo (two SQLite DBs, no crosstalk).
+"""Horizon 7: assured platform - minimal tenant **isolation** demo (two SQLite DBs, no crosstalk).
 
 Implements a tiny slice of the \"separate data plane per tenant\" bar from
 texts/further-development-universe-brain.md (Horizon 7). Not a full compliance product.
@@ -24,17 +24,33 @@ _REPO = Path(__file__).resolve().parent.parent
 _SCHEMA = "horizon7_assured_run/1.0"
 _OUT_DIR = _REPO / ".tmp" / "horizon7-assured"
 _DEFAULT_OUT = _OUT_DIR / "run.json"
+_PROG = "horizon7_assured_smoke"
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description=__doc__)
+def build_parser() -> argparse.ArgumentParser:
+    epilog = (
+        "Examples:\n"
+        "  python scripts/horizon7_assured_smoke.py --verify\n"
+        "  python scripts/horizon7_assured_smoke.py --verify --output-json .tmp/horizon7-assured/custom.json\n"
+        "Without --verify the script exits 2 (see stderr). Stdlib + sqlite3 only; no torch."
+    )
+    p = argparse.ArgumentParser(
+        prog=_PROG,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=epilog,
+    )
     p.add_argument(
         "--verify",
         action="store_true",
         help="Run isolation checks; write .tmp/horizon7-assured/run.json.",
     )
     p.add_argument("--output-json", type=str, default=str(_DEFAULT_OUT))
-    return p.parse_args()
+    return p
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def run_verify() -> tuple[dict, bool]:
