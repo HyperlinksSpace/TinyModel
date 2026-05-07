@@ -82,5 +82,42 @@ def parse_control_action(message: str) -> ControlAction | None:
     if re.search(r"\b(turn off|disable)\b.*\b(faq|rag|retrieval)\b", m):
         return ControlAction("set_rag", "off")
 
+    # Reply style for the generative model (short lines only to avoid hijacking real questions).
+    if len(m) <= 140 and (
+        re.search(r"\breset\b.*\b(reply |answer )?(style|format|length)\b", m)
+        or re.search(r"\b(default|normal)\b.*\b(reply |answer )?(style|format)\b", m)
+    ):
+        return ControlAction("reset_reply_style")
+
+    if len(m) <= 96 and re.search(
+        r"\b(be brief|stay brief|keep it short|short answers|answer briefly|concise replies)\b",
+        m,
+    ):
+        return ControlAction("set_verbosity", "brief")
+
+    if len(m) <= 120 and re.search(
+        r"\b(more detail|go deeper|in greater detail|explain thoroughly|longer answers|detailed answers)\b",
+        m,
+    ):
+        return ControlAction("set_verbosity", "detailed")
+
+    if len(m) <= 100 and re.search(
+        r"\b(normal (answer )?length|default length|balanced length)\b",
+        m,
+    ):
+        return ControlAction("set_verbosity", "normal")
+
+    if len(m) <= 110 and re.search(r"\b(use|prefer)\b", m) and re.search(
+        r"\b(bullet points?|numbered lists?)\b",
+        m,
+    ):
+        return ControlAction("set_reply_format", "bullets")
+
+    if len(m) <= 100 and re.search(
+        r"\b(no bullets|plain paragraphs?|prose only|stop using lists)\b",
+        m,
+    ):
+        return ControlAction("set_reply_format", "prose")
+
     return None
 

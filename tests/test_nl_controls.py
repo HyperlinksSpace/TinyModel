@@ -57,8 +57,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_trace")
         self.assertEqual(a.value, "on")
 
-    def test_no_false_positive_on_casual_chat(self) -> None:
-        self.assertIsNone(parse_control_action("What is the capital of France?"))
+    def test_set_brief_verbosity(self) -> None:
+        a = parse_control_action("Be brief")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_verbosity")
+        self.assertEqual(a.value, "brief")
+
+    def test_prefer_bullets(self) -> None:
+        a = parse_control_action("Please use bullet points")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_reply_format")
+        self.assertEqual(a.value, "bullets")
+
+    def test_reset_reply_style(self) -> None:
+        a = parse_control_action("Reset reply style")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "reset_reply_style")
+
+    def test_long_question_not_style_control(self) -> None:
+        # No brief/verbosity trigger phrase; ensures we do not treat deep questions as mode switches.
+        self.assertIsNone(
+            parse_control_action(
+                "Explain quantum computing end-to-end including history, key experiments, and open problems."
+            )
+        )
 
 
 if __name__ == "__main__":

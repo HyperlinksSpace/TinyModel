@@ -84,6 +84,8 @@ HELP_TEXT = """**How to use**
   - *What is my current scope?*, *Show my session settings* -> prints scope + toggles (FAQ context, routing, trace)
   - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
   - *Switch to scope my-team-123* / *Use session demo-key* -> set the Horizon 3 **`scope_key`** from chat (ASCII id)
+  - *Be brief* / *More detail please* / *Use bullet points* / *No bullets, plain paragraphs* -> soft **reply-style** hints (injected into the assistant system context; short control lines only)
+  - *Reset reply style* -> back to default length + prose
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -553,6 +555,8 @@ def handle_nl_control(
             f"- FAQ context: **{'on' if session.get('rag') and rag_chunks_base is not None else 'off'}**",
             f"- brain trace footer: **{'on' if session.get('trace') else 'off'}**",
             f"- memory store: **{'on' if mem_conn is not None else 'off'}**",
+            f"- reply length: **{session.get('verbosity', 'normal')}**",
+            f"- lists: **{'bullets when helpful' if session.get('reply_format') == 'bullets' else 'prose'}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -628,7 +632,48 @@ def handle_nl_control(
             f"**FAQ/RAG excerpts in prompts** are now **{'on' if session['rag'] else 'off'}**."
         )
 
+    if act.name == "reset_reply_style":
+        session["verbosity"] = "normal"
+        session["reply_format"] = "prose"
+        return "**Reply style reset:** normal length, prose (no forced bullet lists)."
+
+    if act.name == "set_verbosity":
+        v = (act.value or "normal").lower()
+        if v not in ("brief", "normal", "detailed"):
+            v = "normal"
+        session["verbosity"] = v
+        return f"**Reply length** is now **{v}** (applies to assistant chat replies)."
+
+    if act.name == "set_reply_format":
+        f = (act.value or "prose").lower()
+        if f not in ("prose", "bullets"):
+            f = "prose"
+        session["reply_format"] = f
+        return f"**List formatting** is now **{f}** (how the assistant structures multi-point answers)."
+
     return None
+
+
+def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> None:
+    verbosity = str(session.get("verbosity") or "normal").lower()
+    rformat = str(session.get("reply_format") or "prose").lower()
+    if verbosity not in ("brief", "normal", "detailed"):
+        verbosity = "normal"
+    if rformat not in ("prose", "bullets"):
+        rformat = "prose"
+    lines: list[str] = []
+    if verbosity == "brief":
+        lines.append(
+            "Keep replies concise (about a short paragraph or less) unless the user explicitly asks for depth."
+        )
+    elif verbosity == "detailed":
+        lines.append("Prefer fuller, well-structured explanations when they help the user.")
+    if rformat == "bullets":
+        lines.append("When listing multiple points, use markdown bullet or numbered lists.")
+    if lines:
+        extras.append(
+            "Preferred reply style for this chat session:\n" + "\n".join(f"- {ln}" for ln in lines)
+        )
 
 
 def handle_slash(
@@ -948,6 +993,8 @@ def main() -> None:
         "smart_route": not args.no_smart_route,
         "rag": rag_chunks is not None,
         "scope_key": args.memory_scope,
+        "verbosity": "normal",
+        "reply_format": "prose",
     }
 
     def respond(
@@ -1042,6 +1089,7 @@ def main() -> None:
 
         trace: list[str] = []
         extras: list[str] = []
+        _append_reply_style_hints(extras, ub_session)
 
         if encoder:
             probs = encoder.classify([chat_line])[0]
@@ -1132,6 +1180,7 @@ def main() -> None:
             "`/help` lists slash commands.\n\n"
             "**NL session controls:** say things like "
             "**`What is my current scope?`**, **`Start a new private session`**, **`Switch to scope my-key`**, "
+            "**`Be brief`**, **`More detail please`**, **`Use bullet points`**, **`Reset reply style`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
