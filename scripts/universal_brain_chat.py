@@ -90,7 +90,9 @@ HELP_TEXT = """**How to use**
   - *TLDR first* / *Lead with a summary* vs *No TLDR* / *Answer directly* vs *Default answer structure* -> **answer opening** style (short upfront summary vs dive straight in)
   - *Step by step* / *Numbered steps* vs *No numbered steps* / *Continuous prose* vs *Default step style* -> **procedure layout** (numbered steps vs flowing paragraphs)
   - *Flag your assumptions* / *Be explicit about uncertainty* vs *Be decisive* / *Don't hedge* vs *Reset uncertainty* -> **confidence tone** hints
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone
+  - *Suggest next steps* / *Offer follow-up questions* vs *No follow-up questions* / *No questions at the end* vs *Default follow-ups* -> **closing** style at end of answers
+  - *Definitions first* / *Define terms first* vs *Intuition first* / *Big picture first* vs *Default explanation order* -> **concept order** in explanations
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -567,6 +569,8 @@ def handle_nl_control(
             f"- answer opening: **{session.get('answer_lead', 'normal')}**",
             f"- procedure steps: **{session.get('step_style', 'normal')}**",
             f"- confidence tone: **{session.get('confidence_tone', 'normal')}**",
+            f"- follow-up ending: **{session.get('followup_close', 'normal')}**",
+            f"- concept order: **{session.get('exposition_order', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -650,9 +654,11 @@ def handle_nl_control(
         session["answer_lead"] = "normal"
         session["step_style"] = "normal"
         session["confidence_tone"] = "normal"
+        session["followup_close"] = "normal"
+        session["exposition_order"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
-            "default opening, default steps, normal confidence tone."
+            "default opening, default steps, normal confidence tone, default follow-ups, default concept order."
         )
 
     if act.name == "set_verbosity":
@@ -724,6 +730,30 @@ def handle_nl_control(
         }.get(ct, ct)
         return f"**Confidence tone** is now **{human}**."
 
+    if act.name == "set_followup_close":
+        fu = (act.value or "normal").lower()
+        if fu not in ("suggest", "minimal", "normal"):
+            fu = "normal"
+        session["followup_close"] = fu
+        human = {
+            "suggest": "offer brief next steps / follow-ups when useful",
+            "minimal": "no rhetorical closing questions",
+            "normal": "default",
+        }.get(fu, fu)
+        return f"**Follow-up closing** is now **{human}**."
+
+    if act.name == "set_exposition_order":
+        eo = (act.value or "normal").lower()
+        if eo not in ("definitions_first", "intuition_first", "normal"):
+            eo = "normal"
+        session["exposition_order"] = eo
+        human = {
+            "definitions_first": "definitions and terms before intuition",
+            "intuition_first": "big-picture intuition before formal detail",
+            "normal": "default",
+        }.get(eo, eo)
+        return f"**Concept order** is now **{human}**."
+
     return None
 
 
@@ -790,6 +820,30 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         lines.append(
             "Answer in a direct, confident tone: minimize throat-clearing and hedging unless a short disclaimer is "
             "truly necessary for safety or policy."
+        )
+    fu = str(session.get("followup_close") or "normal").lower()
+    if fu not in ("suggest", "minimal", "normal"):
+        fu = "normal"
+    if fu == "suggest":
+        lines.append(
+            "When helpful, end with concise **optional next steps** or a short **follow-up invitation** "
+            '(e.g., one line like "Want me to drill into X?" — optional, not repetitive).'
+        )
+    elif fu == "minimal":
+        lines.append(
+            "Avoid stock closers such as prompting whether the user needs anything else unless they explicitly invite it; "
+            "finish crisply after the core answer."
+        )
+    expo = str(session.get("exposition_order") or "normal").lower()
+    if expo not in ("definitions_first", "intuition_first", "normal"):
+        expo = "normal"
+    if expo == "definitions_first":
+        lines.append(
+            "Prefer stating **definitions and key terms upfront**, then intuition, analogies, and examples."
+        )
+    elif expo == "intuition_first":
+        lines.append(
+            "Prefer a short **motivation / big-picture intuition** section first, then formal definitions and details."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1137,6 +1191,8 @@ def main() -> None:
         "answer_lead": "normal",
         "step_style": "normal",
         "confidence_tone": "normal",
+        "followup_close": "normal",
+        "exposition_order": "normal",
     }
 
     def respond(
@@ -1326,6 +1382,7 @@ def main() -> None:
             "**`Strict FAQ`** / **`Relaxed FAQ`** / **`Balanced FAQ`**, "
             "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
             "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
+            "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

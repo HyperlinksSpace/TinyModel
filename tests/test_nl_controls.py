@@ -177,6 +177,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_confidence_tone")
         self.assertEqual(a.value, "assertive")
 
+    def test_followup_suggest(self) -> None:
+        a = parse_control_action("Suggest next steps")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_followup_close")
+        self.assertEqual(a.value, "suggest")
+
+    def test_followup_minimal(self) -> None:
+        a = parse_control_action("No follow-up questions")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_followup_close")
+        self.assertEqual(a.value, "minimal")
+
+    def test_exposition_definitions_first(self) -> None:
+        a = parse_control_action("Definitions first")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_exposition_order")
+        self.assertEqual(a.value, "definitions_first")
+
+    def test_exposition_intuition_first(self) -> None:
+        a = parse_control_action("Intuition first")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_exposition_order")
+        self.assertEqual(a.value, "intuition_first")
+
 
 if __name__ == "__main__":
     unittest.main()

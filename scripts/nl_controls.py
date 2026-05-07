@@ -228,5 +228,46 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_confidence_tone", "normal")
 
+    # Whether to offer follow-ups / next steps at the end of answers.
+    if len(m) <= 96 and (
+        re.match(r"^(please\s+)?suggest next steps[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?offer follow[- ]up questions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?end with (optional )?next steps[\s.!?]*$", m)
+    ):
+        return ControlAction("set_followup_close", "suggest")
+
+    if len(m) <= 100 and (
+        re.match(r"^(please\s+)?no follow[- ]up questions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t ask follow[- ]up questions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no questions at the end[\s.!?]*$", m)
+    ):
+        return ControlAction("set_followup_close", "minimal")
+
+    if len(m) <= 78 and (
+        re.match(r"^(please\s+)?(default follow[- ]ups?|reset follow[- ]ups?|normal follow[- ]ups?)[\s.!?]*$", m)
+    ):
+        return ControlAction("set_followup_close", "normal")
+
+    # Teach order: define terms vs motivate first (orthogonal to TL;DR / steps).
+    if len(m) <= 80 and (
+        re.match(r"^(please\s+)?definitions first[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?start with definitions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?define terms first[\s.!?]*$", m)
+    ):
+        return ControlAction("set_exposition_order", "definitions_first")
+
+    if len(m) <= 96 and (
+        re.match(r"^(please\s+)?intuition first[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?big picture first[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?start with the big picture[\s.!?]*$", m)
+    ):
+        return ControlAction("set_exposition_order", "intuition_first")
+
+    if len(m) <= 88 and re.match(
+        r"^(please\s+)?(default explanation order|reset explanation order|normal explanation order)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_exposition_order", "normal")
+
     return None
 
