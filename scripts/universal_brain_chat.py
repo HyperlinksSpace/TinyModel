@@ -94,7 +94,9 @@ HELP_TEXT = """**How to use**
   - *Definitions first* / *Define terms first* vs *Intuition first* / *Big picture first* vs *Default explanation order* -> **concept order** in explanations
   - *Include examples* / *Use concrete examples* vs *Skip examples* / *No examples unless I ask* vs *Default examples* -> **example density**
   - *Use pros and cons* / *Pros and cons sections* vs *Compare in flowing prose* / *No pros and cons sections* vs *Default comparison style* -> **comparison layout** for trade-offs
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons
+  - *Formal tone* / *Professional register* vs *Casual tone* / *Speak casually* vs *Default tone* -> **writing register**
+  - *Use code fences* / *Fenced code blocks* vs *Inline code only* / *No fenced code blocks* vs *Default code formatting* -> **markdown code layout**
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -575,6 +577,8 @@ def handle_nl_control(
             f"- concept order: **{session.get('exposition_order', 'normal')}**",
             f"- examples: **{session.get('example_density', 'normal')}**",
             f"- comparisons: **{session.get('comparison_frame', 'normal')}**",
+            f"- register: **{session.get('register_tone', 'normal')}**",
+            f"- code blocks: **{session.get('code_block_style', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -662,10 +666,12 @@ def handle_nl_control(
         session["exposition_order"] = "normal"
         session["example_density"] = "normal"
         session["comparison_frame"] = "normal"
+        session["register_tone"] = "normal"
+        session["code_block_style"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
-            "default examples, default comparisons."
+            "default examples, default comparisons, default register, default code blocks."
         )
 
     if act.name == "set_verbosity":
@@ -785,6 +791,30 @@ def handle_nl_control(
         }.get(cf, cf)
         return f"**Comparison layout** is now **{human}**."
 
+    if act.name == "set_register_tone":
+        rt = (act.value or "normal").lower()
+        if rt not in ("formal", "casual", "normal"):
+            rt = "normal"
+        session["register_tone"] = rt
+        human = {
+            "formal": "professional / polished wording",
+            "casual": "friendly conversational wording",
+            "normal": "default",
+        }.get(rt, rt)
+        return f"**Register** is now **{human}**."
+
+    if act.name == "set_code_block_style":
+        cs = (act.value or "normal").lower()
+        if cs not in ("fenced", "inline", "normal"):
+            cs = "normal"
+        session["code_block_style"] = cs
+        human = {
+            "fenced": "use ``` fenced blocks for multi-line code",
+            "inline": "prefer inline `backticks`, avoid large fences",
+            "normal": "default",
+        }.get(cs, cs)
+        return f"**Code markdown** is now **{human}**."
+
     return None
 
 
@@ -897,6 +927,28 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif comp == "narrative":
         lines.append(
             "For trade-offs or comparing options, weave pros/cons into **continuous prose** rather than labeled sections."
+        )
+    reg = str(session.get("register_tone") or "normal").lower()
+    if reg not in ("formal", "casual", "normal"):
+        reg = "normal"
+    if reg == "formal":
+        lines.append(
+            "Use a **polished professional register**: clear sentences, minimal slang/emoji unless the topic demands it."
+        )
+    elif reg == "casual":
+        lines.append(
+            "**Conversational register** is preferred: contractions and light phrasing are fine; sound like a helpful teammate."
+        )
+    cb = str(session.get("code_block_style") or "normal").lower()
+    if cb not in ("fenced", "inline", "normal"):
+        cb = "normal"
+    if cb == "fenced":
+        lines.append(
+            "For multi-line commands or code, use **markdown fenced code blocks** with a language hint when recognizable."
+        )
+    elif cb == "inline":
+        lines.append(
+            "Prefer **inline backticks** for short snippets; **avoid triple-backtick fences** unless the user pastes a block."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1248,6 +1300,8 @@ def main() -> None:
         "exposition_order": "normal",
         "example_density": "normal",
         "comparison_frame": "normal",
+        "register_tone": "normal",
+        "code_block_style": "normal",
     }
 
     def respond(
@@ -1438,7 +1492,7 @@ def main() -> None:
             "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
             "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
             "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
-            "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, "
+            "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, **`Formal tone`** / **`Casual tone`**, **`Use code fences`** / **`Inline code only`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

@@ -225,6 +225,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_comparison_frame")
         self.assertEqual(a.value, "narrative")
 
+    def test_register_formal(self) -> None:
+        a = parse_control_action("Formal tone")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_register_tone")
+        self.assertEqual(a.value, "formal")
+
+    def test_register_casual(self) -> None:
+        a = parse_control_action("Speak casually")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_register_tone")
+        self.assertEqual(a.value, "casual")
+
+    def test_code_fenced(self) -> None:
+        a = parse_control_action("Use code fences")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_code_block_style")
+        self.assertEqual(a.value, "fenced")
+
+    def test_code_inline(self) -> None:
+        a = parse_control_action("Inline code only")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_code_block_style")
+        self.assertEqual(a.value, "inline")
+
 
 if __name__ == "__main__":
     unittest.main()

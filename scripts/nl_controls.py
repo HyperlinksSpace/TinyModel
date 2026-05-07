@@ -311,5 +311,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_comparison_frame", "normal")
 
+    # Professional vs conversational wording (orthogonal to verbosity).
+    if len(m) <= 92 and (
+        re.match(r"^(please\s+)?formal tone[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?professional register[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?business writing style[\s.!?]*$", m)
+    ):
+        return ControlAction("set_register_tone", "formal")
+
+    if len(m) <= 96 and (
+        re.match(r"^(please\s+)?casual tone[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?friendly casual style[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?speak casually[\s.!?]*$", m)
+    ):
+        return ControlAction("set_register_tone", "casual")
+
+    if len(m) <= 76 and re.match(
+        r"^(please\s+)?(default tone|neutral tone|reset tone)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_register_tone", "normal")
+
+    # Markdown code snippet layout.
+    if len(m) <= 100 and (
+        re.match(r"^(please\s+)?use code fences[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?fenced code blocks[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?markdown code fences[\s.!?]*$", m)
+    ):
+        return ControlAction("set_code_block_style", "fenced")
+
+    if len(m) <= 104 and (
+        re.match(r"^(please\s+)?inline code only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no triple backticks[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no fenced code blocks[\s.!?]*$", m)
+    ):
+        return ControlAction("set_code_block_style", "inline")
+
+    if len(m) <= 96 and re.match(
+        r"^(please\s+)?(default code formatting|reset code style|normal code blocks)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_code_block_style", "normal")
+
     return None
 
