@@ -138,5 +138,53 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_faq_grounding", "relaxed")
 
+    # Explanation depth (who the answer is for) — short control lines only.
+    if (
+        (len(m) <= 40 and re.match(r"^(please\s+)?explain simply[\s.!?]*$", m))
+        or re.match(r"^(please\s+)?eli5\b[\s.!?]*$", m)
+        or (len(m) <= 56 and re.search(r"\b(i'?m\s+a\s+beginner|beginner\s+here)\b", m))
+        or re.match(r"^(please\s+)?assume i'?m\s+new\b[\s.!?]*$", m)
+        or (len(m) <= 56 and re.search(r"\bi\s+need\s+(the\s+)?basics\b", m))
+    ):
+        return ControlAction("set_audience", "simple")
+
+    if len(m) <= 72 and (
+        re.match(r"^(please\s+)?assume i'?m\s+technical[\s.!?]*$", m)
+        or re.match(r"^expert\s+mode[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?use jargon freely[\s.!?]*$", m)
+        or re.match(r"^technical audience[\s.!?]*$", m)
+        or re.match(r"^for experts[\s.!?]*$", m)
+    ):
+        return ControlAction("set_audience", "technical")
+
+    if len(m) <= 78 and (
+        re.match(r"^(please\s+)?(default explanation level|normal explanation level|general audience)[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?(reset|default)\s+audience[\s.!?]*$", m)
+    ):
+        return ControlAction("set_audience", "normal")
+
+    # Answer lead — whether to front-load a TL;DR line (orthogonal to verbosity).
+    if len(m) <= 88 and (
+        re.match(r"^(please\s+)?(tl;|tl)dr\s+first\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?(lead|start)\s+with\s+(a\s+)?(short\s+)?summary\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?summary\s+first\b[\s.!?]*$", m)
+    ):
+        return ControlAction("set_answer_lead", "tldr_first")
+
+    if len(m) <= 92 and (
+        re.match(r"^(please\s+)?no\s+tl;?dr\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?skip (the\s+)?summary\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?answer directly\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?direct answer\s+only\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?without\s+a\s+tldr\b[\s.!?]*$", m)
+    ):
+        return ControlAction("set_answer_lead", "direct")
+
+    if len(m) <= 64 and (
+        re.match(r"^(please\s+)?(default answer structure|normal answer opening|usual\s+opening)[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?reset\s+(answer\s+)?opening[\s.!?]*$", m)
+    ):
+        return ControlAction("set_answer_lead", "normal")
+
     return None
 

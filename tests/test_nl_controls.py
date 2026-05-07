@@ -100,6 +100,51 @@ class TestNlControls(unittest.TestCase):
         )
         self.assertIsNone(parse_control_action(long_line))
 
+    def test_audience_simple_explain_simply(self) -> None:
+        a = parse_control_action("Explain simply")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_audience")
+        self.assertEqual(a.value, "simple")
+
+    def test_audience_simple_eli5(self) -> None:
+        a = parse_control_action("eli5")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_audience")
+        self.assertEqual(a.value, "simple")
+
+    def test_audience_technical_expert_mode(self) -> None:
+        a = parse_control_action("Expert mode")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_audience")
+        self.assertEqual(a.value, "technical")
+
+    def test_audience_normal(self) -> None:
+        a = parse_control_action("Normal explanation level")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_audience")
+        self.assertEqual(a.value, "normal")
+
+    def test_answer_lead_tldr_first(self) -> None:
+        a = parse_control_action("TLDR first")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_answer_lead")
+        self.assertEqual(a.value, "tldr_first")
+
+    def test_answer_lead_direct(self) -> None:
+        a = parse_control_action("Answer directly")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_answer_lead")
+        self.assertEqual(a.value, "direct")
+
+    def test_answer_lead_default_opening(self) -> None:
+        a = parse_control_action("Default answer structure")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_answer_lead")
+        self.assertEqual(a.value, "normal")
+
+    def test_explain_simply_not_in_long_question(self) -> None:
+        self.assertIsNone(parse_control_action("Please explain simply what a transformer does in ML."))
+
     def test_long_question_not_style_control(self) -> None:
         # No brief/verbosity trigger phrase; ensures we do not treat deep questions as mode switches.
         self.assertIsNone(

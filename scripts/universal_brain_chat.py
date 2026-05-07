@@ -86,7 +86,9 @@ HELP_TEXT = """**How to use**
   - *Switch to scope my-team-123* / *Use session demo-key* -> set the Horizon 3 **`scope_key`** from chat (ASCII id)
   - *Be brief* / *More detail please* / *Use bullet points* / *No bullets, plain paragraphs* -> soft **reply-style** hints (injected into the assistant system context; short control lines only)
   - *Strict FAQ* / *FAQ only* / *Stick to the FAQ* vs *Relaxed FAQ* / *FAQ plus general knowledge* vs *Balanced FAQ* / *Normal FAQ* -> **FAQ grounding** hints for how tightly to treat injected FAQ excerpts vs general knowledge
-  - *Reset reply style* -> back to default length + prose + balanced FAQ grounding
+  - *Explain simply* / *ELI5* / *I'm a beginner* vs *Expert mode* / *Assume I'm technical* vs *Normal explanation level* -> **audience depth** hints (simple vs technical vs default)
+  - *TLDR first* / *Lead with a summary* vs *No TLDR* / *Answer directly* vs *Default answer structure* -> **answer opening** style (short upfront summary vs dive straight in)
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -559,6 +561,8 @@ def handle_nl_control(
             f"- reply length: **{session.get('verbosity', 'normal')}**",
             f"- lists: **{'bullets when helpful' if session.get('reply_format') == 'bullets' else 'prose'}**",
             f"- FAQ grounding: **{session.get('faq_grounding', 'normal')}**",
+            f"- audience: **{session.get('audience', 'normal')}**",
+            f"- answer opening: **{session.get('answer_lead', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -638,7 +642,9 @@ def handle_nl_control(
         session["verbosity"] = "normal"
         session["reply_format"] = "prose"
         session["faq_grounding"] = "normal"
-        return "**Reply style reset:** normal length, prose, balanced FAQ grounding."
+        session["audience"] = "normal"
+        session["answer_lead"] = "normal"
+        return "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, default opening."
 
     if act.name == "set_verbosity":
         v = (act.value or "normal").lower()
@@ -667,6 +673,24 @@ def handle_nl_control(
             )
         return f"**FAQ grounding** is now **{mode}**.{extra}"
 
+    if act.name == "set_audience":
+        aud = (act.value or "normal").lower()
+        if aud not in ("simple", "normal", "technical"):
+            aud = "normal"
+        session["audience"] = aud
+        label = {"simple": "beginner-friendly", "normal": "general", "technical": "technical"}.get(aud, aud)
+        return f"**Audience** is now **{label}** (how deep or jargon-heavy explanations should feel)."
+
+    if act.name == "set_answer_lead":
+        lead = (act.value or "normal").lower()
+        if lead not in ("tldr_first", "direct", "normal"):
+            lead = "normal"
+        session["answer_lead"] = lead
+        human = {"tldr_first": "TL;DR first line", "direct": "straight in (no TL;DR line)", "normal": "default"}.get(
+            lead, lead
+        )
+        return f"**Answer opening** is now **{human}**."
+
     return None
 
 
@@ -686,6 +710,28 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         lines.append("Prefer fuller, well-structured explanations when they help the user.")
     if rformat == "bullets":
         lines.append("When listing multiple points, use markdown bullet or numbered lists.")
+    audience = str(session.get("audience") or "normal").lower()
+    if audience not in ("simple", "normal", "technical"):
+        audience = "normal"
+    if audience == "simple":
+        lines.append(
+            "Assume the reader is new to the topic: define jargon when you use it, prefer plain language and small steps."
+        )
+    elif audience == "technical":
+        lines.append(
+            "Assume a technical reader: standard domain terms and shorthand are fine; prioritize precision over hand-holding."
+        )
+    lead = str(session.get("answer_lead") or "normal").lower()
+    if lead not in ("tldr_first", "direct", "normal"):
+        lead = "normal"
+    if lead == "tldr_first":
+        lines.append(
+            "Start substantive answers with one short **TL;DR:** line (one sentence), then elaborate."
+        )
+    elif lead == "direct":
+        lines.append(
+            "Do not add a standalone TL;DR/summary prelude; answer immediately in-flow (still use lists if configured)."
+        )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
         g = "normal"
@@ -1028,6 +1074,8 @@ def main() -> None:
         "verbosity": "normal",
         "reply_format": "prose",
         "faq_grounding": "normal",
+        "audience": "normal",
+        "answer_lead": "normal",
     }
 
     def respond(
@@ -1215,6 +1263,7 @@ def main() -> None:
             "**`What is my current scope?`**, **`Start a new private session`**, **`Switch to scope my-key`**, "
             "**`Be brief`**, **`More detail please`**, **`Use bullet points`**, **`Reset reply style`**, "
             "**`Strict FAQ`** / **`Relaxed FAQ`** / **`Balanced FAQ`**, "
+            "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
