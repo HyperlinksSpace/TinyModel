@@ -63,12 +63,28 @@ from horizon2_core import (  # noqa: E402
     load_causal_lm,
     pick_device,
 )
-from horizon3_store import clear_session, connect, init_schema, list_for_scope, put  # noqa: E402
+from horizon3_store import (  # noqa: E402
+    clear_session,
+    connect,
+    export_scope_json,
+    forget_scope,
+    init_schema,
+    list_for_scope,
+    put,
+)
+from nl_controls import parse_control_action  # noqa: E402
 from rag_faq_smoke import _pick_model, hybrid_retrieve, load_chunks  # noqa: E402
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 HELP_TEXT = """**How to use**
 - **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.).
+- **Session controls (say it in chat, no slash command):**
+  - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
+  - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
+  - *Clear my session notes* -> wipes **session** notes only
+  - *Turn off the FAQ context*, *Disable RAG snippets*, *Turn FAQ back on* -> toggles whether FAQ excerpts are injected into the chat system context
+  - *Turn off smart routing*, *Go back to normal chat only* -> disables the JSON intent router (slash commands still work)
+  - *Show the brain trace*, *Hide debug trace* -> toggles the optional *Brain trace* footer on replies
 - **Shortcuts:** `/help`, `/status`, `/classify`, `/retrieve`, `/summarize`, `/reformulate`, `/grounded q ||| ctx`, `/remember`, `/session`, `/memories`, `/clear-session`, **`/similarity a ||| b`**, **`/embed` / `/embedding`**, **`/nearest q ||| c1 ||| c2`**.
 
 **Intents the router understands** (examples, not exact wording):
@@ -512,6 +528,78 @@ def run_routed_tool(
     return ""
 
 
+def handle_nl_control(
+    msg: str,
+    session: dict[str, bool],
+    *,
+    mem_conn: sqlite3.Connection | None,
+    scope_key: str,
+    rag_chunks_base: list[str] | None,
+    locked_no_smart_route: bool,
+) -> str | None:
+    act = parse_control_action(msg)
+    if act is None:
+        return None
+
+    if act.name == "export_memory":
+        if mem_conn is None:
+            return "Memory is off for this Space (no SQLite store); nothing to export."
+        blob = export_scope_json(mem_conn, scope_key)
+        js = json.dumps(blob, indent=2, ensure_ascii=False)
+        max_chars = 48_000
+        if len(js) > max_chars:
+            js = js[:max_chars] + "\n…(truncated for chat; schema is horizon3_export/1.0)…"
+        return f"### Memory export (`{scope_key}`)\nPaste/save externally if needed.\n\n```json\n{js}\n```"
+
+    if act.name == "forget_scope":
+        if mem_conn is None:
+            return "Memory is off; nothing to delete."
+        n = forget_scope(mem_conn, scope_key)
+        return (
+            f"**Erased stored memory for this Space session.**\n\n"
+            f"Deleted **{n}** row(s) (**session + long-term**) for `{scope_key}`."
+        )
+
+    if act.name == "list_memories":
+        if mem_conn is None:
+            return "Memory is off."
+        items = list_for_scope(mem_conn, scope_key)
+        if not items:
+            return "(No saved notes for this scope.)"
+        lines = [f"- **{it.kind}** · {_clip(it.content, 320)}" for it in items[:24]]
+        extra = f"\n\n… {len(items) - 24} more" if len(items) > 24 else ""
+        return "**Saved notes:**\n" + "\n".join(lines) + extra
+
+    if act.name == "clear_session":
+        if mem_conn is None:
+            return "Memory is off."
+        n = clear_session(mem_conn, scope_key)
+        return f"Cleared **{n}** session note(s). Long-term notes unchanged."
+
+    if act.name == "set_trace":
+        session["trace"] = act.value == "on"
+        return f"**Brain trace** is now **{'on' if session['trace'] else 'off'}** (footer on assistant replies)."
+
+    if act.name == "set_smart_route":
+        if locked_no_smart_route:
+            return "Smart routing is **locked off** for this server (`--no-smart-route`)."
+        session["smart_route"] = act.value == "on"
+        return (
+            f"**Smart routing** is now **{'on' if session['smart_route'] else 'off'}** "
+            "(off = plain chat + FAQ context injection + slash shortcuts only)."
+        )
+
+    if act.name == "set_rag":
+        if rag_chunks_base is None:
+            return "FAQ/RAG corpus is **not loaded** on this deployment; nothing to toggle."
+        session["rag"] = act.value == "on"
+        return (
+            f"**FAQ/RAG excerpts in prompts** are now **{'on' if session['rag'] else 'off'}**."
+        )
+
+    return None
+
+
 def handle_slash(
     msg: str,
     *,
@@ -823,18 +911,22 @@ def main() -> None:
     print(f"Loading generative model {mid!r} on {dev!r} ...", flush=True)
     lm = load_causal_lm(mid, dev)
     turn_counter = {"n": 0}
-    show_trace = not args.no_trace and (
-        encoder is not None or mem_conn is not None or (rag_chunks is not None)
-    )
+    initial_ub_session = {
+        "trace": not args.no_trace
+        and (encoder is not None or mem_conn is not None or (rag_chunks is not None)),
+        "smart_route": not args.no_smart_route,
+        "rag": rag_chunks is not None,
+    }
 
     def respond(
         message: str,
         history: list[dict],
-    ) -> tuple[str, list[dict]]:
+        ub_session: dict[str, bool],
+    ) -> tuple[str, list[dict], dict[str, bool]]:
         msg = (message or "").strip()
         hist = list(history or [])
         if not msg:
-            return "", hist
+            return "", hist, ub_session
 
         turn_counter["n"] += 1
         seed = (args.seed + turn_counter["n"]) % (2**31)
@@ -857,10 +949,28 @@ def main() -> None:
         if slash_out is not None:
             hist.append({"role": "user", "content": msg})
             hist.append({"role": "assistant", "content": slash_out})
-            return "", hist
+            return "", hist, ub_session
+
+        nl_out = handle_nl_control(
+            msg,
+            ub_session,
+            mem_conn=mem_conn,
+            scope_key=args.memory_scope,
+            rag_chunks_base=rag_chunks,
+            locked_no_smart_route=args.no_smart_route,
+        )
+        if nl_out is not None:
+            hist.append({"role": "user", "content": msg})
+            hist.append({"role": "assistant", "content": nl_out})
+            return "", hist, ub_session
+
+        effective_rag = (
+            rag_chunks if rag_chunks is not None and ub_session.get("rag") else None
+        )
+        use_smart = bool(ub_session.get("smart_route")) and not args.no_smart_route
 
         chat_line = msg
-        if not args.no_smart_route:
+        if use_smart:
             try:
                 route = infer_route(
                     lm,
@@ -879,7 +989,7 @@ def main() -> None:
                     mem_conn=mem_conn,
                     scope_key=args.memory_scope,
                     encoder=encoder,
-                    rag_chunks=rag_chunks,
+                    rag_chunks=effective_rag,
                     rag_top_k=args.rag_top_k,
                     task_max_new_tokens=args.task_max_new_tokens,
                     seed=(seed + 11) % (2**31),
@@ -892,7 +1002,7 @@ def main() -> None:
                     foot = f"\n\n---\n*Routed intent:* `{route['intent']}`"
                     hist.append({"role": "user", "content": msg})
                     hist.append({"role": "assistant", "content": tool_reply + foot})
-                    return "", hist
+                    return "", hist, ub_session
 
             chat_line = route["text"] or msg
 
@@ -910,8 +1020,8 @@ def main() -> None:
             )
 
         rag_block = ""
-        if encoder and rag_chunks:
-            hr = hybrid_retrieve(encoder, chat_line, rag_chunks, top_k=args.rag_top_k)
+        if encoder and effective_rag:
+            hr = hybrid_retrieve(encoder, chat_line, effective_rag, top_k=args.rag_top_k)
             if hr:
                 trace.append(f"RAG:{len(hr)}chunk(s)")
                 pieces = []
@@ -954,12 +1064,21 @@ def main() -> None:
             do_sample=True,
         )
         out = reply or "(empty generation)"
-        if show_trace and trace:
+        show_trace_footer = (
+            (not args.no_trace)
+            and bool(ub_session.get("trace"))
+            and (
+                encoder is not None
+                or mem_conn is not None
+                or effective_rag is not None
+            )
+        )
+        if show_trace_footer and trace:
             out += "\n\n---\n*Brain trace:* " + " · ".join(trace)
 
         hist.append({"role": "user", "content": msg})
         hist.append({"role": "assistant", "content": out})
-        return "", hist
+        return "", hist, ub_session
 
     brain_bits = []
     if encoder:
@@ -977,10 +1096,15 @@ def main() -> None:
             "**NL routing:** the model infers what you want (summarize, FAQ search, save note, …). "
             "Use **`--no-smart-route`** for plain chat-only + slash shortcuts. "
             "`/help` lists slash commands.\n\n"
+            "**NL session controls:** say things like "
+            "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
+            "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
+            "(no slash command required). See the repo `README` for more example phrases.\n\n"
             "Encoder topics (Hub TinyModel1 ≈ AG News) still feed context and an optional *Brain trace* line; "
             "use `/classify` or ask naturally to see the full probability table in chat."
         )
         chat = gr.Chatbot(type="messages", height=520, label="Conversation", allow_tags=False)
+        ub_state = gr.State(initial_ub_session)
         with gr.Row():
             inp = gr.Textbox(
                 lines=1,
@@ -992,11 +1116,15 @@ def main() -> None:
             go = gr.Button("Send", variant="primary", scale=1)
         gr.ClearButton([chat, inp])
 
-        def _submit(m: str, h: list[dict]) -> tuple[str, list[dict]]:
-            return respond(m, h)
+        def _submit(
+            m: str,
+            h: list[dict],
+            s: dict[str, bool],
+        ) -> tuple[str, list[dict], dict[str, bool]]:
+            return respond(m, h, s)
 
-        go.click(_submit, [inp, chat], [inp, chat])
-        inp.submit(_submit, [inp, chat], [inp, chat])
+        go.click(_submit, [inp, chat, ub_state], [inp, chat, ub_state])
+        inp.submit(_submit, [inp, chat, ub_state], [inp, chat, ub_state])
 
     demo.queue(default_concurrency_limit=2)
     share = args.share

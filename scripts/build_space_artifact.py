@@ -21,8 +21,10 @@ _PROG = "build_space_artifact"
 
 SCRIPT_FILES = (
     "universal_brain_chat.py",
+    "eval_report_routing.py",
     "horizon2_core.py",
     "horizon3_store.py",
+    "nl_controls.py",
     "rag_faq_smoke.py",
     "tinymodel_runtime.py",
 )
