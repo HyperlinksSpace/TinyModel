@@ -88,7 +88,9 @@ HELP_TEXT = """**How to use**
   - *Strict FAQ* / *FAQ only* / *Stick to the FAQ* vs *Relaxed FAQ* / *FAQ plus general knowledge* vs *Balanced FAQ* / *Normal FAQ* -> **FAQ grounding** hints for how tightly to treat injected FAQ excerpts vs general knowledge
   - *Explain simply* / *ELI5* / *I'm a beginner* vs *Expert mode* / *Assume I'm technical* vs *Normal explanation level* -> **audience depth** hints (simple vs technical vs default)
   - *TLDR first* / *Lead with a summary* vs *No TLDR* / *Answer directly* vs *Default answer structure* -> **answer opening** style (short upfront summary vs dive straight in)
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening
+  - *Step by step* / *Numbered steps* vs *No numbered steps* / *Continuous prose* vs *Default step style* -> **procedure layout** (numbered steps vs flowing paragraphs)
+  - *Flag your assumptions* / *Be explicit about uncertainty* vs *Be decisive* / *Don't hedge* vs *Reset uncertainty* -> **confidence tone** hints
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -563,6 +565,8 @@ def handle_nl_control(
             f"- FAQ grounding: **{session.get('faq_grounding', 'normal')}**",
             f"- audience: **{session.get('audience', 'normal')}**",
             f"- answer opening: **{session.get('answer_lead', 'normal')}**",
+            f"- procedure steps: **{session.get('step_style', 'normal')}**",
+            f"- confidence tone: **{session.get('confidence_tone', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -644,7 +648,12 @@ def handle_nl_control(
         session["faq_grounding"] = "normal"
         session["audience"] = "normal"
         session["answer_lead"] = "normal"
-        return "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, default opening."
+        session["step_style"] = "normal"
+        session["confidence_tone"] = "normal"
+        return (
+            "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
+            "default opening, default steps, normal confidence tone."
+        )
 
     if act.name == "set_verbosity":
         v = (act.value or "normal").lower()
@@ -691,6 +700,30 @@ def handle_nl_control(
         )
         return f"**Answer opening** is now **{human}**."
 
+    if act.name == "set_step_style":
+        st = (act.value or "normal").lower()
+        if st not in ("numbered", "continuous", "normal"):
+            st = "normal"
+        session["step_style"] = st
+        human = {
+            "numbered": "numbered steps when explaining procedures",
+            "continuous": "continuous prose (avoid numbered step lists)",
+            "normal": "default",
+        }.get(st, st)
+        return f"**Procedure layout** is now **{human}**."
+
+    if act.name == "set_confidence_tone":
+        ct = (act.value or "normal").lower()
+        if ct not in ("transparent", "assertive", "normal"):
+            ct = "normal"
+        session["confidence_tone"] = ct
+        human = {
+            "transparent": "flag limits and assumptions",
+            "assertive": "decisive, minimal hedging",
+            "normal": "default",
+        }.get(ct, ct)
+        return f"**Confidence tone** is now **{human}**."
+
     return None
 
 
@@ -731,6 +764,32 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif lead == "direct":
         lines.append(
             "Do not add a standalone TL;DR/summary prelude; answer immediately in-flow (still use lists if configured)."
+        )
+    steps = str(session.get("step_style") or "normal").lower()
+    if steps not in ("numbered", "continuous", "normal"):
+        steps = "normal"
+    if steps == "numbered":
+        lines.append(
+            "When explaining procedures or multi-part how-tos, structure the answer with clear **numbered steps** "
+            "(1. 2. 3.) and one action per step when practical."
+        )
+    elif steps == "continuous":
+        lines.append(
+            "Avoid numbered step lists; explain procedures as **connected paragraphs** unless the user explicitly "
+            "asks for steps."
+        )
+    conf = str(session.get("confidence_tone") or "normal").lower()
+    if conf not in ("transparent", "assertive", "normal"):
+        conf = "normal"
+    if conf == "transparent":
+        lines.append(
+            "Be explicit about uncertainty: say when you are guessing, label key assumptions, and avoid overstating "
+            "facts you cannot support from the prompt or supplied excerpts."
+        )
+    elif conf == "assertive":
+        lines.append(
+            "Answer in a direct, confident tone: minimize throat-clearing and hedging unless a short disclaimer is "
+            "truly necessary for safety or policy."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1076,6 +1135,8 @@ def main() -> None:
         "faq_grounding": "normal",
         "audience": "normal",
         "answer_lead": "normal",
+        "step_style": "normal",
+        "confidence_tone": "normal",
     }
 
     def respond(
@@ -1264,6 +1325,7 @@ def main() -> None:
             "**`Be brief`**, **`More detail please`**, **`Use bullet points`**, **`Reset reply style`**, "
             "**`Strict FAQ`** / **`Relaxed FAQ`** / **`Balanced FAQ`**, "
             "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
+            "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

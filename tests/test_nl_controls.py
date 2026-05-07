@@ -153,6 +153,30 @@ class TestNlControls(unittest.TestCase):
             )
         )
 
+    def test_step_style_numbered(self) -> None:
+        a = parse_control_action("Step by step")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_step_style")
+        self.assertEqual(a.value, "numbered")
+
+    def test_step_style_continuous(self) -> None:
+        a = parse_control_action("No numbered steps")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_step_style")
+        self.assertEqual(a.value, "continuous")
+
+    def test_confidence_transparent(self) -> None:
+        a = parse_control_action("Flag your assumptions")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_confidence_tone")
+        self.assertEqual(a.value, "transparent")
+
+    def test_confidence_assertive(self) -> None:
+        a = parse_control_action("Don't hedge")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_confidence_tone")
+        self.assertEqual(a.value, "assertive")
+
 
 if __name__ == "__main__":
     unittest.main()

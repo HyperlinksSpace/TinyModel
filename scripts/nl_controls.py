@@ -186,5 +186,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_answer_lead", "normal")
 
+    # Procedures: numbered steps vs continuous prose (orthogonal to bullets).
+    if len(m) <= 88 and (
+        re.match(r"^(please\s+)?(step by step|step-by-step)[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?use numbered steps[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?numbered steps\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?walk me through( the)? steps\b[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?break it into steps[\s.!?]*$", m)
+    ):
+        return ControlAction("set_step_style", "numbered")
+
+    if len(m) <= 92 and (
+        re.match(r"^(please\s+)?(no numbered steps|don'?t number steps|skip step numbers)[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?(continuous prose|prose without steps)[\s.!?]*$", m)
+    ):
+        return ControlAction("set_step_style", "continuous")
+
+    if len(m) <= 64 and re.match(r"^(please\s+)?(default step style|normal steps|reset steps)[\s.!?]*$", m):
+        return ControlAction("set_step_style", "normal")
+
+    # How hard to hedge / flag limits (orthogonal to FAQ strictness).
+    if len(m) <= 94 and (
+        re.match(r"^(please\s+)?flag your assumptions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?be explicit about uncertainty[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?say if you don'?t know[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?tell me when you(?:'?re|\s+are)\s+unsure[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?say when you(?:'?re|\s+are)\s+unsure[\s.!?]*$", m)
+    ):
+        return ControlAction("set_confidence_tone", "transparent")
+
+    if len(m) <= 72 and (
+        re.match(r"^(please\s+)?be decisive[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t hedge[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?give firm answers[\s.!?]*$", m)
+    ):
+        return ControlAction("set_confidence_tone", "assertive")
+
+    if len(m) <= 80 and re.match(
+        r"^(please\s+)?(default confidence tone|normal confidence|reset uncertainty)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_confidence_tone", "normal")
+
     return None
 
