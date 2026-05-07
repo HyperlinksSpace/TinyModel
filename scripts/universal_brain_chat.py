@@ -92,7 +92,9 @@ HELP_TEXT = """**How to use**
   - *Flag your assumptions* / *Be explicit about uncertainty* vs *Be decisive* / *Don't hedge* vs *Reset uncertainty* -> **confidence tone** hints
   - *Suggest next steps* / *Offer follow-up questions* vs *No follow-up questions* / *No questions at the end* vs *Default follow-ups* -> **closing** style at end of answers
   - *Definitions first* / *Define terms first* vs *Intuition first* / *Big picture first* vs *Default explanation order* -> **concept order** in explanations
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order
+  - *Include examples* / *Use concrete examples* vs *Skip examples* / *No examples unless I ask* vs *Default examples* -> **example density**
+  - *Use pros and cons* / *Pros and cons sections* vs *Compare in flowing prose* / *No pros and cons sections* vs *Default comparison style* -> **comparison layout** for trade-offs
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -571,6 +573,8 @@ def handle_nl_control(
             f"- confidence tone: **{session.get('confidence_tone', 'normal')}**",
             f"- follow-up ending: **{session.get('followup_close', 'normal')}**",
             f"- concept order: **{session.get('exposition_order', 'normal')}**",
+            f"- examples: **{session.get('example_density', 'normal')}**",
+            f"- comparisons: **{session.get('comparison_frame', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -656,9 +660,12 @@ def handle_nl_control(
         session["confidence_tone"] = "normal"
         session["followup_close"] = "normal"
         session["exposition_order"] = "normal"
+        session["example_density"] = "normal"
+        session["comparison_frame"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
-            "default opening, default steps, normal confidence tone, default follow-ups, default concept order."
+            "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
+            "default examples, default comparisons."
         )
 
     if act.name == "set_verbosity":
@@ -754,6 +761,30 @@ def handle_nl_control(
         }.get(eo, eo)
         return f"**Concept order** is now **{human}**."
 
+    if act.name == "set_example_density":
+        ed = (act.value or "normal").lower()
+        if ed not in ("rich", "sparse", "normal"):
+            ed = "normal"
+        session["example_density"] = ed
+        human = {
+            "rich": "include concrete examples when they help",
+            "sparse": "minimal examples unless asked",
+            "normal": "default",
+        }.get(ed, ed)
+        return f"**Examples** preference is now **{human}**."
+
+    if act.name == "set_comparison_frame":
+        cf = (act.value or "normal").lower()
+        if cf not in ("pros_cons", "narrative", "normal"):
+            cf = "normal"
+        session["comparison_frame"] = cf
+        human = {
+            "pros_cons": "explicit Pros / Cons sections for trade-offs",
+            "narrative": "flowing prose comparisons (no rigid Pros/Cons headings)",
+            "normal": "default",
+        }.get(cf, cf)
+        return f"**Comparison layout** is now **{human}**."
+
     return None
 
 
@@ -844,6 +875,28 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif expo == "intuition_first":
         lines.append(
             "Prefer a short **motivation / big-picture intuition** section first, then formal definitions and details."
+        )
+    ex_density = str(session.get("example_density") or "normal").lower()
+    if ex_density not in ("rich", "sparse", "normal"):
+        ex_density = "normal"
+    if ex_density == "rich":
+        lines.append(
+            "When it clarifies the answer, include at least one **short concrete example** or miniature scenario."
+        )
+    elif ex_density == "sparse":
+        lines.append(
+            "Unless the user explicitly requests an example, keep answers **example-free** (no illustrative stories)."
+        )
+    comp = str(session.get("comparison_frame") or "normal").lower()
+    if comp not in ("pros_cons", "narrative", "normal"):
+        comp = "normal"
+    if comp == "pros_cons":
+        lines.append(
+            "For trade-offs or comparing options, use markdown subheadings **Pros** and **Cons** (short bullets under each)."
+        )
+    elif comp == "narrative":
+        lines.append(
+            "For trade-offs or comparing options, weave pros/cons into **continuous prose** rather than labeled sections."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1193,6 +1246,8 @@ def main() -> None:
         "confidence_tone": "normal",
         "followup_close": "normal",
         "exposition_order": "normal",
+        "example_density": "normal",
+        "comparison_frame": "normal",
     }
 
     def respond(
@@ -1383,6 +1438,7 @@ def main() -> None:
             "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
             "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
             "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
+            "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

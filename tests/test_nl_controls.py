@@ -201,6 +201,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_exposition_order")
         self.assertEqual(a.value, "intuition_first")
 
+    def test_example_density_rich(self) -> None:
+        a = parse_control_action("Include examples")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_example_density")
+        self.assertEqual(a.value, "rich")
+
+    def test_example_density_sparse(self) -> None:
+        a = parse_control_action("Skip examples")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_example_density")
+        self.assertEqual(a.value, "sparse")
+
+    def test_comparison_pros_cons(self) -> None:
+        a = parse_control_action("Use pros and cons")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_comparison_frame")
+        self.assertEqual(a.value, "pros_cons")
+
+    def test_comparison_narrative(self) -> None:
+        a = parse_control_action("Compare in flowing prose")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_comparison_frame")
+        self.assertEqual(a.value, "narrative")
+
 
 if __name__ == "__main__":
     unittest.main()

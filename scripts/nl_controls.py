@@ -269,5 +269,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_exposition_order", "normal")
 
+    # Examples vs terse explanations when comparing or teaching.
+    if len(m) <= 76 and (
+        re.match(r"^(please\s+)?include examples[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?use concrete examples[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?illustrate with examples[\s.!?]*$", m)
+    ):
+        return ControlAction("set_example_density", "rich")
+
+    if len(m) <= 92 and (
+        re.match(r"^(please\s+)?skip examples[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t add examples[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no examples unless i ask[\s.!?]*$", m)
+    ):
+        return ControlAction("set_example_density", "sparse")
+
+    if len(m) <= 68 and re.match(
+        r"^(please\s+)?(default examples|normal examples|reset examples)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_example_density", "normal")
+
+    # Compare/contrast presentation.
+    if len(m) <= 96 and (
+        re.match(r"^(please\s+)?use pros and cons[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?pros and cons sections[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?compare with pros and cons[\s.!?]*$", m)
+    ):
+        return ControlAction("set_comparison_frame", "pros_cons")
+
+    if len(m) <= 100 and (
+        re.match(r"^(please\s+)?compare in flowing prose[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?prose comparison only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no pros and cons sections[\s.!?]*$", m)
+    ):
+        return ControlAction("set_comparison_frame", "narrative")
+
+    if len(m) <= 82 and re.match(
+        r"^(please\s+)?(default comparison style|normal comparison|reset comparison)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_comparison_frame", "normal")
+
     return None
 
