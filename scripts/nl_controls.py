@@ -119,5 +119,24 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_reply_format", "prose")
 
+    # FAQ / RAG grounding hints for the assistant (short control lines).
+    if len(m) <= 100 and re.search(
+        r"\b(strict faq|faq only|stick to (the )?faq|only use (the )?faq|only trust (the )?faq)\b",
+        m,
+    ):
+        return ControlAction("set_faq_grounding", "strict")
+
+    if len(m) <= 115 and re.search(
+        r"\b(balanced faq|normal faq|default faq(\s+grounding)?|default faq mode)\b",
+        m,
+    ):
+        return ControlAction("set_faq_grounding", "normal")
+
+    if len(m) <= 130 and re.search(
+        r"\b(relaxed faq|faq plus general knowledge|general knowledge(\s+is)?\s+ok|mix faq and general knowledge)\b",
+        m,
+    ):
+        return ControlAction("set_faq_grounding", "relaxed")
+
     return None
 

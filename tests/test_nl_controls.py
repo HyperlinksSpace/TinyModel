@@ -74,6 +74,32 @@ class TestNlControls(unittest.TestCase):
         self.assertIsNotNone(a)
         self.assertEqual(a.name, "reset_reply_style")
 
+    def test_faq_grounding_strict(self) -> None:
+        a = parse_control_action("Strict FAQ")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_faq_grounding")
+        self.assertEqual(a.value, "strict")
+
+    def test_faq_grounding_normal(self) -> None:
+        a = parse_control_action("Balanced FAQ")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_faq_grounding")
+        self.assertEqual(a.value, "normal")
+
+    def test_faq_grounding_relaxed(self) -> None:
+        a = parse_control_action("FAQ plus general knowledge")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_faq_grounding")
+        self.assertEqual(a.value, "relaxed")
+
+    def test_long_line_not_faq_grounding_control(self) -> None:
+        # Same intent words but over matcher length cap -> do not hijack real questions.
+        long_line = (
+            "For enterprise compliance we need strict faq alignment across every region and product line; "
+            "summarize the gaps."
+        )
+        self.assertIsNone(parse_control_action(long_line))
+
     def test_long_question_not_style_control(self) -> None:
         # No brief/verbosity trigger phrase; ensures we do not treat deep questions as mode switches.
         self.assertIsNone(

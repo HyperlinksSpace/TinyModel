@@ -85,7 +85,8 @@ HELP_TEXT = """**How to use**
   - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
   - *Switch to scope my-team-123* / *Use session demo-key* -> set the Horizon 3 **`scope_key`** from chat (ASCII id)
   - *Be brief* / *More detail please* / *Use bullet points* / *No bullets, plain paragraphs* -> soft **reply-style** hints (injected into the assistant system context; short control lines only)
-  - *Reset reply style* -> back to default length + prose
+  - *Strict FAQ* / *FAQ only* / *Stick to the FAQ* vs *Relaxed FAQ* / *FAQ plus general knowledge* vs *Balanced FAQ* / *Normal FAQ* -> **FAQ grounding** hints for how tightly to treat injected FAQ excerpts vs general knowledge
+  - *Reset reply style* -> back to default length + prose + balanced FAQ grounding
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -557,6 +558,7 @@ def handle_nl_control(
             f"- memory store: **{'on' if mem_conn is not None else 'off'}**",
             f"- reply length: **{session.get('verbosity', 'normal')}**",
             f"- lists: **{'bullets when helpful' if session.get('reply_format') == 'bullets' else 'prose'}**",
+            f"- FAQ grounding: **{session.get('faq_grounding', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -635,7 +637,8 @@ def handle_nl_control(
     if act.name == "reset_reply_style":
         session["verbosity"] = "normal"
         session["reply_format"] = "prose"
-        return "**Reply style reset:** normal length, prose (no forced bullet lists)."
+        session["faq_grounding"] = "normal"
+        return "**Reply style reset:** normal length, prose, balanced FAQ grounding."
 
     if act.name == "set_verbosity":
         v = (act.value or "normal").lower()
@@ -650,6 +653,19 @@ def handle_nl_control(
             f = "prose"
         session["reply_format"] = f
         return f"**List formatting** is now **{f}** (how the assistant structures multi-point answers)."
+
+    if act.name == "set_faq_grounding":
+        mode = (act.value or "normal").lower()
+        if mode not in ("strict", "normal", "relaxed"):
+            mode = "normal"
+        session["faq_grounding"] = mode
+        extra = ""
+        if rag_chunks_base is None or not session.get("rag", True):
+            extra = (
+                "\n\n**Note:** FAQ excerpt injection is currently **off** in this chat session "
+                "(or no FAQ corpus loaded). Grounding hints apply whenever FAQ snippets are present."
+            )
+        return f"**FAQ grounding** is now **{mode}**.{extra}"
 
     return None
 
@@ -670,6 +686,22 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         lines.append("Prefer fuller, well-structured explanations when they help the user.")
     if rformat == "bullets":
         lines.append("When listing multiple points, use markdown bullet or numbered lists.")
+    g = str(session.get("faq_grounding") or "normal").lower()
+    if g not in ("strict", "normal", "relaxed"):
+        g = "normal"
+    if g == "strict":
+        lines.append(
+            "FAQ grounding (strict): Treat product/process/policy claims as supported only when clearly stated in "
+            "the FAQ excerpts provided in this turn. If not stated there, say you are unsure or that it is outside "
+            "the provided FAQ. When you rely on an excerpt, cite it as **[FAQ excerpt N]** matching the numbered "
+            "excerpt headings you were given."
+        )
+    elif g == "relaxed":
+        lines.append(
+            "FAQ grounding (relaxed): Prefer the supplied FAQ excerpts for product/support specifics, but you may add "
+            "brief general-knowledge context if you clearly separate it from anything implied by FAQ text."
+        )
+    # "normal": default product behavior --- rely on FAQ block wording without duplicating instructions.
     if lines:
         extras.append(
             "Preferred reply style for this chat session:\n" + "\n".join(f"- {ln}" for ln in lines)
@@ -995,6 +1027,7 @@ def main() -> None:
         "scope_key": args.memory_scope,
         "verbosity": "normal",
         "reply_format": "prose",
+        "faq_grounding": "normal",
     }
 
     def respond(
@@ -1181,6 +1214,7 @@ def main() -> None:
             "**NL session controls:** say things like "
             "**`What is my current scope?`**, **`Start a new private session`**, **`Switch to scope my-key`**, "
             "**`Be brief`**, **`More detail please`**, **`Use bullet points`**, **`Reset reply style`**, "
+            "**`Strict FAQ`** / **`Relaxed FAQ`** / **`Balanced FAQ`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
