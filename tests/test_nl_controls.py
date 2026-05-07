@@ -15,6 +15,22 @@ from nl_controls import parse_control_action  # noqa: E402
 
 
 class TestNlControls(unittest.TestCase):
+    def test_show_session(self) -> None:
+        a = parse_control_action("What is my current session scope?")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "show_session")
+
+    def test_new_private_session(self) -> None:
+        a = parse_control_action("Start a new private session")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "new_private_session")
+
+    def test_set_scope(self) -> None:
+        a = parse_control_action("Switch to scope demo-123")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_scope")
+        self.assertEqual(a.value, "demo-123")
+
     def test_show_my_memories_lists(self) -> None:
         a = parse_control_action("Show my memories")
         self.assertIsNotNone(a)

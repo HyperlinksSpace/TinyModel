@@ -25,8 +25,10 @@ import json
 import os
 import sqlite3
 import sys
+import uuid
 import warnings
 from pathlib import Path
+from typing import Any
 
 # Windows: avoid OpenMP/MKL oversubscription and duplicate CRT issues that can
 # segfault during large `from_pretrained` CPU loads (common with torch+transformers).
@@ -79,6 +81,9 @@ from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 HELP_TEXT = """**How to use**
 - **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.).
 - **Session controls (say it in chat, no slash command):**
+  - *What is my current scope?*, *Show my session settings* -> prints scope + toggles (FAQ context, routing, trace)
+  - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
+  - *Switch to scope my-team-123* / *Use session demo-key* -> set the Horizon 3 **`scope_key`** from chat (ASCII id)
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -530,7 +535,7 @@ def run_routed_tool(
 
 def handle_nl_control(
     msg: str,
-    session: dict[str, bool],
+    session: dict[str, Any],
     *,
     mem_conn: sqlite3.Connection | None,
     scope_key: str,
@@ -540,6 +545,32 @@ def handle_nl_control(
     act = parse_control_action(msg)
     if act is None:
         return None
+
+    if act.name == "show_session":
+        bits = [
+            f"- scope: `{scope_key}`",
+            f"- smart routing: **{'on' if session.get('smart_route') and not locked_no_smart_route else 'off'}**",
+            f"- FAQ context: **{'on' if session.get('rag') and rag_chunks_base is not None else 'off'}**",
+            f"- brain trace footer: **{'on' if session.get('trace') else 'off'}**",
+            f"- memory store: **{'on' if mem_conn is not None else 'off'}**",
+        ]
+        return "### Session settings\n" + "\n".join(bits)
+
+    if act.name == "new_private_session":
+        # Keep it readable and low-collision; not a secret, just a scope id.
+        new_scope = f"ub-{uuid.uuid4().hex[:8]}"
+        session["scope_key"] = new_scope
+        return (
+            f"**Started a new private session scope.**\n\n"
+            f"Current scope is now `{new_scope}`.\n"
+            "Memory operations (remember/export/forget) will apply to this new scope."
+        )
+
+    if act.name == "set_scope":
+        if not act.value:
+            return "Tell me the scope key, e.g. `Switch to scope demo-123`."
+        session["scope_key"] = act.value
+        return f"Switched session scope to `{act.value}`."
 
     if act.name == "export_memory":
         if mem_conn is None:
@@ -916,13 +947,14 @@ def main() -> None:
         and (encoder is not None or mem_conn is not None or (rag_chunks is not None)),
         "smart_route": not args.no_smart_route,
         "rag": rag_chunks is not None,
+        "scope_key": args.memory_scope,
     }
 
     def respond(
         message: str,
         history: list[dict],
-        ub_session: dict[str, bool],
-    ) -> tuple[str, list[dict], dict[str, bool]]:
+        ub_session: dict[str, Any],
+    ) -> tuple[str, list[dict], dict[str, Any]]:
         msg = (message or "").strip()
         hist = list(history or [])
         if not msg:
@@ -931,11 +963,13 @@ def main() -> None:
         turn_counter["n"] += 1
         seed = (args.seed + turn_counter["n"]) % (2**31)
 
+        cur_scope = str(ub_session.get("scope_key") or args.memory_scope)
+
         slash_out = handle_slash(
             msg,
             lm=lm,
             mem_conn=mem_conn,
-            scope_key=args.memory_scope,
+            scope_key=cur_scope,
             encoder=encoder,
             rag_chunks=rag_chunks,
             rag_top_k=args.rag_top_k,
@@ -955,7 +989,7 @@ def main() -> None:
             msg,
             ub_session,
             mem_conn=mem_conn,
-            scope_key=args.memory_scope,
+            scope_key=cur_scope,
             rag_chunks_base=rag_chunks,
             locked_no_smart_route=args.no_smart_route,
         )
@@ -987,7 +1021,7 @@ def main() -> None:
                     msg=msg,
                     lm=lm,
                     mem_conn=mem_conn,
-                    scope_key=args.memory_scope,
+                    scope_key=cur_scope,
                     encoder=encoder,
                     rag_chunks=effective_rag,
                     rag_top_k=args.rag_top_k,
@@ -1035,7 +1069,7 @@ def main() -> None:
                 )
 
         if mem_conn:
-            items = list_for_scope(mem_conn, args.memory_scope)
+            items = list_for_scope(mem_conn, cur_scope)
             if items:
                 trace.append(f"mem:{len(items)}item(s)")
                 mem_lines = []
@@ -1097,6 +1131,7 @@ def main() -> None:
             "Use **`--no-smart-route`** for plain chat-only + slash shortcuts. "
             "`/help` lists slash commands.\n\n"
             "**NL session controls:** say things like "
+            "**`What is my current scope?`**, **`Start a new private session`**, **`Switch to scope my-key`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
@@ -1119,8 +1154,8 @@ def main() -> None:
         def _submit(
             m: str,
             h: list[dict],
-            s: dict[str, bool],
-        ) -> tuple[str, list[dict], dict[str, bool]]:
+            s: dict[str, Any],
+        ) -> tuple[str, list[dict], dict[str, Any]]:
             return respond(m, h, s)
 
         go.click(_submit, [inp, chat, ub_state], [inp, chat, ub_state])

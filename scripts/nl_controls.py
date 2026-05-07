@@ -31,6 +31,23 @@ def parse_control_action(message: str) -> ControlAction | None:
     if not m:
         return None
 
+    # "What mode is this? What session/scope am I in?"
+    if re.search(r"\b(what|show)\b.*\b(my )?(session|scope|settings|mode|status)\b", m) or re.search(
+        r"\bwhich\b.*\b(scope|session)\b", m
+    ):
+        return ControlAction("show_session")
+
+    # Start a fresh private session (new scope key).
+    if re.search(r"\b(new|fresh)\b.*\b(private )?(session|scope)\b", m) or re.search(
+        r"\b(start|begin)\b.*\b(private )?(session|scope)\b", m
+    ):
+        return ControlAction("new_private_session")
+
+    # Switch to a named scope in chat, e.g. "use scope abc-123" / "switch to session foo".
+    m2 = re.search(r"\b(use|switch to|set)\b.*\b(scope|session)\b\s*[:=]?\s*([a-z0-9][a-z0-9_.:-]{1,63})\b", m)
+    if m2:
+        return ControlAction("set_scope", m2.group(3))
+
     # Memory controls (order matters: list/show before export/download)
     if re.search(
         r"\b(show|list)\b.*\b(my )?(data|memory|memories|notes)\b",
