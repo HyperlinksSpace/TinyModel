@@ -249,6 +249,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_code_block_style")
         self.assertEqual(a.value, "inline")
 
+    def test_analogy_prefer(self) -> None:
+        a = parse_control_action("Use analogies")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_analogy_use")
+        self.assertEqual(a.value, "prefer")
+
+    def test_analogy_avoid(self) -> None:
+        a = parse_control_action("No analogies")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_analogy_use")
+        self.assertEqual(a.value, "avoid")
+
+    def test_acronym_spell_out(self) -> None:
+        a = parse_control_action("Spell out acronyms")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_acronym_style")
+        self.assertEqual(a.value, "spell_out")
+
+    def test_acronym_terse(self) -> None:
+        a = parse_control_action("Assume I know acronyms")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_acronym_style")
+        self.assertEqual(a.value, "terse")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -96,7 +96,9 @@ HELP_TEXT = """**How to use**
   - *Use pros and cons* / *Pros and cons sections* vs *Compare in flowing prose* / *No pros and cons sections* vs *Default comparison style* -> **comparison layout** for trade-offs
   - *Formal tone* / *Professional register* vs *Casual tone* / *Speak casually* vs *Default tone* -> **writing register**
   - *Use code fences* / *Fenced code blocks* vs *Inline code only* / *No fenced code blocks* vs *Default code formatting* -> **markdown code layout**
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout
+  - *Use analogies* / *Analogies when helpful* vs *No analogies* / *Literal explanations only* vs *Default analogy style* -> **analogy / metaphor** usage
+  - *Spell out acronyms* / *Expand acronyms on first use* vs *Assume I know acronyms* / *Don't expand acronyms* vs *Default acronym style* -> **acronym verbosity**
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -579,6 +581,8 @@ def handle_nl_control(
             f"- comparisons: **{session.get('comparison_frame', 'normal')}**",
             f"- register: **{session.get('register_tone', 'normal')}**",
             f"- code blocks: **{session.get('code_block_style', 'normal')}**",
+            f"- analogies: **{session.get('analogy_use', 'normal')}**",
+            f"- acronyms: **{session.get('acronym_style', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -668,10 +672,13 @@ def handle_nl_control(
         session["comparison_frame"] = "normal"
         session["register_tone"] = "normal"
         session["code_block_style"] = "normal"
+        session["analogy_use"] = "normal"
+        session["acronym_style"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
-            "default examples, default comparisons, default register, default code blocks."
+            "default examples, default comparisons, default register, default code blocks, default analogies, "
+            "default acronyms."
         )
 
     if act.name == "set_verbosity":
@@ -815,6 +822,30 @@ def handle_nl_control(
         }.get(cs, cs)
         return f"**Code markdown** is now **{human}**."
 
+    if act.name == "set_analogy_use":
+        au = (act.value or "normal").lower()
+        if au not in ("prefer", "avoid", "normal"):
+            au = "normal"
+        session["analogy_use"] = au
+        human = {
+            "prefer": "use concise analogies when they clarify",
+            "avoid": "literal wording; skip analogies and metaphors",
+            "normal": "default",
+        }.get(au, au)
+        return f"**Analogy usage** is now **{human}**."
+
+    if act.name == "set_acronym_style":
+        ac = (act.value or "normal").lower()
+        if ac not in ("spell_out", "terse", "normal"):
+            ac = "normal"
+        session["acronym_style"] = ac
+        human = {
+            "spell_out": "expand unfamiliar acronyms on first mention",
+            "terse": "keep acronym forms without spelling them out first",
+            "normal": "default",
+        }.get(ac, ac)
+        return f"**Acronym style** is now **{human}**."
+
     return None
 
 
@@ -949,6 +980,29 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif cb == "inline":
         lines.append(
             "Prefer **inline backticks** for short snippets; **avoid triple-backtick fences** unless the user pastes a block."
+        )
+    an = str(session.get("analogy_use") or "normal").lower()
+    if an not in ("prefer", "avoid", "normal"):
+        an = "normal"
+    if an == "prefer":
+        lines.append(
+            "When stuck on an abstract concept, optionally add **one tight analogy/metaphor** (label it plainly; keep it respectful)."
+        )
+    elif an == "avoid":
+        lines.append(
+            "Keep explanations **literal and direct**: do **not** use analogies, metaphors, or cute comparisons."
+        )
+    acr = str(session.get("acronym_style") or "normal").lower()
+    if acr not in ("spell_out", "terse", "normal"):
+        acr = "normal"
+    if acr == "spell_out":
+        lines.append(
+            'On **first substantive mention** of a non-obvious acronym/title-case initialism (e.g. API, SLA), '
+            'write the **expanded form once** (`Long Form (ACRONYM)`), then use the acronym afterwards.'
+        )
+    elif acr == "terse":
+        lines.append(
+            "Assume the reader is acronym-literate: **reuse acronyms** as written without mandatory expansion."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1302,6 +1356,8 @@ def main() -> None:
         "comparison_frame": "normal",
         "register_tone": "normal",
         "code_block_style": "normal",
+        "analogy_use": "normal",
+        "acronym_style": "normal",
     }
 
     def respond(
@@ -1493,6 +1549,7 @@ def main() -> None:
             "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
             "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
             "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, **`Formal tone`** / **`Casual tone`**, **`Use code fences`** / **`Inline code only`**, "
+            "**`Use analogies`** / **`No analogies`**, **`Spell out acronyms`** / **`Don't expand acronyms`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

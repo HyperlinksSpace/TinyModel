@@ -353,5 +353,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_code_block_style", "normal")
 
+    # Analogies / metaphors vs literal explanations only.
+    if len(m) <= 92 and (
+        re.match(r"^(please\s+)?use analogies[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?analogies when helpful[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?metaphors are ok[\s.!?]*$", m)
+    ):
+        return ControlAction("set_analogy_use", "prefer")
+
+    if len(m) <= 100 and (
+        re.match(r"^(please\s+)?no analogies[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?skip metaphors[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?literal explanations only[\s.!?]*$", m)
+    ):
+        return ControlAction("set_analogy_use", "avoid")
+
+    if len(m) <= 82 and re.match(
+        r"^(please\s+)?(default analogy style|reset analogies|normal analogies)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_analogy_use", "normal")
+
+    # Expand vs terse acronym handling on first introduce.
+    if len(m) <= 112 and (
+        re.match(r"^(please\s+)?spell out acronyms[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?expand acronyms on first use[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?define acronyms when you use them[\s.!?]*$", m)
+    ):
+        return ControlAction("set_acronym_style", "spell_out")
+
+    if len(m) <= 112 and (
+        re.match(r"^(please\s+)?assume i know acronyms[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t expand acronyms[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?keep acronyms as is[\s.!?]*$", m)
+    ):
+        return ControlAction("set_acronym_style", "terse")
+
+    if len(m) <= 92 and re.match(
+        r"^(please\s+)?(default acronym style|reset acronyms|normal acronyms)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_acronym_style", "normal")
+
     return None
 
