@@ -163,7 +163,7 @@ The generated Space `app.py` supports:
 
 ## Troubleshooting: `deploy-hf-space-versioned` failed (exit code 1)
 
-1. **Ignore the Node.js 20 “deprecated” annotation by itself.** GitHub prints that warning for `actions/checkout` / `actions/setup-python`; it does **not** explain an exit-code failure unless the job actually fails inside those steps.
+1. **Node.js 20 / Node.js 24 messages are usually informational.** Prefer workflow pins like `actions/checkout@v6` and `actions/setup-python@v6`, which run on Node 24 without extra env vars. They do **not** by themselves explain `exit code 1` — look for the first failed step’s error text.
 
 2. **Open the failed step** in the Actions log (expand **deploy-space** → each step). The first step that turns red is the real error.
 
