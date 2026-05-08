@@ -83,9 +83,11 @@ def parse_control_action(message: str) -> ControlAction | None:
         return ControlAction("set_rag", "off")
 
     # Reply style for the generative model (short lines only to avoid hijacking real questions).
+    # Require "reply"/"answer" before style|format|length so phrases like "default quote style" / "reset tables"
+    # are handled by narrower matchers below.
     if len(m) <= 140 and (
-        re.search(r"\breset\b.*\b(reply |answer )?(style|format|length)\b", m)
-        or re.search(r"\b(default|normal)\b.*\b(reply |answer )?(style|format)\b", m)
+        re.search(r"\breset\b.*\b(reply|answer)\s+(style|format|length)\b", m)
+        or re.search(r"\b(default|normal)\b.*\b(reply|answer)\s+(style|format|length)\b", m)
     ):
         return ControlAction("reset_reply_style")
 
@@ -520,6 +522,48 @@ def parse_control_action(message: str) -> ControlAction | None:
         m,
     ):
         return ControlAction("set_actionability", "normal")
+
+    # Quote/citation preference when using supplied excerpts.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?quote the faq excerpts[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?use direct quotes[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?cite with quotes[\s.!?]*$", m)
+    ):
+        return ControlAction("set_quote_style", "quote")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no quotes[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t quote excerpts[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?paraphrase only[\s.!?]*$", m)
+    ):
+        return ControlAction("set_quote_style", "paraphrase")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default quote style|normal quote style|reset quote style)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_quote_style", "normal")
+
+    # Tables: prefer markdown tables vs avoid.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?use tables[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?markdown tables[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?tabular format[\s.!?]*$", m)
+    ):
+        return ControlAction("set_table_style", "prefer")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no tables[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?avoid tables[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no markdown tables[\s.!?]*$", m)
+    ):
+        return ControlAction("set_table_style", "avoid")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default table style|normal tables|reset tables)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_table_style", "normal")
 
     return None
 

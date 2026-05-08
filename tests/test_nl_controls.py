@@ -345,6 +345,42 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_actionability")
         self.assertEqual(a.value, "conceptual")
 
+    def test_quote_style_quote(self) -> None:
+        a = parse_control_action("Quote the FAQ excerpts")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_quote_style")
+        self.assertEqual(a.value, "quote")
+
+    def test_quote_style_paraphrase(self) -> None:
+        a = parse_control_action("Paraphrase only")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_quote_style")
+        self.assertEqual(a.value, "paraphrase")
+
+    def test_quote_style_normal(self) -> None:
+        a = parse_control_action("Default quote style")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_quote_style")
+        self.assertEqual(a.value, "normal")
+
+    def test_table_style_prefer(self) -> None:
+        a = parse_control_action("Use tables")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_table_style")
+        self.assertEqual(a.value, "prefer")
+
+    def test_table_style_avoid(self) -> None:
+        a = parse_control_action("Avoid tables")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_table_style")
+        self.assertEqual(a.value, "avoid")
+
+    def test_table_style_normal(self) -> None:
+        a = parse_control_action("Reset tables")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_table_style")
+        self.assertEqual(a.value, "normal")
+
 
 if __name__ == "__main__":
     unittest.main()

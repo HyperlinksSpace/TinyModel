@@ -104,7 +104,9 @@ HELP_TEXT = """**How to use**
   - *Answer in JSON* / *JSON output* vs *Plain text only* / *No JSON* vs *Default output format* -> structured output preference
   - *Be risk averse* / *Err on the side of safety* vs *Be pragmatic* / *Optimize for speed* vs *Default risk posture* -> conservative vs practical recommendations
   - *Give me runnable commands* / *Make it actionable* vs *No commands* / *Conceptual only* vs *Default actionability* -> how command-heavy responses should be
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability
+  - *Quote the FAQ excerpts* / *Use direct quotes* vs *Paraphrase only* / *Don't quote excerpts* vs *Default quote style* -> quoting vs paraphrasing when relying on injected excerpts
+  - *Use tables* / *Tabular format* vs *No tables* / *Avoid tables* vs *Default table style* -> whether markdown tables are preferred
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability + quote style + table style
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -595,6 +597,8 @@ def handle_nl_control(
             f"- output format: **{session.get('output_format', 'normal')}**",
             f"- risk posture: **{session.get('risk_posture', 'normal')}**",
             f"- actionability: **{session.get('actionability', 'normal')}**",
+            f"- quote style: **{session.get('quote_style', 'normal')}**",
+            f"- tables: **{session.get('table_style', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -692,12 +696,14 @@ def handle_nl_control(
         session["output_format"] = "normal"
         session["risk_posture"] = "normal"
         session["actionability"] = "normal"
+        session["quote_style"] = "normal"
+        session["table_style"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
             "default acronyms, default clarify mode, default speculation, default math detail, default output format, "
-            "default risk posture, default actionability."
+            "default risk posture, default actionability, default quote style, default tables."
         )
 
     if act.name == "set_verbosity":
@@ -937,6 +943,30 @@ def handle_nl_control(
         }.get(ac, ac)
         return f"**Actionability** is now **{human}**."
 
+    if act.name == "set_quote_style":
+        qs = (act.value or "normal").lower()
+        if qs not in ("quote", "paraphrase", "normal"):
+            qs = "normal"
+        session["quote_style"] = qs
+        human = {
+            "quote": "prefer short direct quotes when relying on FAQ excerpts",
+            "paraphrase": "paraphrase excerpts; avoid quoting",
+            "normal": "default",
+        }.get(qs, qs)
+        return f"**Quote style** is now **{human}**."
+
+    if act.name == "set_table_style":
+        ts = (act.value or "normal").lower()
+        if ts not in ("prefer", "avoid", "normal"):
+            ts = "normal"
+        session["table_style"] = ts
+        human = {
+            "prefer": "use markdown tables when presenting structured comparisons",
+            "avoid": "avoid tables; use bullets/prose instead",
+            "normal": "default",
+        }.get(ts, ts)
+        return f"**Tables** preference is now **{human}**."
+
     return None
 
 
@@ -1165,6 +1195,31 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif actz == "conceptual":
         lines.append(
             "Avoid command dumps; focus on concepts, rationale, and decision points."
+        )
+
+    qs = str(session.get("quote_style") or "normal").lower()
+    if qs not in ("quote", "paraphrase", "normal"):
+        qs = "normal"
+    if qs == "quote":
+        lines.append(
+            "When you rely on an injected **[FAQ excerpt N]**, include a short verbatim quote (a sentence or clause) "
+            "before paraphrasing."
+        )
+    elif qs == "paraphrase":
+        lines.append(
+            "Prefer paraphrasing FAQ excerpts; avoid quoting unless the user asks for exact wording."
+        )
+
+    ts = str(session.get("table_style") or "normal").lower()
+    if ts not in ("prefer", "avoid", "normal"):
+        ts = "normal"
+    if ts == "prefer":
+        lines.append(
+            "When comparing several options, prefer a **markdown table** if it makes the structure clearer."
+        )
+    elif ts == "avoid":
+        lines.append(
+            "Avoid markdown tables; use bullets or short sections instead."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1526,6 +1581,8 @@ def main() -> None:
         "output_format": "normal",
         "risk_posture": "normal",
         "actionability": "normal",
+        "quote_style": "normal",
+        "table_style": "normal",
     }
 
     def respond(
@@ -1721,6 +1778,7 @@ def main() -> None:
             "**`Clarify first`** / **`No clarifying questions`**, **`No speculation`** / **`Brainstorm freely`**, "
             "**`Show your work`** / **`Final answer only`**, **`Answer in JSON`** / **`Plain text only`**, "
             "**`Be risk averse`** / **`Be pragmatic`**, **`Give me runnable commands`** / **`No commands`**, "
+            "**`Quote the FAQ excerpts`** / **`Paraphrase only`**, **`Use tables`** / **`No tables`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
