@@ -1512,6 +1512,10 @@ Quick checks:
 
 Workflow definitions live under [`.github/workflows/`](https://github.com/HyperlinksSpace/TinyModel/tree/main/.github/workflows). Trigger them from **Actions →** select the workflow → **Run workflow**. Runners use **`ubuntu-latest`** unless you change the workflow.
 
+If you want a single end-to-end checklist for deploying the **latest model** to the Hub and then deploying the matching **Space** (plus how to use the Space API and all features), see:
+
+- [`texts/HUGGING_FACE_DEPLOYMENT_GUIDE.md`](texts/HUGGING_FACE_DEPLOYMENT_GUIDE.md)
+
 ### Repository secrets (Settings → Secrets and variables → Actions)
 
 Configure these once per repository (or organization). They are **not** committed to git.

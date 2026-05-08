@@ -1872,7 +1872,11 @@ def main() -> None:
         brain_bits.append("memory")
     brain_label = "+".join(brain_bits) if brain_bits else "LM only"
 
-    with gr.Blocks(title="Universal Brain (chat prototype)") as demo:
+    _css = """
+    /* Space UX: keep the input compact and predictable. */
+    #ub_input textarea { height: 120px !important; }
+    """
+    with gr.Blocks(title="Universal Brain (chat prototype)", css=_css) as demo:
         gr.Markdown(
             "### Universal Brain — chat prototype\n"
             f"**Generative:** `{mid}` ({lm.device}) · **Brain layers:** {brain_label}\n\n"
@@ -1904,11 +1908,12 @@ def main() -> None:
         ub_state = gr.State(initial_ub_session)
         with gr.Row():
             inp = gr.Textbox(
-                lines=1,
-                max_lines=1,
+                lines=4,
+                max_lines=8,
                 show_label=False,
                 placeholder="Ask in plain language, or use /help …",
                 scale=9,
+                elem_id="ub_input",
             )
             go = gr.Button("Send", variant="primary", scale=1)
         gr.ClearButton([chat, inp])
@@ -1920,7 +1925,13 @@ def main() -> None:
         ) -> tuple[str, list[dict], dict[str, Any]]:
             return respond(m, h, s)
 
-        go.click(_submit, [inp, chat, ub_state], [inp, chat, ub_state])
+        go.click(
+            _submit,
+            [inp, chat, ub_state],
+            [inp, chat, ub_state],
+            api_name="chat",
+            api_description="Universal Brain chat endpoint (routing + optional RAG + memory + classifier context).",
+        )
         inp.submit(_submit, [inp, chat, ub_state], [inp, chat, ub_state])
 
     demo.queue(default_concurrency_limit=2)
@@ -1933,6 +1944,7 @@ def main() -> None:
             server_port=args.port,
             share=share,
             ssr_mode=False,
+            show_api=True,
         )
     except ValueError as e:
         err = str(e)
