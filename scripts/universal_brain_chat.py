@@ -98,7 +98,9 @@ HELP_TEXT = """**How to use**
   - *Use code fences* / *Fenced code blocks* vs *Inline code only* / *No fenced code blocks* vs *Default code formatting* -> **markdown code layout**
   - *Use analogies* / *Analogies when helpful* vs *No analogies* / *Literal explanations only* vs *Default analogy style* -> **analogy / metaphor** usage
   - *Spell out acronyms* / *Expand acronyms on first use* vs *Assume I know acronyms* / *Don't expand acronyms* vs *Default acronym style* -> **acronym verbosity**
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style
+  - *Ask clarifying questions first* / *Clarify first* vs *No clarifying questions* / *Just answer without questions* vs *Default clarify mode* -> whether the assistant should ask for missing info before answering
+  - *No speculation* / *Stick to high confidence only* vs *Brainstorm freely* / *Wild ideas ok* vs *Default speculation* -> how strictly to avoid guessing vs allow ideation
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -583,6 +585,8 @@ def handle_nl_control(
             f"- code blocks: **{session.get('code_block_style', 'normal')}**",
             f"- analogies: **{session.get('analogy_use', 'normal')}**",
             f"- acronyms: **{session.get('acronym_style', 'normal')}**",
+            f"- clarify-first: **{session.get('clarify_first', 'normal')}**",
+            f"- speculation: **{session.get('speculation', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -674,11 +678,13 @@ def handle_nl_control(
         session["code_block_style"] = "normal"
         session["analogy_use"] = "normal"
         session["acronym_style"] = "normal"
+        session["clarify_first"] = "normal"
+        session["speculation"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
-            "default acronyms."
+            "default acronyms, default clarify mode, default speculation."
         )
 
     if act.name == "set_verbosity":
@@ -846,6 +852,30 @@ def handle_nl_control(
         }.get(ac, ac)
         return f"**Acronym style** is now **{human}**."
 
+    if act.name == "set_clarify_first":
+        cf = (act.value or "normal").lower()
+        if cf not in ("on", "off", "normal"):
+            cf = "normal"
+        session["clarify_first"] = cf
+        human = {
+            "on": "ask 1–3 targeted clarifying questions before answering when info is missing",
+            "off": "answer immediately; do not ask clarifying questions first",
+            "normal": "default",
+        }.get(cf, cf)
+        return f"**Clarify-first** is now **{human}**."
+
+    if act.name == "set_speculation":
+        sp = (act.value or "normal").lower()
+        if sp not in ("strict", "creative", "normal"):
+            sp = "normal"
+        session["speculation"] = sp
+        human = {
+            "strict": "avoid guessing; stick to high-confidence statements",
+            "creative": "brainstorm and speculate (label assumptions clearly)",
+            "normal": "default",
+        }.get(sp, sp)
+        return f"**Speculation level** is now **{human}**."
+
     return None
 
 
@@ -1003,6 +1033,31 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif acr == "terse":
         lines.append(
             "Assume the reader is acronym-literate: **reuse acronyms** as written without mandatory expansion."
+        )
+
+    clarify = str(session.get("clarify_first") or "normal").lower()
+    if clarify not in ("on", "off", "normal"):
+        clarify = "normal"
+    if clarify == "on":
+        lines.append(
+            "If the request is underspecified, ask **1–3 short clarifying questions first** (only the minimum needed), "
+            "then wait for the user's answers before giving a full solution."
+        )
+    elif clarify == "off":
+        lines.append(
+            "Do not pause to ask clarifying questions first; provide the best answer immediately and note assumptions briefly."
+        )
+
+    spec = str(session.get("speculation") or "normal").lower()
+    if spec not in ("strict", "creative", "normal"):
+        spec = "normal"
+    if spec == "strict":
+        lines.append(
+            "Avoid speculation: prefer high-confidence statements, and say when something is unknown or not supported by the prompt."
+        )
+    elif spec == "creative":
+        lines.append(
+            "Brainstorming is allowed: you may propose speculative ideas, but label assumptions and uncertainty clearly."
         )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
@@ -1358,6 +1413,8 @@ def main() -> None:
         "code_block_style": "normal",
         "analogy_use": "normal",
         "acronym_style": "normal",
+        "clarify_first": "normal",
+        "speculation": "normal",
     }
 
     def respond(
@@ -1550,6 +1607,7 @@ def main() -> None:
             "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
             "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, **`Formal tone`** / **`Casual tone`**, **`Use code fences`** / **`Inline code only`**, "
             "**`Use analogies`** / **`No analogies`**, **`Spell out acronyms`** / **`Don't expand acronyms`**, "
+            "**`Clarify first`** / **`No clarifying questions`**, **`No speculation`** / **`Brainstorm freely`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

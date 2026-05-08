@@ -395,5 +395,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_acronym_style", "normal")
 
+    # Clarify-first: ask brief questions before answering if key info is missing.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?ask clarifying questions first[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?clarify first[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?ask me questions before answering[\s.!?]*$", m)
+    ):
+        return ControlAction("set_clarify_first", "on")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no clarifying questions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?just answer without questions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?answer without asking questions[\s.!?]*$", m)
+    ):
+        return ControlAction("set_clarify_first", "off")
+
+    if len(m) <= 96 and re.match(
+        r"^(please\s+)?(default clarify mode|reset clarify mode|normal clarify mode)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_clarify_first", "normal")
+
+    # Speculation level: strict factual vs brainstorming.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no speculation[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?stick to high confidence only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?avoid guessing[\s.!?]*$", m)
+    ):
+        return ControlAction("set_speculation", "strict")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?brainstorm freely[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?speculate freely[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?wild ideas ok[\s.!?]*$", m)
+    ):
+        return ControlAction("set_speculation", "creative")
+
+    if len(m) <= 100 and re.match(
+        r"^(please\s+)?(default speculation|normal speculation|reset speculation)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_speculation", "normal")
+
     return None
 

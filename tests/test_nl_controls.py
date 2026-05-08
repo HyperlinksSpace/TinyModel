@@ -273,6 +273,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_acronym_style")
         self.assertEqual(a.value, "terse")
 
+    def test_clarify_first_on(self) -> None:
+        a = parse_control_action("Clarify first")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_clarify_first")
+        self.assertEqual(a.value, "on")
+
+    def test_clarify_first_off(self) -> None:
+        a = parse_control_action("No clarifying questions")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_clarify_first")
+        self.assertEqual(a.value, "off")
+
+    def test_speculation_strict(self) -> None:
+        a = parse_control_action("No speculation")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_speculation")
+        self.assertEqual(a.value, "strict")
+
+    def test_speculation_creative(self) -> None:
+        a = parse_control_action("Brainstorm freely")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_speculation")
+        self.assertEqual(a.value, "creative")
+
 
 if __name__ == "__main__":
     unittest.main()
