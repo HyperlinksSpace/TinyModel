@@ -108,7 +108,9 @@ HELP_TEXT = """**How to use**
   - *Use tables* / *Tabular format* vs *No tables* / *Avoid tables* vs *Default table style* -> whether markdown tables are preferred
   - *Use emoji* / *Emoji ok* vs *No emoji* / *Avoid emoji* vs *Default emoji style* -> light **emoji** usage in answers
   - *Use section headings* / *Organize with headings* vs *No section headings* / *Flat answer* vs *Default section headings* -> **markdown headings** vs flat prose
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability + quote style + table style + emoji + section headings
+  - *Bold key terms* / *Highlight important terms* vs *Minimal bold* / *Don't overuse bold* vs *Default emphasis* -> **inline bold** for key phrases vs sparse formatting
+  - *Challenge my assumptions* / *Play devils advocate* vs *Be supportive* / *Assume good intent* vs *Default counterpoints* -> how much to **push back** vs stay encouraging
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability + quote style + table style + emoji + section headings + term emphasis + counterpoints
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -603,6 +605,8 @@ def handle_nl_control(
             f"- tables: **{session.get('table_style', 'normal')}**",
             f"- emoji: **{session.get('emoji_style', 'normal')}**",
             f"- section headings: **{session.get('section_headings', 'normal')}**",
+            f"- term emphasis: **{session.get('term_emphasis', 'normal')}**",
+            f"- counterpoints: **{session.get('counterpoint_tone', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -704,13 +708,15 @@ def handle_nl_control(
         session["table_style"] = "normal"
         session["emoji_style"] = "normal"
         session["section_headings"] = "normal"
+        session["term_emphasis"] = "normal"
+        session["counterpoint_tone"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
             "default acronyms, default clarify mode, default speculation, default math detail, default output format, "
             "default risk posture, default actionability, default quote style, default tables, default emoji, "
-            "default section headings."
+            "default section headings, default term emphasis, default counterpoints."
         )
 
     if act.name == "set_verbosity":
@@ -998,6 +1004,30 @@ def handle_nl_control(
         }.get(sh, sh)
         return f"**Section headings** preference is now **{human}**."
 
+    if act.name == "set_term_emphasis":
+        te = (act.value or "normal").lower()
+        if te not in ("highlight", "minimal", "normal"):
+            te = "normal"
+        session["term_emphasis"] = te
+        human = {
+            "highlight": "bold a few crucial terms/phrases for scanability",
+            "minimal": "avoid decorative bold; use it sparingly",
+            "normal": "default",
+        }.get(te, te)
+        return f"**Term emphasis** is now **{human}**."
+
+    if act.name == "set_counterpoint_tone":
+        cp = (act.value or "normal").lower()
+        if cp not in ("challenge", "supportive", "normal"):
+            cp = "normal"
+        session["counterpoint_tone"] = cp
+        human = {
+            "challenge": "look for gaps; name risks and counterarguments respectfully",
+            "supportive": "prioritize encouragement and constructive framing",
+            "normal": "default",
+        }.get(cp, cp)
+        return f"**Counterpoint tone** is now **{human}**."
+
     return None
 
 
@@ -1273,6 +1303,31 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
     elif sh == "avoid":
         lines.append(
             "Avoid leading lines that look like markdown headings (no `#` / `##` title lines); use bold inline labels or paragraphs instead."
+        )
+
+    te = str(session.get("term_emphasis") or "normal").lower()
+    if te not in ("highlight", "minimal", "normal"):
+        te = "normal"
+    if te == "highlight":
+        lines.append(
+            "Use **bold** on a handful of key terms or short phrases (not whole sentences) to help the reader scan."
+        )
+    elif te == "minimal":
+        lines.append(
+            "Keep inline **bold** rare; prefer plain text unless emphasis is truly needed for clarity."
+        )
+
+    cp = str(session.get("counterpoint_tone") or "normal").lower()
+    if cp not in ("challenge", "supportive", "normal"):
+        cp = "normal"
+    if cp == "challenge":
+        lines.append(
+            "Briefly stress-test the user's plan: note plausible failure modes, missing constraints, or stronger "
+            "alternatives—stay respectful and specific."
+        )
+    elif cp == "supportive":
+        lines.append(
+            "Lean supportive: acknowledge effort, frame improvements as next steps, and avoid needless harsh critique."
         )
 
     g = str(session.get("faq_grounding") or "normal").lower()
@@ -1639,6 +1694,8 @@ def main() -> None:
         "table_style": "normal",
         "emoji_style": "normal",
         "section_headings": "normal",
+        "term_emphasis": "normal",
+        "counterpoint_tone": "normal",
     }
 
     def respond(
@@ -1836,6 +1893,7 @@ def main() -> None:
             "**`Be risk averse`** / **`Be pragmatic`**, **`Give me runnable commands`** / **`No commands`**, "
             "**`Quote the FAQ excerpts`** / **`Paraphrase only`**, **`Use tables`** / **`No tables`**, "
             "**`Use emoji`** / **`No emoji`**, **`Use section headings`** / **`Flat answer`**, "
+            "**`Bold key terms`** / **`Minimal bold`**, **`Challenge my assumptions`** / **`Be supportive`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

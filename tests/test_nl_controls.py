@@ -417,6 +417,42 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_section_headings")
         self.assertEqual(a.value, "normal")
 
+    def test_term_emphasis_highlight(self) -> None:
+        a = parse_control_action("Bold key terms")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_term_emphasis")
+        self.assertEqual(a.value, "highlight")
+
+    def test_term_emphasis_minimal(self) -> None:
+        a = parse_control_action("Minimal bold")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_term_emphasis")
+        self.assertEqual(a.value, "minimal")
+
+    def test_term_emphasis_normal(self) -> None:
+        a = parse_control_action("Default emphasis")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_term_emphasis")
+        self.assertEqual(a.value, "normal")
+
+    def test_counterpoint_challenge(self) -> None:
+        a = parse_control_action("Challenge my assumptions")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_counterpoint_tone")
+        self.assertEqual(a.value, "challenge")
+
+    def test_counterpoint_supportive(self) -> None:
+        a = parse_control_action("Be supportive")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_counterpoint_tone")
+        self.assertEqual(a.value, "supportive")
+
+    def test_counterpoint_normal(self) -> None:
+        a = parse_control_action("Reset counterpoints")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_counterpoint_tone")
+        self.assertEqual(a.value, "normal")
+
 
 if __name__ == "__main__":
     unittest.main()

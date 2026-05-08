@@ -606,5 +606,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_section_headings", "normal")
 
+    # Inline emphasis: bold a few key terms vs keep markdown minimal.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?bold key terms[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?highlight important terms[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?emphasize keywords[\s.!?]*$", m)
+    ):
+        return ControlAction("set_term_emphasis", "highlight")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?minimal bold[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t overuse bold[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?avoid excessive bold[\s.!?]*$", m)
+    ):
+        return ControlAction("set_term_emphasis", "minimal")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default emphasis|normal bold|reset emphasis)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_term_emphasis", "normal")
+
+    # Counterpoint tone: supportive vs challenge assumptions (short lines).
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?challenge my assumptions[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?play devils advocate[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?push back on weak points[\s.!?]*$", m)
+    ):
+        return ControlAction("set_counterpoint_tone", "challenge")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?be supportive[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?assume good intent[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?encourage my ideas[\s.!?]*$", m)
+    ):
+        return ControlAction("set_counterpoint_tone", "supportive")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default counterpoints|normal pushback|reset counterpoints)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_counterpoint_tone", "normal")
+
     return None
 
