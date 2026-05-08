@@ -297,6 +297,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_speculation")
         self.assertEqual(a.value, "creative")
 
+    def test_math_detail_show_work(self) -> None:
+        a = parse_control_action("Show your work")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_math_detail")
+        self.assertEqual(a.value, "show_work")
+
+    def test_math_detail_final_only(self) -> None:
+        a = parse_control_action("Final answer only")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_math_detail")
+        self.assertEqual(a.value, "final_only")
+
+    def test_output_format_json(self) -> None:
+        a = parse_control_action("Answer in JSON")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_output_format")
+        self.assertEqual(a.value, "json")
+
+    def test_output_format_plain(self) -> None:
+        a = parse_control_action("Plain text only")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_output_format")
+        self.assertEqual(a.value, "plain")
+
 
 if __name__ == "__main__":
     unittest.main()

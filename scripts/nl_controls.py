@@ -437,5 +437,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_speculation", "normal")
 
+    # Math/explanations: show work vs final-only.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?show your work[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?show the derivation[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?include steps in math[\s.!?]*$", m)
+    ):
+        return ControlAction("set_math_detail", "show_work")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?final answer only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no derivation[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?skip the steps[\s.!?]*$", m)
+    ):
+        return ControlAction("set_math_detail", "final_only")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default math detail|normal math detail|reset math detail)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_math_detail", "normal")
+
+    # Output structure: JSON-shaped vs normal prose.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?answer in json[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?json output[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?structured json[\s.!?]*$", m)
+    ):
+        return ControlAction("set_output_format", "json")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?plain text only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no json[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?no structured output[\s.!?]*$", m)
+    ):
+        return ControlAction("set_output_format", "plain")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default output format|normal output format|reset output format)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_output_format", "normal")
+
     return None
 

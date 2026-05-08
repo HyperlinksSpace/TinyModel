@@ -100,7 +100,9 @@ HELP_TEXT = """**How to use**
   - *Spell out acronyms* / *Expand acronyms on first use* vs *Assume I know acronyms* / *Don't expand acronyms* vs *Default acronym style* -> **acronym verbosity**
   - *Ask clarifying questions first* / *Clarify first* vs *No clarifying questions* / *Just answer without questions* vs *Default clarify mode* -> whether the assistant should ask for missing info before answering
   - *No speculation* / *Stick to high confidence only* vs *Brainstorm freely* / *Wild ideas ok* vs *Default speculation* -> how strictly to avoid guessing vs allow ideation
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation
+  - *Show your work* / *Show the derivation* vs *Final answer only* / *No derivation* vs *Default math detail* -> how much intermediate reasoning to show for math-like answers
+  - *Answer in JSON* / *JSON output* vs *Plain text only* / *No JSON* vs *Default output format* -> structured output preference
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -587,6 +589,8 @@ def handle_nl_control(
             f"- acronyms: **{session.get('acronym_style', 'normal')}**",
             f"- clarify-first: **{session.get('clarify_first', 'normal')}**",
             f"- speculation: **{session.get('speculation', 'normal')}**",
+            f"- math detail: **{session.get('math_detail', 'normal')}**",
+            f"- output format: **{session.get('output_format', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -680,11 +684,13 @@ def handle_nl_control(
         session["acronym_style"] = "normal"
         session["clarify_first"] = "normal"
         session["speculation"] = "normal"
+        session["math_detail"] = "normal"
+        session["output_format"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
-            "default acronyms, default clarify mode, default speculation."
+            "default acronyms, default clarify mode, default speculation, default math detail, default output format."
         )
 
     if act.name == "set_verbosity":
@@ -876,6 +882,30 @@ def handle_nl_control(
         }.get(sp, sp)
         return f"**Speculation level** is now **{human}**."
 
+    if act.name == "set_math_detail":
+        md = (act.value or "normal").lower()
+        if md not in ("show_work", "final_only", "normal"):
+            md = "normal"
+        session["math_detail"] = md
+        human = {
+            "show_work": "show intermediate steps/derivation when doing math-like reasoning",
+            "final_only": "final results only (no derivation/steps)",
+            "normal": "default",
+        }.get(md, md)
+        return f"**Math detail** is now **{human}**."
+
+    if act.name == "set_output_format":
+        of = (act.value or "normal").lower()
+        if of not in ("json", "plain", "normal"):
+            of = "normal"
+        session["output_format"] = of
+        human = {
+            "json": "reply in a JSON-shaped object when possible",
+            "plain": "plain text (no forced JSON structure)",
+            "normal": "default",
+        }.get(of, of)
+        return f"**Output format** is now **{human}**."
+
     return None
 
 
@@ -1059,6 +1089,28 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         lines.append(
             "Brainstorming is allowed: you may propose speculative ideas, but label assumptions and uncertainty clearly."
         )
+
+    md = str(session.get("math_detail") or "normal").lower()
+    if md not in ("show_work", "final_only", "normal"):
+        md = "normal"
+    if md == "show_work":
+        lines.append(
+            "When the user asks for math/derivations, show concise intermediate steps and explain symbols briefly."
+        )
+    elif md == "final_only":
+        lines.append(
+            "When the user asks for math/derivations, give the final result directly (no intermediate derivation)."
+        )
+
+    of = str(session.get("output_format") or "normal").lower()
+    if of not in ("json", "plain", "normal"):
+        of = "normal"
+    if of == "json":
+        lines.append(
+            "When appropriate, format the answer as a single JSON object with stable keys; avoid extra prose outside the JSON."
+        )
+    elif of == "plain":
+        lines.append("Do not force JSON or rigid schemas; answer in normal plain text.")
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
         g = "normal"
@@ -1415,6 +1467,8 @@ def main() -> None:
         "acronym_style": "normal",
         "clarify_first": "normal",
         "speculation": "normal",
+        "math_detail": "normal",
+        "output_format": "normal",
     }
 
     def respond(
@@ -1608,6 +1662,7 @@ def main() -> None:
             "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, **`Formal tone`** / **`Casual tone`**, **`Use code fences`** / **`Inline code only`**, "
             "**`Use analogies`** / **`No analogies`**, **`Spell out acronyms`** / **`Don't expand acronyms`**, "
             "**`Clarify first`** / **`No clarifying questions`**, **`No speculation`** / **`Brainstorm freely`**, "
+            "**`Show your work`** / **`Final answer only`**, **`Answer in JSON`** / **`Plain text only`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
