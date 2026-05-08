@@ -565,5 +565,46 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_table_style", "normal")
 
+    # Emoji in assistant replies (short lines; conservative wording).
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?(use emoji|emoji ok|emoji welcome|include emoji)[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?add (a few )?emoji[\s.!?]*$", m)
+    ):
+        return ControlAction("set_emoji_style", "include")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no emojis?[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?avoid emoji[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?don'?t use emoji[\s.!?]*$", m)
+    ):
+        return ControlAction("set_emoji_style", "avoid")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default emoji style|normal emoji|reset emoji)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_emoji_style", "normal")
+
+    # Markdown section headings (## / ###) vs flat prose.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?use section headings[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?organize with headings[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?use markdown headings[\s.!?]*$", m)
+    ):
+        return ControlAction("set_section_headings", "prefer")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no section headings[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?avoid markdown headings[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?flat (answer|prose)( please)?[\s.!?]*$", m)
+    ):
+        return ControlAction("set_section_headings", "avoid")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default section headings|normal headings|reset headings)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_section_headings", "normal")
+
     return None
 

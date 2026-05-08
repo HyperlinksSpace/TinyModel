@@ -106,7 +106,9 @@ HELP_TEXT = """**How to use**
   - *Give me runnable commands* / *Make it actionable* vs *No commands* / *Conceptual only* vs *Default actionability* -> how command-heavy responses should be
   - *Quote the FAQ excerpts* / *Use direct quotes* vs *Paraphrase only* / *Don't quote excerpts* vs *Default quote style* -> quoting vs paraphrasing when relying on injected excerpts
   - *Use tables* / *Tabular format* vs *No tables* / *Avoid tables* vs *Default table style* -> whether markdown tables are preferred
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability + quote style + table style
+  - *Use emoji* / *Emoji ok* vs *No emoji* / *Avoid emoji* vs *Default emoji style* -> light **emoji** usage in answers
+  - *Use section headings* / *Organize with headings* vs *No section headings* / *Flat answer* vs *Default section headings* -> **markdown headings** vs flat prose
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability + quote style + table style + emoji + section headings
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -599,6 +601,8 @@ def handle_nl_control(
             f"- actionability: **{session.get('actionability', 'normal')}**",
             f"- quote style: **{session.get('quote_style', 'normal')}**",
             f"- tables: **{session.get('table_style', 'normal')}**",
+            f"- emoji: **{session.get('emoji_style', 'normal')}**",
+            f"- section headings: **{session.get('section_headings', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -698,12 +702,15 @@ def handle_nl_control(
         session["actionability"] = "normal"
         session["quote_style"] = "normal"
         session["table_style"] = "normal"
+        session["emoji_style"] = "normal"
+        session["section_headings"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
             "default acronyms, default clarify mode, default speculation, default math detail, default output format, "
-            "default risk posture, default actionability, default quote style, default tables."
+            "default risk posture, default actionability, default quote style, default tables, default emoji, "
+            "default section headings."
         )
 
     if act.name == "set_verbosity":
@@ -967,6 +974,30 @@ def handle_nl_control(
         }.get(ts, ts)
         return f"**Tables** preference is now **{human}**."
 
+    if act.name == "set_emoji_style":
+        es = (act.value or "normal").lower()
+        if es not in ("include", "avoid", "normal"):
+            es = "normal"
+        session["emoji_style"] = es
+        human = {
+            "include": "a few tasteful emoji are welcome when they aid scanning",
+            "avoid": "no emoji unless the user uses them first",
+            "normal": "default",
+        }.get(es, es)
+        return f"**Emoji style** is now **{human}**."
+
+    if act.name == "set_section_headings":
+        sh = (act.value or "normal").lower()
+        if sh not in ("prefer", "avoid", "normal"):
+            sh = "normal"
+        session["section_headings"] = sh
+        human = {
+            "prefer": "use markdown ##/### headings to structure longer answers",
+            "avoid": "avoid markdown heading lines; keep flowing paragraphs/lists",
+            "normal": "default",
+        }.get(sh, sh)
+        return f"**Section headings** preference is now **{human}**."
+
     return None
 
 
@@ -1221,6 +1252,29 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         lines.append(
             "Avoid markdown tables; use bullets or short sections instead."
         )
+
+    es = str(session.get("emoji_style") or "normal").lower()
+    if es not in ("include", "avoid", "normal"):
+        es = "normal"
+    if es == "include":
+        lines.append(
+            "You may use a few tasteful emoji in replies when they help readability (keep it sparse and professional)."
+        )
+    elif es == "avoid":
+        lines.append("Do not use emoji in replies unless the user explicitly uses emoji first.")
+
+    sh = str(session.get("section_headings") or "normal").lower()
+    if sh not in ("prefer", "avoid", "normal"):
+        sh = "normal"
+    if sh == "prefer":
+        lines.append(
+            "For multi-part answers, organize with short **markdown headings** (## / ###) before each major block."
+        )
+    elif sh == "avoid":
+        lines.append(
+            "Avoid leading lines that look like markdown headings (no `#` / `##` title lines); use bold inline labels or paragraphs instead."
+        )
+
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
         g = "normal"
@@ -1583,6 +1637,8 @@ def main() -> None:
         "actionability": "normal",
         "quote_style": "normal",
         "table_style": "normal",
+        "emoji_style": "normal",
+        "section_headings": "normal",
     }
 
     def respond(
@@ -1779,6 +1835,7 @@ def main() -> None:
             "**`Show your work`** / **`Final answer only`**, **`Answer in JSON`** / **`Plain text only`**, "
             "**`Be risk averse`** / **`Be pragmatic`**, **`Give me runnable commands`** / **`No commands`**, "
             "**`Quote the FAQ excerpts`** / **`Paraphrase only`**, **`Use tables`** / **`No tables`**, "
+            "**`Use emoji`** / **`No emoji`**, **`Use section headings`** / **`Flat answer`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"

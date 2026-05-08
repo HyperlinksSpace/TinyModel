@@ -381,6 +381,42 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_table_style")
         self.assertEqual(a.value, "normal")
 
+    def test_emoji_style_include(self) -> None:
+        a = parse_control_action("Use emoji")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_emoji_style")
+        self.assertEqual(a.value, "include")
+
+    def test_emoji_style_avoid(self) -> None:
+        a = parse_control_action("No emoji")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_emoji_style")
+        self.assertEqual(a.value, "avoid")
+
+    def test_emoji_style_normal(self) -> None:
+        a = parse_control_action("Default emoji style")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_emoji_style")
+        self.assertEqual(a.value, "normal")
+
+    def test_section_headings_prefer(self) -> None:
+        a = parse_control_action("Use section headings")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_section_headings")
+        self.assertEqual(a.value, "prefer")
+
+    def test_section_headings_avoid(self) -> None:
+        a = parse_control_action("Flat answer")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_section_headings")
+        self.assertEqual(a.value, "avoid")
+
+    def test_section_headings_normal(self) -> None:
+        a = parse_control_action("Reset headings")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_section_headings")
+        self.assertEqual(a.value, "normal")
+
 
 if __name__ == "__main__":
     unittest.main()
