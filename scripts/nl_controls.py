@@ -479,5 +479,47 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("set_output_format", "normal")
 
+    # Safety/risk posture for recommendations.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?be risk averse[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?be conservative[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?err on the side of safety[\s.!?]*$", m)
+    ):
+        return ControlAction("set_risk_posture", "conservative")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?be pragmatic[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?optimize for speed[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?good enough is fine[\s.!?]*$", m)
+    ):
+        return ControlAction("set_risk_posture", "pragmatic")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default risk posture|normal risk posture|reset risk posture)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_risk_posture", "normal")
+
+    # Actionability: runnable steps vs conceptual explanation.
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?give me runnable commands[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?include commands[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?make it actionable[\s.!?]*$", m)
+    ):
+        return ControlAction("set_actionability", "commands")
+
+    if len(m) <= 110 and (
+        re.match(r"^(please\s+)?no commands[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?conceptual only[\s.!?]*$", m)
+        or re.match(r"^(please\s+)?high level only[\s.!?]*$", m)
+    ):
+        return ControlAction("set_actionability", "conceptual")
+
+    if len(m) <= 110 and re.match(
+        r"^(please\s+)?(default actionability|normal actionability|reset actionability)[\s.!?]*$",
+        m,
+    ):
+        return ControlAction("set_actionability", "normal")
+
     return None
 

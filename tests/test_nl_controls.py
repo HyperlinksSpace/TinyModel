@@ -321,6 +321,30 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_output_format")
         self.assertEqual(a.value, "plain")
 
+    def test_risk_posture_conservative(self) -> None:
+        a = parse_control_action("Be risk averse")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_risk_posture")
+        self.assertEqual(a.value, "conservative")
+
+    def test_risk_posture_pragmatic(self) -> None:
+        a = parse_control_action("Be pragmatic")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_risk_posture")
+        self.assertEqual(a.value, "pragmatic")
+
+    def test_actionability_commands(self) -> None:
+        a = parse_control_action("Make it actionable")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_actionability")
+        self.assertEqual(a.value, "commands")
+
+    def test_actionability_conceptual(self) -> None:
+        a = parse_control_action("No commands")
+        self.assertIsNotNone(a)
+        self.assertEqual(a.name, "set_actionability")
+        self.assertEqual(a.value, "conceptual")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -102,7 +102,9 @@ HELP_TEXT = """**How to use**
   - *No speculation* / *Stick to high confidence only* vs *Brainstorm freely* / *Wild ideas ok* vs *Default speculation* -> how strictly to avoid guessing vs allow ideation
   - *Show your work* / *Show the derivation* vs *Final answer only* / *No derivation* vs *Default math detail* -> how much intermediate reasoning to show for math-like answers
   - *Answer in JSON* / *JSON output* vs *Plain text only* / *No JSON* vs *Default output format* -> structured output preference
-  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format
+  - *Be risk averse* / *Err on the side of safety* vs *Be pragmatic* / *Optimize for speed* vs *Default risk posture* -> conservative vs practical recommendations
+  - *Give me runnable commands* / *Make it actionable* vs *No commands* / *Conceptual only* vs *Default actionability* -> how command-heavy responses should be
+  - *Reset reply style* -> back to defaults for length + prose + balanced FAQ grounding + audience + opening + steps + confidence tone + follow-ups + concept order + examples + comparisons + register + code layout + analogy + acronym style + clarify + speculation + math detail + output format + risk posture + actionability
   - *Export my memories*, *Download my notes as JSON* -> returns a Horizon 3 export blob for **this Space session scope**
   - *Delete all my memories for this chat* / *Erase everything you stored about me here* -> **forget-scope** wipe for this scope (**long-term + session** rows)
   - *Clear my session notes* -> wipes **session** notes only
@@ -591,6 +593,8 @@ def handle_nl_control(
             f"- speculation: **{session.get('speculation', 'normal')}**",
             f"- math detail: **{session.get('math_detail', 'normal')}**",
             f"- output format: **{session.get('output_format', 'normal')}**",
+            f"- risk posture: **{session.get('risk_posture', 'normal')}**",
+            f"- actionability: **{session.get('actionability', 'normal')}**",
         ]
         return "### Session settings\n" + "\n".join(bits)
 
@@ -686,11 +690,14 @@ def handle_nl_control(
         session["speculation"] = "normal"
         session["math_detail"] = "normal"
         session["output_format"] = "normal"
+        session["risk_posture"] = "normal"
+        session["actionability"] = "normal"
         return (
             "**Reply style reset:** normal length, prose, balanced FAQ grounding, general audience, "
             "default opening, default steps, normal confidence tone, default follow-ups, default concept order, "
             "default examples, default comparisons, default register, default code blocks, default analogies, "
-            "default acronyms, default clarify mode, default speculation, default math detail, default output format."
+            "default acronyms, default clarify mode, default speculation, default math detail, default output format, "
+            "default risk posture, default actionability."
         )
 
     if act.name == "set_verbosity":
@@ -906,6 +913,30 @@ def handle_nl_control(
         }.get(of, of)
         return f"**Output format** is now **{human}**."
 
+    if act.name == "set_risk_posture":
+        rp = (act.value or "normal").lower()
+        if rp not in ("conservative", "pragmatic", "normal"):
+            rp = "normal"
+        session["risk_posture"] = rp
+        human = {
+            "conservative": "risk-averse / safety-first recommendations",
+            "pragmatic": "practical, speed-oriented recommendations",
+            "normal": "default",
+        }.get(rp, rp)
+        return f"**Risk posture** is now **{human}**."
+
+    if act.name == "set_actionability":
+        ac = (act.value or "normal").lower()
+        if ac not in ("commands", "conceptual", "normal"):
+            ac = "normal"
+        session["actionability"] = ac
+        human = {
+            "commands": "include runnable commands/snippets when possible",
+            "conceptual": "avoid commands; stay conceptual/high-level",
+            "normal": "default",
+        }.get(ac, ac)
+        return f"**Actionability** is now **{human}**."
+
     return None
 
 
@@ -1111,6 +1142,30 @@ def _append_reply_style_hints(extras: list[str], session: dict[str, Any]) -> Non
         )
     elif of == "plain":
         lines.append("Do not force JSON or rigid schemas; answer in normal plain text.")
+
+    rp = str(session.get("risk_posture") or "normal").lower()
+    if rp not in ("conservative", "pragmatic", "normal"):
+        rp = "normal"
+    if rp == "conservative":
+        lines.append(
+            "Prefer safer, low-risk recommendations; call out risks and choose options that minimize downside."
+        )
+    elif rp == "pragmatic":
+        lines.append(
+            "Prefer practical, time-efficient recommendations; avoid over-engineering unless clearly needed."
+        )
+
+    actz = str(session.get("actionability") or "normal").lower()
+    if actz not in ("commands", "conceptual", "normal"):
+        actz = "normal"
+    if actz == "commands":
+        lines.append(
+            "When proposing a solution, include runnable commands/snippets/checklists where appropriate."
+        )
+    elif actz == "conceptual":
+        lines.append(
+            "Avoid command dumps; focus on concepts, rationale, and decision points."
+        )
     g = str(session.get("faq_grounding") or "normal").lower()
     if g not in ("strict", "normal", "relaxed"):
         g = "normal"
@@ -1469,6 +1524,8 @@ def main() -> None:
         "speculation": "normal",
         "math_detail": "normal",
         "output_format": "normal",
+        "risk_posture": "normal",
+        "actionability": "normal",
     }
 
     def respond(
@@ -1663,6 +1720,7 @@ def main() -> None:
             "**`Use analogies`** / **`No analogies`**, **`Spell out acronyms`** / **`Don't expand acronyms`**, "
             "**`Clarify first`** / **`No clarifying questions`**, **`No speculation`** / **`Brainstorm freely`**, "
             "**`Show your work`** / **`Final answer only`**, **`Answer in JSON`** / **`Plain text only`**, "
+            "**`Be risk averse`** / **`Be pragmatic`**, **`Give me runnable commands`** / **`No commands`**, "
             "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
             "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
             "(no slash command required). See the repo `README` for more example phrases.\n\n"
