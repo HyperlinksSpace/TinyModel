@@ -5,7 +5,9 @@ This guide explains how to deploy the **latest version** of TinyModel to the Hug
 ## What you deploy (two artifacts)
 
 - **Model repo**: `"{namespace}/TinyModel{version}"`  
-  Published by the workflow `train-hf-job-versioned.yml`.
+  Published by **one** of the training workflows:
+  - `train-via-kaggle-to-hf.yml` (Kaggle kernel → publish)
+  - `train-hf-job-versioned.yml` (Hugging Face Jobs → publish)
 - **Space repo**: `"{namespace}/TinyModel{version}Space"`  
   Published by the workflow `deploy-hf-space-versioned.yml`. The Space bundles the in-repo Gradio app (“Universal Brain chat”) and points it at your model via `--encoder {model_id}`.
 
@@ -25,7 +27,35 @@ In your GitHub repo:
 
 That is the only required secret for the two deployment workflows.
 
-## Deploy the latest model to the Hub (workflow)
+## Deploy the latest model to the Hub (workflow options)
+
+You can publish `"{namespace}/TinyModel{version}"` in two supported ways. Pick the one you already use operationally.
+
+### Option A (what you used): Train via Kaggle → publish to Hugging Face
+
+Workflow: `.github/workflows/train-via-kaggle-to-hf.yml`  
+Action: GitHub → **Actions** → “Train via Kaggle and publish to Hugging Face” → **Run workflow**
+
+#### Required inputs
+
+- **`version`**: integer (e.g. `1`, `2`, `3`) → publishes `TinyModel{version}`.
+- **`namespace`**: HF user/org to publish into.
+- **Training knobs**: `max_train_samples`, `max_eval_samples`, `epochs`, `batch_size`, `learning_rate`.
+
+#### Required GitHub secrets
+
+- **`KAGGLE_USERNAME`** and **`KAGGLE_KEY`** (to run the Kaggle kernel)
+- **`HF_TOKEN`** (to publish the resulting artifact to the Hub)
+
+#### What the workflow does (high level)
+
+- Creates/starts a Kaggle kernel run with the training script and your chosen hyperparameters.
+- Waits for completion, downloads the artifact outputs, then uploads them to Hugging Face as:
+  - `"{namespace}/TinyModel{version}"` (repo type: **model**)
+
+Use this path if you already rely on Kaggle quotas/GPUs or want the training to run fully in Kaggle.
+
+### Option B: Train on Hugging Face Jobs → publish to the Hub
 
 Workflow: `.github/workflows/train-hf-job-versioned.yml`  
 Action: GitHub → **Actions** → “Train on Hugging Face Jobs and publish versioned model” → **Run workflow**
@@ -130,4 +160,20 @@ The generated Space `app.py` supports:
 
 - **`HF_TOKEN`** (Space secret): recommended to avoid rate limits / gated downloads during model pulls.
 - **`HORIZON2_MODEL`** (Space variable): optionally override the **generative** model id used for replies.
+
+## Troubleshooting: `deploy-hf-space-versioned` failed (exit code 1)
+
+1. **Ignore the Node.js 20 “deprecated” annotation by itself.** GitHub prints that warning for `actions/checkout` / `actions/setup-python`; it does **not** explain an exit-code failure unless the job actually fails inside those steps.
+
+2. **Open the failed step** in the Actions log (expand **deploy-space** → each step). The first step that turns red is the real error.
+
+   | Step | Typical failure |
+   | ---- | ---------------- |
+   | **Unit tests** | A test failed—scroll up for `FAILED` / `ERROR`. Run locally: `python -m unittest discover -s tests -p "test_*.py" -v` |
+   | **Verify Hugging Face token** | Missing `HF_TOKEN` secret, expired token, or wrong scopes |
+   | **Publish …** | Namespace mismatch (token user/org vs `--namespace`), no write access to org repos, or Hub API error—read the Python traceback |
+
+3. **`HF_TOKEN` on forks:** If you run the workflow on a **fork**, GitHub does **not** use upstream secrets. Add **`HF_TOKEN`** (and any others) under **your fork** → Settings → Secrets and variables → Actions.
+
+4. **Org namespaces:** Publishing to an organization repo requires a token whose account has **write** access to that org on Hugging Face (role/membership), not only a personal token.
 

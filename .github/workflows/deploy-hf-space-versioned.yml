@@ -21,6 +21,9 @@ on:
 jobs:
   deploy-space:
     runs-on: ubuntu-latest
+    # Avoid Node 20 deprecation noise on Actions; harmless if already default.
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     permissions:
       contents: read
     steps:
@@ -37,6 +40,37 @@ jobs:
 
       - name: Install dependencies
         run: pip install --upgrade huggingface_hub
+
+      - name: Verify Hugging Face token (preflight)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os
+          import sys
+
+          token = (os.environ.get("HF_TOKEN") or "").strip()
+          if not token:
+              print(
+                  "::error::Missing GitHub secret HF_TOKEN. "
+                  "Add it under Settings → Secrets and variables → Actions "
+                  "(a Hugging Face token with write access to the target namespace).",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          from huggingface_hub import HfApi
+          from huggingface_hub.errors import HfHubHTTPError
+
+          try:
+              info = HfApi(token=token).whoami()
+          except HfHubHTTPError as exc:
+              print(f"::error::HF_TOKEN rejected by Hugging Face ({exc}). Renew the token and scopes.", file=sys.stderr)
+              sys.exit(1)
+
+          name = info.get("name") if isinstance(info, dict) else str(info)
+          print(f"Hugging Face auth OK (logged in as {name}).")
+          PY
 
       - name: Build versioned Space folder
         run: |
