@@ -1,4 +1,4 @@
-"""Unit tests for scripts/parity_check_hub_vs_local.py (no model downloads)."""
+"""Unit tests for scripts/parity_check_hub_vs_local.py (no model downloads; no torch import)."""
 
 from __future__ import annotations
 

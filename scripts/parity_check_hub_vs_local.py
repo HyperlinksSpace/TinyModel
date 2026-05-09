@@ -11,8 +11,8 @@ import argparse
 import json
 from pathlib import Path
 
-from tinymodel_runtime import TinyModelRuntime
-
+# Lazy-loaded in main(); default None so CI/tests can patch this name without importing torch.
+TinyModelRuntime = None
 
 DEFAULT_QUERIES = [
     "Breaking: Central bank hints at tighter monetary policy after inflation data.",
@@ -77,13 +77,21 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    global TinyModelRuntime
+
     args = parse_args()
+    runtime_cls = TinyModelRuntime
+    if runtime_cls is None:
+        from tinymodel_runtime import TinyModelRuntime as runtime_cls
+
+        TinyModelRuntime = runtime_cls
+
     queries = args.query if args.query else list(DEFAULT_QUERIES)
     if not queries:
         raise SystemExit("No queries provided.")
 
-    local = TinyModelRuntime(args.local_model, device=args.device)
-    hub = TinyModelRuntime(args.hub_model, device=args.device)
+    local = runtime_cls(args.local_model, device=args.device)
+    hub = runtime_cls(args.hub_model, device=args.device)
     local_probs = local.classify(queries)
     hub_probs = hub.classify(queries)
     if len(local_probs) != len(queries) or len(hub_probs) != len(queries):
