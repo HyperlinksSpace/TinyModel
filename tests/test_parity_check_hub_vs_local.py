@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -48,6 +49,31 @@ class _MismatchRuntime:
 
     def classify(self, queries: list[str]) -> list[dict[str, float]]:
         return [{"World": 1.0}]
+
+
+class TestParityImportNoTorch(unittest.TestCase):
+    def test_script_imports_without_torch(self) -> None:
+        """CI/deploy environments may omit torch; avoid importing it at module load."""
+        code = (
+            "import sys\n"
+            "class _BlockTorch:\n"
+            "    def find_spec(self, name, path, target=None):\n"
+            "        if name == 'torch' or (name and name.startswith('torch.')):\n"
+            "            raise ImportError('torch must not be imported')\n"
+            "        return None\n"
+            "sys.meta_path.insert(0, _BlockTorch())\n"
+            f"sys.path.insert(0, {str(_SCRIPTS)!r})\n"
+            "import parity_check_hub_vs_local as m\n"
+            "assert m.TinyModelRuntime is None\n"
+        )
+        proc = subprocess.run(
+            [sys.executable, "-c", code],
+            cwd=_REPO,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
 
 class TestParityCli(unittest.TestCase):
