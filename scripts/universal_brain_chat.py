@@ -137,6 +137,92 @@ HELP_TEXT = """**How to use**
 
 If routing misfires, try rephrasing or use a slash command; **`--no-smart-route`** disables inference (chat only, plus `/…`)."""
 
+# Shown under the chat + controls in the Gradio UI (Hugging Face Space and local).
+GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
+
+**Universal Brain** pairs a small **generative** model with the **TinyModel1** encoder (AG News–style topics: World, Business, Sports, Sci/Tech), **FAQ retrieval** over a bundled corpus, **SQLite memory** scoped per session, and **natural-language routing** so many tasks work without slash commands. First CPU startup can take a few minutes while weights download.
+
+---
+
+### Using the layout
+
+1. **Conversation** — scroll the transcript; replies may end with a *Brain trace* line (classify / RAG / memory hints) if that toggle is on.
+2. **Message box** — type a line or paragraph; press **Send** or submit with Enter.
+3. **Clear** — wipes the visible chat and the input (does not delete long-term memory unless you use the forget commands below).
+
+---
+
+### What to try (step-by-step)
+
+| Goal | What to type |
+| --- | --- |
+| See what is loaded | `/status` |
+| Full in-chat manual | `/help` |
+| Normal Q&A | Ask any question in plain language. |
+| **Classifier** (full probability table) | `/classify Stocks rallied after earnings.` or ask naturally to classify a paragraph. |
+| **FAQ search** (scored chunks) | `/retrieve shipping policy` or “search the FAQ for …”. |
+| **Summarize** | `/summarize` + long text, or “summarize this: …”. |
+| **Rephrase** | `/reformulate` + text, or “rewrite this professionally: …”. |
+| **Answer from facts only** | `/grounded Will you refund? ||| Our policy is 14-day returns.` (question and context separated by `|||`). |
+| **Similarity** (encoder cosine) | `/similarity The market rose. ||| Stocks gained today.` |
+| **Embedding** preview | `/embed A short passage` or `/embedding …`. |
+| **Pick nearest option** | `/nearest query ||| option one ||| option two` (add more `|||` segments for more candidates). |
+| **Memory — long-term** | `/remember My project code is alpha-42` or say you want to remember something. |
+| **Memory — this session** | `/session Temporary note for this chat` |
+| **List saved notes** | `/memories` or ask to show stored notes. |
+| **Clear session notes only** | `/clear-session` |
+| **Export notes (JSON)** | Say *Export my memories* / *Download my notes as JSON*. |
+| **Wipe all notes for this scope** | Say *Delete all my memories for this chat* (long-term + session for current scope). |
+| **Isolate your notes (new scope)** | *Start a new private session* / *Begin a fresh scope* — then use `/remember` and `/memories` to confirm only new notes appear. |
+| **Switch scope** | *Switch to scope my-key* (ASCII id) to attach memory to a named scope. |
+| **Brain trace on/off** | *Show the brain trace* / *Hide debug trace* — then ask a normal question and check the footer line. |
+| **FAQ snippets on/off** | *Turn off the FAQ context* / *Turn FAQ back on*. |
+| **Routing on/off** | *Turn off smart routing* returns to plain chat + slash shortcuts; turn back on per `/help` phrasing. |
+| **Reply style** | Phrases like *Be brief*, *Use bullet points*, *Strict FAQ*, *ELI5*, *Formal tone*, *Reset reply style* (see `/help` for the full list). |
+
+---
+
+### Natural-language routing (no `/` required)
+
+The app can infer intents such as **chat**, **summarize**, **reformulate**, **grounded Q&A**, **FAQ retrieve**, **classify**, **similarity**, **embedding**, **nearest candidate**, **remember / list / clear memory**, and **status**. If the wrong tool runs, repeat with a clearer verb or use the matching **slash command** from the table above.
+
+---
+
+### Session controls (plain English, no `/`)
+
+These adjust **scope**, **memory**, **FAQ injection**, **routing**, **brain trace**, and **reply style** (hints fed into the system prompt). Examples (not exact wording required):
+
+- **Scope / visibility:** *What is my current scope?* · *Show my session settings* · *Start a new private session* · *Switch to scope my-key*
+- **Reply shape:** *Be brief* · *More detail please* · *Use bullet points* · *Reset reply style*
+- **FAQ grounding:** *Strict FAQ* · *Relaxed FAQ* · *Balanced FAQ*
+- **Audience & structure:** *ELI5* · *Expert mode* · *TLDR first* · *Answer directly* · *Step by step* · *No numbered steps* · *Definitions first* · *Intuition first*
+- **Tone & format:** *Formal tone* · *Casual tone* · *Use code fences* · *Inline code only* · *Use tables* · *No tables* · *Use emoji* · *No emoji* · *Use section headings* · *Flat answer* · *Bold key terms* · *Minimal bold*
+- **Reasoning habits:** *Flag your assumptions* · *Be decisive* · *Suggest next steps* · *No follow-up questions* · *Clarify first* · *No clarifying questions* · *No speculation* · *Brainstorm freely* · *Show your work* · *Final answer only*
+- **Output & safety:** *Answer in JSON* · *Plain text only* · *Be risk averse* · *Be pragmatic* · *Give me runnable commands* · *No commands* · *Quote the FAQ excerpts* · *Paraphrase only*
+- **Style extras:** *Use analogies* · *No analogies* · *Spell out acronyms* · *Don't expand acronyms* · *Include examples* · *Skip examples* · *Use pros and cons* · *Compare in flowing prose* · *Challenge my assumptions* · *Be supportive*
+- **Memory maintenance:** *Clear my session notes* · *Export my memories* · *Delete all my memories for this chat*
+- **Debug / behavior:** *Turn off FAQ context* · *Turn FAQ back on* · *Turn off smart routing* · *Show the brain trace* · *Hide debug trace*
+
+---
+
+### Encoder + trace
+
+The encoder adds a soft **topic hint** to the system context and can show **`classify:…`** in the brain trace. Labels reflect **TinyModel1** training (≈ AG News). Use `/classify` when you want the full markdown probability table in the reply.
+
+---
+
+### Hugging Face API
+
+On the Space page, open **Use via API** to call the **`chat`** endpoint (same pipeline as the Send button) from HTTP or the Gradio client.
+
+---
+
+### Tips
+
+- **Shared demo**: the default scope may be shared with other visitors; use *Start a new private session* for isolated memory.
+- **Optional Space env**: `HORIZON2_MODEL` can override the generative model id; `HF_TOKEN` (secret) helps with Hub downloads.
+- **More phrases**: the repo `README` and `/help` list additional natural phrasings for session controls."""
+
 ROUTER_SYSTEM = """You are an intent router for a desktop AI assistant. The user speaks naturally (any language). Output EXACTLY one JSON object, one line, no markdown fences, no explanation.
 
 Schema:
@@ -1877,34 +1963,7 @@ def main() -> None:
     #ub_input textarea { height: 120px !important; }
     """
     with gr.Blocks(title="Universal Brain (chat prototype)", css=_css) as demo:
-        gr.Markdown(
-            "### Universal Brain — chat prototype\n"
-            f"**Generative:** `{mid}` ({lm.device}) · **Brain layers:** {brain_label}\n\n"
-            "**NL routing:** the model infers what you want (summarize, FAQ search, save note, …). "
-            "Use **`--no-smart-route`** for plain chat-only + slash shortcuts. "
-            "`/help` lists slash commands.\n\n"
-            "**NL session controls:** say things like "
-            "**`What is my current scope?`**, **`Start a new private session`**, **`Switch to scope my-key`**, "
-            "**`Be brief`**, **`More detail please`**, **`Use bullet points`**, **`Reset reply style`**, "
-            "**`Strict FAQ`** / **`Relaxed FAQ`** / **`Balanced FAQ`**, "
-            "**`ELI5`** / **`Expert mode`**, **`TLDR first`** / **`Answer directly`**, "
-            "**`Step by step`** / **`No numbered steps`**, **`Flag your assumptions`** / **`Be decisive`**, "
-            "**`Suggest next steps`** / **`No follow-up questions`**, **`Definitions first`** / **`Intuition first`**, "
-            "**`Include examples`** / **`Skip examples`**, **`Use pros and cons`** / **`Compare in flowing prose`**, **`Formal tone`** / **`Casual tone`**, **`Use code fences`** / **`Inline code only`**, "
-            "**`Use analogies`** / **`No analogies`**, **`Spell out acronyms`** / **`Don't expand acronyms`**, "
-            "**`Clarify first`** / **`No clarifying questions`**, **`No speculation`** / **`Brainstorm freely`**, "
-            "**`Show your work`** / **`Final answer only`**, **`Answer in JSON`** / **`Plain text only`**, "
-            "**`Be risk averse`** / **`Be pragmatic`**, **`Give me runnable commands`** / **`No commands`**, "
-            "**`Quote the FAQ excerpts`** / **`Paraphrase only`**, **`Use tables`** / **`No tables`**, "
-            "**`Use emoji`** / **`No emoji`**, **`Use section headings`** / **`Flat answer`**, "
-            "**`Bold key terms`** / **`Minimal bold`**, **`Challenge my assumptions`** / **`Be supportive`**, "
-            "**`Export my memories`**, **`Delete all my memories for this chat`**, **`Clear my session notes`**, "
-            "**`Turn off FAQ context`**, **`Turn off smart routing`**, **`Show the brain trace`** "
-            "(no slash command required). See the repo `README` for more example phrases.\n\n"
-            "Encoder topics (Hub TinyModel1 ≈ AG News) still feed context and an optional *Brain trace* line; "
-            "use `/classify` or ask naturally to see the full probability table in chat."
-        )
-        chat = gr.Chatbot(type="messages", height=520, label="Conversation", allow_tags=False)
+        chat = gr.Chatbot(type="messages", height=260, label="Conversation", allow_tags=False)
         ub_state = gr.State(initial_ub_session)
         with gr.Row():
             inp = gr.Textbox(
@@ -1917,6 +1976,12 @@ def main() -> None:
             )
             go = gr.Button("Send", variant="primary", scale=1)
         gr.ClearButton([chat, inp])
+        gr.Markdown(
+            f"### Universal Brain — chat prototype\n\n"
+            f"**Generative:** `{mid}` ({lm.device}) · **Brain layers:** {brain_label}\n\n"
+            f"Use **Conversation** above, type a message, then **Send** (or Enter). **Clear** resets the on-screen chat only.\n\n"
+            f"{GRADIO_INSTRUCTIONS_MARKDOWN}"
+        )
 
         def _submit(
             m: str,
