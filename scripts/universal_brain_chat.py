@@ -53,6 +53,33 @@ DEFAULT_MEMORY_DB = str(_REPO / ".tmp" / "ub_chat_memory.sqlite")
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
+
+def _load_dotenv_if_present(root: Path) -> None:
+    """Load ``root / .env`` into ``os.environ`` without overriding existing keys (stdlib only)."""
+    p = root / ".env"
+    if not p.is_file():
+        return
+    try:
+        text = p.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            continue
+        if s.startswith("export "):
+            s = s[7:].strip()
+        if "=" not in s:
+            continue
+        k, _, v = s.partition("=")
+        k, v = k.strip(), v.strip()
+        if not k or k in os.environ:
+            continue
+        if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+            v = v[1:-1]
+        os.environ[k] = v
+
+
 from horizon2_core import (  # noqa: E402
     DEFAULT_CHAT_SYSTEM,
     DEFAULT_INSTRUCTION_MODEL,
@@ -73,6 +100,11 @@ from horizon3_store import (  # noqa: E402
     init_schema,
     list_for_scope,
     put,
+)
+from google_cse_client import (  # noqa: E402
+    format_cse_hits_markdown,
+    google_cse_search,
+    read_google_cse_settings,
 )
 from nl_controls import parse_control_action  # noqa: E402
 from rag_faq_smoke import _pick_model, hybrid_retrieve, load_chunks  # noqa: E402
@@ -117,7 +149,7 @@ HELP_TEXT = """**How to use**
   - *Turn off the FAQ context*, *Disable RAG snippets*, *Turn FAQ back on* -> toggles whether FAQ excerpts are injected into the chat system context
   - *Turn off smart routing*, *Go back to normal chat only* -> disables the JSON intent router (slash commands still work)
   - *Show the brain trace*, *Hide debug trace* -> toggles the optional *Brain trace* footer on replies
-- **Shortcuts:** `/help`, `/status`, `/classify`, `/retrieve`, `/summarize`, `/reformulate`, `/grounded q ||| ctx`, `/remember`, `/session`, `/memories`, `/clear-session`, **`/similarity a ||| b`**, **`/embed` / `/embedding`**, **`/nearest q ||| c1 ||| c2`**.
+- **Shortcuts:** `/help`, `/status`, `/classify`, `/retrieve`, **`/web <query>`** (Google Programmable Search when `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX` are set), `/summarize`, `/reformulate`, `/grounded q ||| ctx`, `/remember`, `/session`, `/memories`, `/clear-session`, **`/similarity a ||| b`**, **`/embed` / `/embedding`**, **`/nearest q ||| c1 ||| c2`**.
 
 **Intents the router understands** (examples, not exact wording):
 - Ordinary chat / questions
@@ -161,6 +193,7 @@ GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 | Normal Q&A | Ask any question in plain language. |
 | **Classifier** (full probability table) | `/classify Stocks rallied after earnings.` or ask naturally to classify a paragraph. |
 | **FAQ search** (scored chunks) | `/retrieve shipping policy` or “search the FAQ for …”. |
+| **Web search** (Google CSE) | `/web latest Python 3.13 release notes` or ask for **live web** / **Google** news (needs `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX`). |
 | **Summarize** | `/summarize` + long text, or “summarize this: …”. |
 | **Rephrase** | `/reformulate` + text, or “rewrite this professionally: …”. |
 | **Answer from facts only** | `/grounded Will you refund? ||| Our policy is 14-day returns.` (question and context separated by `|||`). |
@@ -182,9 +215,54 @@ GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 
 ---
 
+### Google web search — Hugging Face Space setup and how to test
+
+This Space can call **Google Programmable Search (Custom Search JSON API)** when you configure credentials on the Hub (and redeploy if you added new files).
+
+**1) Space settings (Repository → Settings)**
+
+| Name | Type | Value |
+| --- | --- | --- |
+| `GOOGLE_CSE_API_KEY` | **Secret** | Google Cloud API key restricted to **Custom Search API** (Application restrictions: **None** is typical for server-side Spaces). |
+| `GOOGLE_CSE_CX` | **Variable** or **Secret** | Search engine ID from [Programmable Search Engine control panel](https://programmablesearchengine.google.com/controlpanel/all) → your engine → **Overview** → **Search engine ID** (the `cx` value). |
+
+Optional **Variables**: `GOOGLE_CSE_NUM` (1–10, default 5), `GOOGLE_CSE_SAFE` (e.g. `off` or `active` — see Google’s `cse.list` docs).
+
+**2) Restart**
+
+After saving secrets/variables, **Restart this Space** (or trigger a new deployment) so the container picks up env vars.
+
+**3) Verify configuration**
+
+Type **`/status`** and press **Send**. The line **Google web search (CSE)** should show **on** when both `GOOGLE_CSE_API_KEY` and `GOOGLE_CSE_CX` are set. If it says **off**, the Space process does not see those variables yet.
+
+**4) Test the API directly (no router)**
+
+- **`/web`** — returns **raw search hits** (titles, URLs, snippets) only. Example: `/web Python 3.13 release date`  
+- Same as **`/search_web …`**
+
+If you see an error about HTTP 403 or “API key not valid”, fix the key or enable **Custom Search API** for that GCP project.
+
+**5) Test with the AI (smart routing)**
+
+- Ensure **smart routing** is on (say *Turn on smart routing* if you turned it off).  
+- Ask in plain language for **live web** / **Google** / **today’s** information, e.g. *Search the web for the latest SpaceX launch summary* or *What does the web say about …?*  
+- The router uses intent **`web_search`**: the app fetches snippets, injects them into the model context, then the assistant replies **using those sources** (cite **[Web n]** when using a snippet).  
+- If the model stays in FAQ-only mode, use **`/web …`** first to confirm the API works, then try clearer web phrasing.
+
+**6) Brain trace**
+
+With **Show the brain trace** on, look for **`web:CSE:N`** (N = number of hits) at the bottom of the assistant message after a web-backed reply.
+
+**7) Limits**
+
+Google enforces **quotas** and may **restrict new signups** for the legacy Custom Search JSON API — check current Google documentation. This demo does not store your API key in the repo; it only reads **Space env** at runtime.
+
+---
+
 ### Natural-language routing (no `/` required)
 
-The app can infer intents such as **chat**, **summarize**, **reformulate**, **grounded Q&A**, **FAQ retrieve**, **classify**, **similarity**, **embedding**, **nearest candidate**, **remember / list / clear memory**, and **status**. If the wrong tool runs, repeat with a clearer verb or use the matching **slash command** from the table above.
+The app can infer intents such as **chat**, **summarize**, **reformulate**, **grounded Q&A**, **FAQ retrieve**, **web_search** (public web via Google CSE when configured), **classify**, **similarity**, **embedding**, **nearest candidate**, **remember / list / clear memory**, and **status**. If the wrong tool runs, repeat with a clearer verb or use the matching **slash command** from the table above.
 
 ---
 
@@ -220,7 +298,7 @@ On the Space page, open **Use via API** to call the **`chat`** endpoint (same pi
 ### Tips
 
 - **Shared demo**: the default scope may be shared with other visitors; use *Start a new private session* for isolated memory.
-- **Optional Space env**: `HORIZON2_MODEL` can override the generative model id; `HF_TOKEN` (secret) helps with Hub downloads.
+- **Optional Space env**: `HORIZON2_MODEL` can override the generative model id; `HF_TOKEN` (secret) helps with Hub downloads; **`GOOGLE_CSE_API_KEY`** + **`GOOGLE_CSE_CX`** enable web search (see section **Google web search** above).
 - **More phrases**: the repo `README` and `/help` list additional natural phrasings for session controls."""
 
 ROUTER_SYSTEM = """You are an intent router for a desktop AI assistant. The user speaks naturally (any language). Output EXACTLY one JSON object, one line, no markdown fences, no explanation.
@@ -233,7 +311,8 @@ intent must be one of:
 - summarize — user wants a shorter summary; put source in "text"
 - reformulate — rewrite/clarify/professional tone; source in "text"
 - grounded — answer only from given facts; put QUESTION in "question", FACTS in "context" (if user mixes both in one blob, split sensibly)
-- retrieve — search FAQ/knowledge; put search query in "text"
+- retrieve — search **FAQ / internal knowledge** corpus only; put search query in "text"
+- web_search — user wants **live web** facts (news, current events, URLs); put the **search query** in "text" (not for FAQ-only lookup)
 - classify — show topic-classifier probabilities; put passage in "text"
 - similarity — cosine similarity between two texts; put "text_a ||| text_b" in "text"
 - embedding — embedding vector summary for one passage; put passage in "text"
@@ -248,6 +327,7 @@ intent must be one of:
 Rules:
 - Default to "chat" when unsure; copy the entire user message into "text".
 - Do not invent facts for "grounded": if no clear facts/context, use "chat" instead.
+- Use **retrieve** for bundled FAQ / help-base search; use **web_search** when the user clearly needs the **public web** (today, external site, breaking news, "google this", etc.).
 - Extract minimal "text" for tool intents (do not repeat system chatter)."""
 
 VALID_INTENTS = frozenset(
@@ -257,6 +337,7 @@ VALID_INTENTS = frozenset(
         "reformulate",
         "grounded",
         "retrieve",
+        "web_search",
         "classify",
         "similarity",
         "embedding",
@@ -277,6 +358,9 @@ _INTENT_ALIASES = {
     "search": "retrieve",
     "faq": "retrieve",
     "lookup": "retrieve",
+    "internet": "web_search",
+    "google": "web_search",
+    "browse_web": "web_search",
     "similar": "similarity",
     "cosine": "similarity",
     "embed": "embedding",
@@ -479,12 +563,19 @@ def _format_status(
     scope_key: str,
 ) -> str:
     rag_n = len(rag_chunks) if rag_chunks else 0
+    g_key, g_cx, _, _ = read_google_cse_settings()
+    cse_line = (
+        "**on** (`GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX`)"
+        if g_key and g_cx
+        else "**off** (set `GOOGLE_CSE_API_KEY` and `GOOGLE_CSE_CX` for `/web` + routed web search)"
+    )
     lines = [
         "### Status\n",
         f"- **Generative:** `{meta_mid}`",
         f"- **Encoder:** {meta_encoder}",
         f"- **RAG corpus:** {_clip(meta_rag_path or '—', 80)} · **chunks:** {rag_n}",
         f"- **Memory DB:** `{meta_mem_db or 'off'}` · **scope:** `{scope_key}`",
+        f"- **Google web search (CSE):** {cse_line}",
     ]
     return "\n".join(lines)
 
@@ -1480,6 +1571,21 @@ def handle_slash(
             return "Usage: `/classify <text>`"
         return _classifier_result_markdown(encoder.classify([rest])[0])
 
+    if cmd in ("/web", "/search_web"):
+        g_key, g_cx, g_num, g_safe = read_google_cse_settings()
+        if not g_key or not g_cx:
+            return (
+                "Web search needs **`GOOGLE_CSE_API_KEY`** (secret) and **`GOOGLE_CSE_CX`** (search engine id) "
+                "in Space settings or local `.env`. See `/status`."
+            )
+        if not rest:
+            return "Usage: `/web <search query>`"
+        try:
+            hits = google_cse_search(rest, api_key=g_key, cx=g_cx, num=g_num, safe=g_safe)
+        except Exception as e:
+            return f"### Web search error\n{_clip(str(e), 1200)}"
+        return format_cse_hits_markdown(hits, for_chat=False)
+
     if cmd == "/retrieve":
         if not encoder or not rag_chunks:
             return "Retrieve needs encoder + FAQ corpus (default on unless `--lm-only` / `--no-rag` / `--no-encoder`)."
@@ -1679,6 +1785,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    _load_dotenv_if_present(_REPO)
+    _gk, _gc, _, _ = read_google_cse_settings()
+    cse_on = bool(_gk and _gc)
     _ensure_gradio_can_reach_localhost()
     try:
         import gradio as gr
@@ -1742,6 +1851,9 @@ def main() -> None:
         init_schema(mem_conn)
         print(f"Memory: scope={args.memory_scope!r} db={mem_path!r}", flush=True)
 
+    if cse_on:
+        print("Google CSE web search: configured (`/web` + smart-route `web_search`)", flush=True)
+
     meta_encoder = encoder_id or "off"
     meta_rag = str(rag_path.resolve()) if rag_path else None
     meta_mem = mem_path
@@ -1751,7 +1863,12 @@ def main() -> None:
     turn_counter = {"n": 0}
     initial_ub_session = {
         "trace": not args.no_trace
-        and (encoder is not None or mem_conn is not None or (rag_chunks is not None)),
+        and (
+            encoder is not None
+            or mem_conn is not None
+            or (rag_chunks is not None)
+            or cse_on
+        ),
         "smart_route": not args.no_smart_route,
         "rag": rag_chunks is not None,
         "scope_key": args.memory_scope,
@@ -1838,6 +1955,8 @@ def main() -> None:
         use_smart = bool(ub_session.get("smart_route")) and not args.no_smart_route
 
         chat_line = msg
+        web_block = ""
+        web_trace = ""
         if use_smart:
             try:
                 route = infer_route(
@@ -1847,6 +1966,37 @@ def main() -> None:
                     max_new_tokens=args.router_max_new_tokens,
                 )
             except Exception:
+                route = {"intent": "chat", "text": msg, "question": "", "context": ""}
+
+            if route["intent"] == "web_search":
+                g_key, g_cx, g_num, g_safe = read_google_cse_settings()
+                q_web = (route["text"] or msg).strip()
+                web_trace = "web:CSE:cfg"
+                if g_key and g_cx and q_web:
+                    try:
+                        hits = google_cse_search(
+                            q_web,
+                            api_key=g_key,
+                            cx=g_cx,
+                            num=g_num,
+                            safe=g_safe,
+                        )
+                        web_block = format_cse_hits_markdown(hits, for_chat=True)
+                        web_trace = f"web:CSE:{len(hits)}"
+                    except Exception as ex:
+                        web_block = (
+                            f"(Google web search failed: {_clip(str(ex), 500)})\n\n"
+                            "Answer from general knowledge where appropriate; do not invent URLs or page titles."
+                        )
+                        web_trace = "web:CSE:err"
+                elif not q_web:
+                    web_block = "(Empty web search query. Ask again with a concrete search topic.)"
+                    web_trace = "web:CSE:empty"
+                else:
+                    web_block = (
+                        "(Web search is not configured: set **GOOGLE_CSE_API_KEY** and **GOOGLE_CSE_CX** "
+                        "in Hugging Face Space secrets/variables or local `.env`. See `/status`.)"
+                    )
                 route = {"intent": "chat", "text": msg, "question": "", "context": ""}
 
             if route["intent"] != "chat":
@@ -1877,6 +2027,8 @@ def main() -> None:
         trace: list[str] = []
         extras: list[str] = []
         _append_reply_style_hints(extras, ub_session)
+        if web_trace:
+            trace.append(web_trace)
 
         if encoder:
             probs = encoder.classify([chat_line])[0]
@@ -1902,6 +2054,9 @@ def main() -> None:
                     "Ground factual claims in them when they apply; do not invent policy."
                     f"\n\n{rag_block}"
                 )
+
+        if web_block:
+            extras.append(web_block)
 
         if mem_conn:
             items = list_for_scope(mem_conn, cur_scope)
@@ -1940,6 +2095,7 @@ def main() -> None:
                 encoder is not None
                 or mem_conn is not None
                 or effective_rag is not None
+                or bool(web_trace)
             )
         )
         if show_trace_footer and trace:
@@ -1956,6 +2112,8 @@ def main() -> None:
         brain_bits.append("RAG")
     if mem_conn:
         brain_bits.append("memory")
+    if cse_on:
+        brain_bits.append("Google CSE")
     brain_label = "+".join(brain_bits) if brain_bits else "LM only"
 
     _css = """

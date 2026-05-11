@@ -22,6 +22,7 @@ _PROG = "build_space_artifact"
 SCRIPT_FILES = (
     "universal_brain_chat.py",
     "eval_report_routing.py",
+    "google_cse_client.py",
     "horizon2_core.py",
     "horizon3_store.py",
     "nl_controls.py",
@@ -176,10 +177,14 @@ pinned: false
 ### Secrets (recommended)
 
 - `HF_TOKEN` — read token so Hub model downloads are reliable (same as classic classifier Space).
+- `GOOGLE_CSE_API_KEY` — Google Cloud API key restricted to **Custom Search API** (enables `/web` and smart-route **web search** in chat).
 
 ### Optional environment variables
 
 - `HORIZON2_MODEL` — Hugging Face id for the **generative** instruct model (default in code: SmolLM2-360M-Instruct if unset in image).
+- `GOOGLE_CSE_CX` — Programmable Search Engine id (`cx` from the [PSE control panel](https://programmablesearchengine.google.com/controlpanel/all)); required together with `GOOGLE_CSE_API_KEY` for web search.
+- `GOOGLE_CSE_NUM` — results per request, 1–10 (default 5).
+- `GOOGLE_CSE_SAFE` — optional safe-search level for Google `cse.list` (e.g. `off`, `active`).
 
 ### Note
 
