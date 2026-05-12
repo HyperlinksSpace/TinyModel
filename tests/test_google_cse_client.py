@@ -16,8 +16,11 @@ if str(_scripts) not in sys.path:
 from google_cse_client import (  # noqa: E402
     format_cse_hits_markdown,
     google_cse_search,
+    heuristic_suggests_web_search,
     read_google_cse_settings,
 )
+
+
 class TestGoogleCseClient(unittest.TestCase):
     def test_read_settings_defaults(self) -> None:
         with patch.dict("os.environ", {}, clear=True):
@@ -57,6 +60,21 @@ class TestGoogleCseClient(unittest.TestCase):
     def test_format_empty(self) -> None:
         s = format_cse_hits_markdown([], for_chat=False)
         self.assertIn("No web results", s)
+
+    def test_heuristic_latest_question(self) -> None:
+        self.assertTrue(heuristic_suggests_web_search("What is the latest release of Ubuntu LTS?"))
+
+    def test_heuristic_year_who(self) -> None:
+        self.assertTrue(heuristic_suggests_web_search("Who is the CEO of OpenAI in 2026?"))
+
+    def test_heuristic_skip_short(self) -> None:
+        self.assertFalse(heuristic_suggests_web_search("hello there"))
+
+    def test_heuristic_skip_explain(self) -> None:
+        self.assertFalse(heuristic_suggests_web_search("Explain recursion in Python with an example."))
+
+    def test_heuristic_skip_faq_tone(self) -> None:
+        self.assertFalse(heuristic_suggests_web_search("What is your refund policy on this app?"))
 
 
 if __name__ == "__main__":

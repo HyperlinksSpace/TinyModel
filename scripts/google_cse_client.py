@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -114,3 +115,90 @@ def format_cse_hits_markdown(hits: list[CSEHit], *, for_chat: bool) -> str:
             f"- **Snippet:** {h.snippet}\n"
         )
     return "\n".join(lines).strip()
+
+
+def heuristic_suggests_web_search(msg: str) -> bool:
+    """True if ``msg`` likely needs live web results (used when the router returns ``chat``).
+
+    Conservative: skips code-like text, slash commands, short lines, and in-app / FAQ phrasing.
+    """
+    m = (msg or "").strip().lower()
+    if len(m) < 12:
+        return False
+    if m.startswith("/"):
+        return False
+    if "```" in m or m.startswith("def "):
+        return False
+    if any(
+        x in m
+        for x in (
+            "/retrieve",
+            "faq excerpt",
+            "this space",
+            "this app",
+            "your refund",
+            "your policy",
+            "your shipping",
+            "your terms",
+            "according to your faq",
+            "in your documentation",
+        )
+    ):
+        return False
+
+    phrases = (
+        "latest ",
+        "breaking ",
+        "breaking news",
+        " as of ",
+        "right now",
+        "today ",
+        "today's",
+        "tonight",
+        "yesterday",
+        "this week",
+        "this month",
+        "current president",
+        "current ceo",
+        "current prime minister",
+        "who won ",
+        "who won the",
+        "election results",
+        "stock price",
+        "share price",
+        "market cap",
+        "exchange rate",
+        "crypto price",
+        "weather in",
+        "forecast for",
+        "when is the next",
+        "still alive",
+        "world cup",
+        "olympics",
+        "super bowl",
+        "score of",
+        "official announcement",
+        "press release",
+        "release date",
+        "when did ",
+        "when does ",
+        "google ",
+        "search online",
+        "look up online",
+        "on wikipedia",
+        "according to the news",
+        "news about",
+        "headlines",
+        "rumor is",
+        "rumour is",
+        "is it true that",
+        "fact check",
+        "verify online",
+    )
+    if any(p in m for p in phrases):
+        return True
+    if re.search(r"\b20(2[4-9]|[3-9][0-9])\b", m) and re.search(
+        r"\b(who|what|when|where|why|how|did|does|do|is|are|was|were|will|has|have)\b", m
+    ):
+        return True
+    return False

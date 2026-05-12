@@ -185,6 +185,7 @@ pinned: false
 - `GOOGLE_CSE_CX` — Programmable Search Engine id (`cx` from the [PSE control panel](https://programmablesearchengine.google.com/controlpanel/all)); required together with `GOOGLE_CSE_API_KEY` for web search.
 - `GOOGLE_CSE_NUM` — results per request, 1–10 (default 5).
 - `GOOGLE_CSE_SAFE` — optional safe-search level for Google `cse.list` (e.g. `off`, `active`).
+- `NO_AUTO_WEB` — set to `1` / `true` / `on` to disable **automatic** chat→web upgrades (router + `/web` unchanged).
 
 ### Note
 

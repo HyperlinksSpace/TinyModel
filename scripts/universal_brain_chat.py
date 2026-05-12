@@ -104,6 +104,7 @@ from horizon3_store import (  # noqa: E402
 from google_cse_client import (  # noqa: E402
     format_cse_hits_markdown,
     google_cse_search,
+    heuristic_suggests_web_search,
     read_google_cse_settings,
 )
 from nl_controls import parse_control_action  # noqa: E402
@@ -157,6 +158,7 @@ HELP_TEXT = """**How to use**
 - **Rewrite** professionally / rephrase
 - **Answer using only** these facts — include both facts and question
 - **Search** the FAQ / **find** in the knowledge base
+- **Live web** (news, prices, “latest …”, fact-checking) — router uses **web_search**; with Google CSE configured, the server may also **auto-run** web search when your wording implies it (see brain trace **`+auto`**). Disable with **`--no-auto-web`** or env **`NO_AUTO_WEB=1`** on your own deployment.
 - **Classify** (topic model) this paragraph
 - **Similarity:** are these two snippets close in meaning? (encoder cosine)
 - **Embedding** stats for a passage (dimension, norm, preview)
@@ -248,6 +250,7 @@ If you see an error about HTTP 403 or “API key not valid”, fix the key or en
 - Ensure **smart routing** is on (say *Turn on smart routing* if you turned it off).  
 - Ask in plain language for **live web** / **Google** / **today’s** information, e.g. *Search the web for the latest SpaceX launch summary* or *What does the web say about …?*  
 - The router uses intent **`web_search`**: the app fetches snippets, injects them into the model context, then the assistant replies **using those sources** (cite **[Web n]** when using a snippet).  
+- **Automatic web:** if Google CSE is configured, the app may also run a web search when your message **implies** fresh public facts (e.g. *latest*, *today*, *who won*, *stock price*, a recent year + question) even if you do not say “search the web”. On a self-hosted Space you can disable that with **`--no-auto-web`** or env **`NO_AUTO_WEB=1`**. Brain trace may show **`+auto`** on the web line when the upgrade came from this layer rather than the router alone.  
 - If the model stays in FAQ-only mode, use **`/web …`** first to confirm the API works, then try clearer web phrasing.
 
 **6) Brain trace**
@@ -328,6 +331,7 @@ Rules:
 - Default to "chat" when unsure; copy the entire user message into "text".
 - Do not invent facts for "grounded": if no clear facts/context, use "chat" instead.
 - Use **retrieve** for bundled FAQ / help-base search; use **web_search** when the user clearly needs the **public web** (today, external site, breaking news, "google this", etc.).
+- **web_search vs chat (critical):** choose **web_search** when a good answer depends on **recent events**, **live or site-specific data** (prices, sports scores, releases after your knowledge cutoff, "what happened today", laws/regulations that change), **verifying a claim against the public web**, or **finding an official URL**. Choose **chat** for timeless explanations, coding how-to without needing today's docs, brainstorming, role-play, or personal opinion where web snippets would not change the answer.
 - Extract minimal "text" for tool intents (do not repeat system chatter)."""
 
 VALID_INTENTS = frozenset(
@@ -1774,6 +1778,11 @@ def parse_args() -> argparse.Namespace:
         help="Disable NL intent routing (plain chat only; slash commands still work).",
     )
     p.add_argument(
+        "--no-auto-web",
+        action="store_true",
+        help="Disable chat→web_search heuristic (only explicit router web_search or /web uses Google CSE).",
+    )
+    p.add_argument(
         "--router-max-new-tokens",
         type=int,
         default=192,
@@ -1786,6 +1795,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     _load_dotenv_if_present(_REPO)
+    if os.environ.get("NO_AUTO_WEB", "").strip().lower() in ("1", "true", "yes", "on"):
+        args.no_auto_web = True
     _gk, _gc, _, _ = read_google_cse_settings()
     cse_on = bool(_gk and _gc)
     _ensure_gradio_can_reach_localhost()
@@ -1968,10 +1979,28 @@ def main() -> None:
             except Exception:
                 route = {"intent": "chat", "text": msg, "question": "", "context": ""}
 
+            g_key, g_cx, _, _ = read_google_cse_settings()
+            web_from_auto = False
+            if (
+                not args.no_auto_web
+                and route["intent"] == "chat"
+                and g_key
+                and g_cx
+                and heuristic_suggests_web_search(msg)
+            ):
+                route = {
+                    "intent": "web_search",
+                    "text": msg,
+                    "question": "",
+                    "context": "",
+                }
+                web_from_auto = True
+
             if route["intent"] == "web_search":
                 g_key, g_cx, g_num, g_safe = read_google_cse_settings()
                 q_web = (route["text"] or msg).strip()
-                web_trace = "web:CSE:cfg"
+                _as = "+auto" if web_from_auto else ""
+                web_trace = f"web:CSE:cfg{_as}"
                 if g_key and g_cx and q_web:
                     try:
                         hits = google_cse_search(
@@ -1982,16 +2011,16 @@ def main() -> None:
                             safe=g_safe,
                         )
                         web_block = format_cse_hits_markdown(hits, for_chat=True)
-                        web_trace = f"web:CSE:{len(hits)}"
+                        web_trace = f"web:CSE:{len(hits)}{_as}"
                     except Exception as ex:
                         web_block = (
                             f"(Google web search failed: {_clip(str(ex), 500)})\n\n"
                             "Answer from general knowledge where appropriate; do not invent URLs or page titles."
                         )
-                        web_trace = "web:CSE:err"
+                        web_trace = f"web:CSE:err{_as}"
                 elif not q_web:
                     web_block = "(Empty web search query. Ask again with a concrete search topic.)"
-                    web_trace = "web:CSE:empty"
+                    web_trace = f"web:CSE:empty{_as}"
                 else:
                     web_block = (
                         "(Web search is not configured: set **GOOGLE_CSE_API_KEY** and **GOOGLE_CSE_CX** "
