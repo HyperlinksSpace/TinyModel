@@ -933,6 +933,27 @@ def _embedded_speculation_strict(m: str) -> bool:
     )
 
 
+def _embedded_answer_lead_tldr(m: str) -> bool:
+    """True if a longer prompt wants an upfront summary / BLUF (not the short *TLDR first* control line)."""
+    if len(m) < 44:
+        return False
+    if re.search(
+        r"\b(no tldr|skip (?:the )?summary|answer directly|without a (?:summary|tldr)|"
+        r"no executive summary|don'?t (?:add|give) a tldr)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(tl;?dr first|tldr first|lead with (?:a\s+)?(?:one[- ]line\s+)?summary|summary first|"
+            r"executive summary first|bottom line up front|bluf|"
+            r"start with (?:a\s+)?(?:short\s+)?summary|headline first|"
+            r"give me the (?:key\s+)?takeaway first)\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1023,6 +1044,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_speculation_strict(m):
         overrides["speculation"] = "strict"
+
+    if _embedded_answer_lead_tldr(m):
+        overrides["answer_lead"] = "tldr_first"
 
     if len(m) < 48:
         return overrides, extras, trace_tags

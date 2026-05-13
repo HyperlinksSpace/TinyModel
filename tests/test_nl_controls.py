@@ -657,6 +657,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("speculation"))
 
+    def test_embedded_answer_lead_tldr_bluf(self) -> None:
+        msg = (
+            "We need to brief the CFO in two minutes on why our cloud egress bill spiked last month. "
+            "Please use BLUF: bottom line up front, then the supporting factors and what we already mitigated."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("answer_lead"), "tldr_first")
+
+    def test_embedded_answer_lead_respects_skip_summary(self) -> None:
+        msg = (
+            "Explain how object storage lifecycle policies interact with versioning. Answer directly without a tldr; "
+            "I need continuous prose for a design doc footnote."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("answer_lead"))
+
 
 if __name__ == "__main__":
     unittest.main()
