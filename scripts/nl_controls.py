@@ -867,6 +867,30 @@ def _embedded_simple_audience(m: str) -> bool:
     )
 
 
+def _embedded_register_tone(m: str) -> str | None:
+    """One-shot formal vs casual register when prose names an audience (not the short *Formal tone* control)."""
+    if len(m) < 48:
+        return None
+    formal = re.search(
+        r"\b(board-ready|for regulators|regulatory filing|formal memo|audit[- ]friendly|"
+        r"client-facing|for (?:the\s+)?board(?:\s+of\s+directors)?\b|for leadership review|"
+        r"executive summary for|c[- ]suite|for executives|board presentation|investor[- ]ready|"
+        r"sec filing tone)\b",
+        m,
+    )
+    casual = re.search(
+        r"\b(slack message|teams message to the team|keep it casual|casual tone|friendly teammate|"
+        r"like you(?:'re|\s+are)\s+my coworker|water cooler|informal note|keep it light|"
+        r"pub chat|chatty tone)\b",
+        m,
+    )
+    if formal and not casual:
+        return "formal"
+    if casual and not formal:
+        return "casual"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -947,6 +971,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
+
+    ert = _embedded_register_tone(m)
+    if ert:
+        overrides["register_tone"] = ert
 
     if len(m) < 48:
         return overrides, extras, trace_tags

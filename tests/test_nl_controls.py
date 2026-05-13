@@ -601,6 +601,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("audience"))
 
+    def test_embedded_register_formal_board_ready(self) -> None:
+        msg = (
+            "Our startup is preparing the Q2 board deck. Draft a board-ready paragraph explaining why we chose "
+            "multi-region Postgres over a managed document store for our audit trail requirements."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("register_tone"), "formal")
+
+    def test_embedded_register_casual_slack(self) -> None:
+        msg = (
+            "The deploy finished late last night and metrics look fine. Help me write a short Slack message to the team "
+            "celebrating the win—keep it casual and friendly, no corporate buzzwords."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("register_tone"), "casual")
+
+    def test_embedded_register_ambiguous_skips(self) -> None:
+        msg = (
+            "Draft a client-facing email that still sounds like a casual Slack message to engineers; "
+            "we want both tones at once which is confusing."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("register_tone"))
+
 
 if __name__ == "__main__":
     unittest.main()
