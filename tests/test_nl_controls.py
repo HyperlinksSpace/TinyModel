@@ -625,6 +625,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("register_tone"))
 
+    def test_embedded_json_output_in_prose(self) -> None:
+        msg = (
+            "We need a tiny status blob for CI: return json with keys ok, message, and retry_after_seconds "
+            "summarizing whether the deploy gate passed. Keep keys stable for parsers."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("output_format"), "json")
+
+    def test_embedded_json_respects_plain_text_opt_out(self) -> None:
+        msg = (
+            "The API can return json but for this ticket please explain in plain text only what fields mean; "
+            "no json block in the answer."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("output_format"))
+
 
 if __name__ == "__main__":
     unittest.main()

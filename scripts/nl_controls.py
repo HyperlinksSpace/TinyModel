@@ -891,6 +891,26 @@ def _embedded_register_tone(m: str) -> str | None:
     return None
 
 
+def _embedded_json_output(m: str) -> bool:
+    """True if a longer prompt asks for JSON-shaped output (not the short *Answer in JSON* control line)."""
+    if len(m) < 40:
+        return False
+    if re.search(
+        r"\b(no json|not json|avoid json|skip json|plain text only|no structured output|"
+        r"don'?t use json|without json)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(valid json|return json|reply in json|answer in json|json output|structured json|"
+            r"json object|json array|as json\b|as a json|machine[- ]readable json|emit json|"
+            r"serialize (?:to|as) json|output as json|respond with json)\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -975,6 +995,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ert = _embedded_register_tone(m)
     if ert:
         overrides["register_tone"] = ert
+
+    if _embedded_json_output(m):
+        overrides["output_format"] = "json"
 
     if len(m) < 48:
         return overrides, extras, trace_tags
