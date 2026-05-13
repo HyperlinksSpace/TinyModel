@@ -460,26 +460,28 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
             "We are choosing a primary datastore for OLTP. "
             "What are the practical tradeoffs between PostgreSQL and MySQL for our team?"
         )
-        o, e = analyze_embedded_prompt_signals(msg)
+        o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("comparison_frame"), "pros_cons")
         self.assertFalse(e)
+        self.assertEqual(t, [])
 
     def test_compare_versus_imply_pros_cons(self) -> None:
         msg = "For a greenfield API, compare gRPC versus REST in terms of operability and client ergonomics."
-        o, _e = analyze_embedded_prompt_signals(msg)
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("comparison_frame"), "pros_cons")
 
     def test_short_message_no_structural_signals(self) -> None:
-        o, e = analyze_embedded_prompt_signals("What is the capital of France?")
+        o, e, t = analyze_embedded_prompt_signals("What is the capital of France?")
         self.assertEqual(o, {})
         self.assertEqual(e, [])
+        self.assertEqual(t, [])
 
     def test_how_to_install_numbered_steps(self) -> None:
         msg = (
             "I am on Ubuntu 22.04 and need TLS for an internal service. "
             "How do I install certbot and configure nginx for automatic renewals?"
         )
-        o, _e = analyze_embedded_prompt_signals(msg)
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("step_style"), "numbered")
 
     def test_markdown_table_prefer(self) -> None:
@@ -487,24 +489,44 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
             "Summarize the SLA tiers we discussed: latency budget, error rate, and support response time "
             "in a markdown table so I can paste it into a doc."
         )
-        o, _e = analyze_embedded_prompt_signals(msg)
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("table_style"), "prefer")
 
     def test_answer_in_spanish_short(self) -> None:
         msg = "What is 2+2? Please answer in spanish."
-        o, e = analyze_embedded_prompt_signals(msg)
+        o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o, {})
         self.assertEqual(len(e), 1)
         self.assertIn("Spanish", e[0])
+        self.assertEqual(t, ["language"])
 
     def test_no_false_positive_explain_simply(self) -> None:
         msg = (
             "Our SRE team wants a calm incident review template. "
             "Explain simply how we should structure blameless postmortems for outages."
         )
-        o, e = analyze_embedded_prompt_signals(msg)
+        o, e, _t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("French", " ".join(e))
         self.assertIsNone(o.get("reply_format"))
+
+    def test_code_only_trace(self) -> None:
+        msg = (
+            "I need a Python 3 function that returns the sha256 hex digest of a utf-8 string. "
+            "Code only, no explanation."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("code_only", t)
+        self.assertTrue(any("code-first" in x for x in e))
+
+    def test_length_cap_words_trace(self) -> None:
+        msg = (
+            "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
+            "Keep the answer in under 90 words."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("len_cap=90w", t)
+        self.assertTrue(any("90" in x and "words" in x for x in e))
 
 
 if __name__ == "__main__":

@@ -684,6 +684,78 @@ _REPLY_LANG_TOKENS: dict[str, str] = {
 }
 
 
+_LEN_CAP_UNIT_MAX: dict[str, int] = {
+    "word": 2500,
+    "words": 2500,
+    "sentence": 80,
+    "sentences": 80,
+    "paragraph": 30,
+    "paragraphs": 30,
+    "line": 120,
+    "lines": 120,
+}
+
+
+def _length_cap_instruction(m: str) -> tuple[str, str] | None:
+    """If the user asked for a max length, return (system instruction, compact trace token)."""
+    if len(m) < 24:
+        return None
+    patterns = [
+        re.compile(
+            r"\b(?:in under|at most|no more than|under|within|no longer than)\s+(\d{1,4})\s+"
+            r"(words?|sentences?|paragraphs?|lines?)\b"
+        ),
+        re.compile(r"\b(?:max|maximum)\s+(\d{1,4})\s+(words?|sentences?|paragraphs?|lines?)\b"),
+        re.compile(r"\b(\d{1,4})\s+words?\s+(?:max|maximum|only|at most|or less)\b"),
+    ]
+    for rx in patterns:
+        mo = rx.search(m)
+        if not mo:
+            continue
+        n_raw, unit = mo.group(1), mo.group(2).lower()
+        try:
+            n = int(n_raw)
+        except ValueError:
+            continue
+        cap = _LEN_CAP_UNIT_MAX.get(unit)
+        if cap is None or n < 1 or n > cap:
+            continue
+        if unit.startswith("word"):
+            plural, short = "words", "w"
+        elif unit.startswith("sentence"):
+            plural, short = "sentences", "s"
+        elif unit.startswith("paragraph"):
+            plural, short = "paragraphs", "p"
+        else:
+            plural, short = "lines", "ln"
+        trace_tok = f"len_cap={n}{short}"
+        instr = (
+            f"The user requested a **tight length cap** of about **{n} {plural}** for the full assistant answer "
+            f"(including lists or headings). Stay at or under this cap; if it is impossible, say so in one short sentence "
+            "then give the closest fit."
+        )
+        return instr, trace_tok
+    return None
+
+
+def _code_only_instruction(m: str) -> str | None:
+    """Detect requests for code-heavy output with almost no prose."""
+    if len(m) < 18:
+        return None
+    if re.search(
+        r"\b(just the code|code only|only code|no prose,?\s*just code|no explanation,?\s*just (?:the )?code|"
+        r"skip (?:the )?explanation|omit (?:the )?explanation|(?:give|send|return)\s+me\s+only\s+the\s+code|"
+        r"output\s+only\s+(?:the\s+)?code)\b",
+        m,
+    ):
+        return (
+            "The user asked for **code-first output**: put the working solution in **one fenced markdown code block** "
+            "when the answer is code; keep any non-code text to **at most one short sentence** or omit it if the code "
+            "is self-explanatory."
+        )
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -710,31 +782,45 @@ def _reply_lang_phrase(m: str) -> str | None:
     return None
 
 
-def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[str]]:
+def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[str], list[str]]:
     """Infer reply-style preferences from wording inside longer questions (one-shot overlays).
 
     Used only when ``parse_control_action`` does not treat the line as a dedicated control
     command. Conservative patterns avoid hijacking short chit-chat.
 
     Returns:
-        (field_overrides, extra_system_paragraphs) — overrides use the same keys/values as
-        ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections.
+        (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
+        ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
+        ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
+        ``code_only``, ``len_cap=80w``).
     """
     m = _norm(message)
     overrides: dict[str, str] = {}
     extras: list[str] = []
+    trace_tags: list[str] = []
 
     if len(m) >= 24:
         lang = _reply_lang_phrase(m)
         if lang:
+            trace_tags.append("language")
             extras.append(
                 f"The user asked (via natural wording) for the assistant reply in **{lang}**. "
                 f"Write the **entire** answer in {lang}, including headings and lists, unless a quoted passage must stay "
                 "verbatim in another language."
             )
 
+    co = _code_only_instruction(m)
+    if co:
+        trace_tags.append("code_only")
+        extras.append(co)
+
+    lc = _length_cap_instruction(m)
+    if lc:
+        extras.append(lc[0])
+        trace_tags.append(lc[1])
+
     if len(m) < 48:
-        return overrides, extras
+        return overrides, extras, trace_tags
 
     # Comparison layout (prefer narrative if user explicitly rejects rigid pros/cons).
     if re.search(r"\b(no pros|without pros|avoid pros|no pros\/cons)\b", m) and re.search(
@@ -795,5 +881,5 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ):
         overrides["math_detail"] = "show_work"
 
-    return overrides, extras
+    return overrides, extras, trace_tags
 

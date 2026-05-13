@@ -186,6 +186,21 @@ GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 
 ---
 
+### Testing embedded prompt signals (this Space)
+
+These behaviors apply when your line is handled as **normal chat** (not a short dedicated control like *Be brief*). The app scans your wording and adds **one-turn** system hints. Say **Show the brain trace** first, send a message, then scroll to the bottom of the assistant reply.
+
+| Goal | What to type (examples) | What to look for |
+| --- | --- | --- |
+| Comparison layout | One paragraph asking for **tradeoffs** or **pros and cons** between two concrete options (message **longer than ~50 characters**). | Footer line contains **`prompt_signals:`** and **`comparison_frame=pros_cons`** |
+| Length cap | End your question with **in under 80 words** or **at most 3 sentences**. | **`len_cap=80w`** or **`len_cap=3s`** in **`prompt_signals:`**; the model should stay near that cap |
+| Code-only | Ask for a tiny snippet and add **code only, no explanation** (or **just the code**). | **`code_only`** in **`prompt_signals:`**; reply should be mostly a fenced code block |
+| Tables / steps / language | Ask for a summary **in a markdown table**, or a setup **step by step**, or **answer in spanish** in the same line as your question. | **`table_style=prefer`**, **`step_style=numbered`**, and/or **`language`** in **`prompt_signals:`** |
+
+If there is no footer, brain trace is off for that session, or this deployment has **no** encoder / FAQ / memory / web layers and no prompt signals fired yet—**prompt signals alone** still turn the footer on once this feature triggers.
+
+---
+
 ### What to try (step-by-step)
 
 | Goal | What to type |
@@ -2053,14 +2068,14 @@ def main() -> None:
 
             chat_line = route["text"] or msg
 
-        sig_overrides, sig_extras = analyze_embedded_prompt_signals(msg)
+        sig_overrides, sig_extras, sig_trace_tags = analyze_embedded_prompt_signals(msg)
         eff_session = dict(ub_session)
         eff_session.update(sig_overrides)
         trace: list[str] = []
-        if sig_overrides or sig_extras:
+        prompt_sig_active = bool(sig_overrides or sig_extras or sig_trace_tags)
+        if prompt_sig_active:
             bits = [f"{k}={v}" for k, v in sorted(sig_overrides.items())]
-            if sig_extras:
-                bits.append("language")
+            bits.extend(sig_trace_tags)
             trace.append("prompt_signals:" + "+".join(bits))
         extras: list[str] = []
         _append_reply_style_hints(extras, eff_session)
@@ -2135,6 +2150,7 @@ def main() -> None:
                 or mem_conn is not None
                 or effective_rag is not None
                 or bool(web_trace)
+                or prompt_sig_active
             )
         )
         if show_trace_footer and trace:
