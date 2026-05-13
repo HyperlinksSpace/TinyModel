@@ -808,6 +808,39 @@ def _ephemeral_privacy_instruction(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _accessibility_sr_instruction(m: str) -> tuple[str, str] | None:
+    """User wants screen-reader / WCAG-minded answer structure (linear, semantic headings)."""
+    if len(m) < 44:
+        return None
+    if not re.search(
+        r"\b(screen[- ]?reader|screenreader|nvda|jaws|voiceover|talkback|orca|"
+        r"wcag(?:\s+[0-9]{1,2}(?:\.[0-9])?)?|\ba11y\b|accessibility|accessible to|"
+        r"blind users?|low vision|visually impaired)\b",
+        m,
+    ):
+        return None
+    audience = re.search(
+        r"\bfor\s+(?:blind|low-vision|screen[- ]?reader|a11y)\s+(?:users?|readers?|audiences?|visitors?)?\b",
+        m,
+    )
+    format_rq = re.search(
+        r"\b(friendly|friendlier|structure|structured|layout|linear|heading|headings|semantic|"
+        r"readable|reformat|format this|annotate|describe (?:the\s+)?(?:chart|diagram|figure|image)|"
+        r"please (?:reply|answer|write|help|summarize|reformat|structure)|"
+        r"how (?:should|can) i (?:write|format|publish))\b",
+        m,
+    )
+    if not audience and not format_rq:
+        return None
+    instr = (
+        "The user asked for **screen-reader–friendly / accessibility-aware** formatting: prefer a **clear linear reading order**; "
+        "use real markdown heading lines for sections when the answer is long; do **not** rely on a table as the **only** "
+        "place critical facts appear—repeat key facts in prose if you use a table; briefly describe any chart or diagram "
+        "in words; keep emoji sparse and never the sole carrier of meaning."
+    )
+    return instr, "a11y"
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -844,7 +877,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``).
+        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``).
     """
     m = _norm(message)
     overrides: dict[str, str] = {}
@@ -880,6 +913,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ep:
         extras.append(ep[0])
         trace_tags.append(ep[1])
+
+    ax = _accessibility_sr_instruction(m)
+    if ax:
+        extras.append(ax[0])
+        trace_tags.append(ax[1])
 
     if len(m) < 48:
         return overrides, extras, trace_tags

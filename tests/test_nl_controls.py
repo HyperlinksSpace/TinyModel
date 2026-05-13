@@ -569,6 +569,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("ephemeral", t)
 
+    def test_accessibility_screen_reader_friendly(self) -> None:
+        msg = (
+            "We need to publish an internal FAQ about our refund window and chargebacks for support staff. "
+            "Please make the answer screen reader friendly with clear headings; some agents use NVDA on Windows."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("a11y", t)
+        self.assertTrue(any("screen-reader" in x.lower() or "accessibility" in x.lower() for x in e))
+
+    def test_accessibility_no_false_positive_what_is_wcag(self) -> None:
+        msg = "In one sentence, what is WCAG?"
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("a11y", t)
+        self.assertFalse(any("screen-reader" in x.lower() for x in e))
+
 
 if __name__ == "__main__":
     unittest.main()
