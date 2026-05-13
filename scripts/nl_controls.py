@@ -841,6 +841,32 @@ def _accessibility_sr_instruction(m: str) -> tuple[str, str] | None:
     return instr, "a11y"
 
 
+def _embedded_simple_audience(m: str) -> bool:
+    """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
+    if len(m) < 40:
+        return False
+    if re.search(
+        r"\b(expert mode|technical audience|assume i'?m technical|phd level|for experts|deep technical)\b",
+        m,
+    ):
+        return False
+    if not re.search(
+        r"\b(eli5|explain like i'?m(?:\s+a)? five|like i'?m(?:\s+a)? five\b|"
+        r"for (?:my )?kids to understand|total beginner|i'?m\s+a\s+beginner\b|beginner\s+here\b|"
+        r"non-technical (?:parent|reader|manager|audience)|"
+        r"lay audience|no technical background|zero prior knowledge)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(why|how|what|when|where|explain|describe|tell me|help me (?:to )?understand|walk me through|"
+            r"learn about|new to)\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -918,6 +944,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ax:
         extras.append(ax[0])
         trace_tags.append(ax[1])
+
+    if _embedded_simple_audience(m):
+        overrides["audience"] = "simple"
 
     if len(m) < 48:
         return overrides, extras, trace_tags

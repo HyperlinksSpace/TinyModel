@@ -585,6 +585,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("a11y", t)
         self.assertFalse(any("screen-reader" in x.lower() for x in e))
 
+    def test_embedded_eli5_sets_audience_simple(self) -> None:
+        msg = (
+            "Our PTA asked me to explain to other parents why TLS matters for school websites. "
+            "What is TLS in practice, eli5, but still directionally correct for HTTPS?"
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("audience"), "simple")
+
+    def test_embedded_beginner_respects_expert_intent(self) -> None:
+        msg = (
+            "Assume I'm technical and want a deep dive, but also give one eli5 sentence at the end for the abstract. "
+            "How does CRDT conflict resolution differ from OT for collaborative text?"
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("audience"))
+
 
 if __name__ == "__main__":
     unittest.main()
