@@ -673,6 +673,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("answer_lead"))
 
+    def test_embedded_actionability_commands_kubectl(self) -> None:
+        msg = (
+            "Our staging cluster is on EKS 1.29. I need to verify whether the metrics-server addon is installed. "
+            "Include kubectl commands I can copy-paste into my terminal to list addons and describe the deployment."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("actionability"), "commands")
+
+    def test_embedded_actionability_respects_conceptual_only(self) -> None:
+        msg = (
+            "Compare blue-green vs canary deploy strategies for API rollouts. Conceptual only—no shell commands—"
+            "I want tradeoffs for an architecture review slide."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("actionability"))
+
 
 if __name__ == "__main__":
     unittest.main()

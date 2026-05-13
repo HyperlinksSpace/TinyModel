@@ -954,6 +954,30 @@ def _embedded_answer_lead_tldr(m: str) -> bool:
     )
 
 
+def _embedded_actionability_commands(m: str) -> bool:
+    """True if a longer prompt asks for runnable shell/tooling snippets (not the short *Make it actionable* control)."""
+    if len(m) < 44:
+        return False
+    if re.search(
+        r"\b(no commands|conceptual only|high level only|without commands|no shell commands|"
+        r"no code|no snippets|theory only)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(include (?:a\s+)?(?:bash|sh|zsh|powershell) snippet|run(?:nable)? commands?|"
+            r"copy[- ]paste (?:into )?(?:the\s+)?(?:terminal|shell)|"
+            r"curl (?:one[- ]?liner|example)|one[- ]liner (?:for|to)|"
+            r"bash one[- ]liner|powershell command|terminal commands?|"
+            r"give me (?:the\s+)?(?:exact\s+)?commands?|include kubectl|"
+            r"docker (?:run|compose) (?:example|snippet)|(?:pip|npm|pnpm|yarn) install (?:line|command)|"
+            r"ready[- ]to[- ]run (?:script|snippet)|paste(?:able)? commands?)\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1047,6 +1071,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_answer_lead_tldr(m):
         overrides["answer_lead"] = "tldr_first"
+
+    if _embedded_actionability_commands(m):
+        overrides["actionability"] = "commands"
 
     if len(m) < 48:
         return overrides, extras, trace_tags
