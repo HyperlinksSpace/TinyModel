@@ -785,6 +785,29 @@ def _guided_discovery_instruction(m: str) -> tuple[str, str] | None:
     return instr, "guided"
 
 
+def _ephemeral_privacy_instruction(m: str) -> tuple[str, str] | None:
+    """User asked not to treat this turn as content to persist (memory / logging)."""
+    if len(m) < 22:
+        return None
+    if re.search(
+        r"\b(off the record|no memory for this|nothing persisted|ephemeral question|ephemeral chat|"
+        r"don'?t log this|don'?t persist this|"
+        r"don'?t (?:remember|store) (?:this|that|it|anything)|"
+        r"do not (?:remember|store) (?:this|that|it)|"
+        r"please don'?t (?:remember|store) (?:this|that|it)|"
+        r"forget this after|don'?t save (?:this|that)\s+to\s+memory)\b",
+        m,
+    ):
+        instr = (
+            "The user signaled **ephemeral intent** for this reply: do **not** invite `/remember`, `/session`, or "
+            "long-term note-taking for this content; avoid urging them to store secrets, API keys, or passwords. "
+            "Still answer helpfully within normal safety and deployment limits."
+        )
+        return instr, "ephemeral"
+
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -821,7 +844,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``len_cap=80w``, ``guided``).
+        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``).
     """
     m = _norm(message)
     overrides: dict[str, str] = {}
@@ -852,6 +875,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if gd:
         extras.append(gd[0])
         trace_tags.append(gd[1])
+
+    ep = _ephemeral_privacy_instruction(m)
+    if ep:
+        extras.append(ep[0])
+        trace_tags.append(ep[1])
 
     if len(m) < 48:
         return overrides, extras, trace_tags

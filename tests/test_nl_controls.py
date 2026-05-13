@@ -554,6 +554,21 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("counterpoint_tone"))
 
+    def test_ephemeral_off_the_record(self) -> None:
+        msg = (
+            "Off the record: if a teammate pasted an AWS secret into Slack by mistake, what is the fastest containment checklist? "
+            "Don't remember this question—I don't want it in session notes."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("ephemeral", t)
+        self.assertTrue(any("ephemeral intent" in x.lower() for x in e))
+
+    def test_ephemeral_no_false_positive_remember_to(self) -> None:
+        msg = "Please remind me to buy milk after the deploy window closes tonight."
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("ephemeral", t)
+
 
 if __name__ == "__main__":
     unittest.main()
