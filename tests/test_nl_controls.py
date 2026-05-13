@@ -528,6 +528,16 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertIn("len_cap=90w", t)
         self.assertTrue(any("90" in x and "words" in x for x in e))
 
+    def test_guided_discovery_hints_only(self) -> None:
+        msg = (
+            "I'm learning graph algorithms and stuck on why Dijkstra fails with negative edges. "
+            "Please give hints only; don't hand me the full solution yet—I want to work it out myself."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("guided", t)
+        self.assertTrue(any("guided discovery" in x.lower() for x in e))
+
 
 if __name__ == "__main__":
     unittest.main()

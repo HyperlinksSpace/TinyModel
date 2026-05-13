@@ -112,7 +112,7 @@ from rag_faq_smoke import _pick_model, hybrid_retrieve, load_chunks  # noqa: E40
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 HELP_TEXT = """**How to use**
-- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.). Longer prompts may also **imply** reply shape for that turn only (for example trade-off questions → Pros/Cons layout, “in a table” → markdown table preference, “answer in Spanish” → reply language, **code only** → code-first output, **in under N words** → length cap) — see *Brain trace* **`prompt_signals:`** when detected.
+- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.). Longer prompts may also **imply** reply shape for that turn only (for example trade-off questions → Pros/Cons layout, “in a table” → markdown table preference, “answer in Spanish” → reply language, **code only** → code-first output, **in under N words** → length cap, **hints only / don’t give the full solution** → guided discovery) — see *Brain trace* **`prompt_signals:`** when detected.
 - **Session controls (say it in chat, no slash command):**
   - *What is my current scope?*, *Show my session settings* -> prints scope + toggles (FAQ context, routing, trace)
   - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
@@ -196,6 +196,7 @@ These behaviors apply when your line is handled as **normal chat** (not a short 
 | Length cap | End your question with **in under 80 words** or **at most 3 sentences**. | **`len_cap=80w`** or **`len_cap=3s`** in **`prompt_signals:`**; the model should stay near that cap |
 | Code-only | Ask for a tiny snippet and add **code only, no explanation** (or **just the code**). | **`code_only`** in **`prompt_signals:`**; reply should be mostly a fenced code block |
 | Tables / steps / language | Ask for a summary **in a markdown table**, or a setup **step by step**, or **answer in spanish** in the same line as your question. | **`table_style=prefer`**, **`step_style=numbered`**, and/or **`language`** in **`prompt_signals:`** |
+| Guided discovery (hints / Socratic) | Ask a **how / why** question and say you want **hints only** or **don’t give me the full solution yet** (keep the message substantive, not a one-liner control). | **`guided`** in **`prompt_signals:`**; first reply should skew toward questions and nudges |
 
 If there is no footer, brain trace is off for that session, or this deployment has **no** encoder / FAQ / memory / web layers and no prompt signals fired yet—**prompt signals alone** still turn the footer on once this feature triggers.
 

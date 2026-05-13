@@ -756,6 +756,35 @@ def _code_only_instruction(m: str) -> str | None:
     return None
 
 
+def _guided_discovery_instruction(m: str) -> tuple[str, str] | None:
+    """User wants hints, nudges, or questions instead of a fully worked answer on the first reply."""
+    if len(m) < 36:
+        return None
+    if not re.search(
+        r"\b(don'?t (give|spell|hand) (me )?(the )?full (answer|solution)|don'?t spoil the solution|"
+        r"hints? only|only hints|guide me with (hints|questions)|nudge me (in the right direction|toward)|"
+        r"i want to (figure|work) it out myself|socratic(\s+method)?|"
+        r"lead me to (the )?answer|questions first instead of answering|"
+        r"without (giving|spelling) (out )?(the )?(whole )?solution)\b",
+        m,
+    ):
+        return None
+    # Require a problem-seeking cue so casual chat ("no spoilers for the movie") does not flip modes.
+    if not re.search(
+        r"\b(why|how|explain|prove|derive|solve|puzzle|homework|problem|exercise|bug|code|implement|"
+        r"design|compare|understand|learn|teach|practice|algorithm|proof|debug|refactor)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user asked for **guided discovery** (Socratic / hint-first): prefer short **questions**, "
+        "**nudges**, and **partial hints** over a complete solution in this turn. "
+        "If one concrete step is essential, show **at most one** move, then check whether they want to continue. "
+        "Offer the full worked answer if they say they are stuck or ask you to finish."
+    )
+    return instr, "guided"
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -792,7 +821,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``len_cap=80w``).
+        ``code_only``, ``len_cap=80w``, ``guided``).
     """
     m = _norm(message)
     overrides: dict[str, str] = {}
@@ -818,6 +847,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if lc:
         extras.append(lc[0])
         trace_tags.append(lc[1])
+
+    gd = _guided_discovery_instruction(m)
+    if gd:
+        extras.append(gd[0])
+        trace_tags.append(gd[1])
 
     if len(m) < 48:
         return overrides, extras, trace_tags
