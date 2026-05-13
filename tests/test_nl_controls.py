@@ -11,7 +11,7 @@ _SCRIPTS = _REPO / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from nl_controls import parse_control_action  # noqa: E402
+from nl_controls import analyze_embedded_prompt_signals, parse_control_action  # noqa: E402
 
 
 class TestNlControls(unittest.TestCase):
@@ -452,6 +452,59 @@ class TestNlControls(unittest.TestCase):
         self.assertIsNotNone(a)
         self.assertEqual(a.name, "set_counterpoint_tone")
         self.assertEqual(a.value, "normal")
+
+
+class TestEmbeddedPromptSignals(unittest.TestCase):
+    def test_tradeoffs_imply_pros_cons(self) -> None:
+        msg = (
+            "We are choosing a primary datastore for OLTP. "
+            "What are the practical tradeoffs between PostgreSQL and MySQL for our team?"
+        )
+        o, e = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("comparison_frame"), "pros_cons")
+        self.assertFalse(e)
+
+    def test_compare_versus_imply_pros_cons(self) -> None:
+        msg = "For a greenfield API, compare gRPC versus REST in terms of operability and client ergonomics."
+        o, _e = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("comparison_frame"), "pros_cons")
+
+    def test_short_message_no_structural_signals(self) -> None:
+        o, e = analyze_embedded_prompt_signals("What is the capital of France?")
+        self.assertEqual(o, {})
+        self.assertEqual(e, [])
+
+    def test_how_to_install_numbered_steps(self) -> None:
+        msg = (
+            "I am on Ubuntu 22.04 and need TLS for an internal service. "
+            "How do I install certbot and configure nginx for automatic renewals?"
+        )
+        o, _e = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("step_style"), "numbered")
+
+    def test_markdown_table_prefer(self) -> None:
+        msg = (
+            "Summarize the SLA tiers we discussed: latency budget, error rate, and support response time "
+            "in a markdown table so I can paste it into a doc."
+        )
+        o, _e = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("table_style"), "prefer")
+
+    def test_answer_in_spanish_short(self) -> None:
+        msg = "What is 2+2? Please answer in spanish."
+        o, e = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertEqual(len(e), 1)
+        self.assertIn("Spanish", e[0])
+
+    def test_no_false_positive_explain_simply(self) -> None:
+        msg = (
+            "Our SRE team wants a calm incident review template. "
+            "Explain simply how we should structure blameless postmortems for outages."
+        )
+        o, e = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("French", " ".join(e))
+        self.assertIsNone(o.get("reply_format"))
 
 
 if __name__ == "__main__":

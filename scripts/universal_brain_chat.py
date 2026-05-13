@@ -107,12 +107,12 @@ from google_cse_client import (  # noqa: E402
     heuristic_suggests_web_search,
     read_google_cse_settings,
 )
-from nl_controls import parse_control_action  # noqa: E402
+from nl_controls import analyze_embedded_prompt_signals, parse_control_action  # noqa: E402
 from rag_faq_smoke import _pick_model, hybrid_retrieve, load_chunks  # noqa: E402
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 HELP_TEXT = """**How to use**
-- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.).
+- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.). Longer prompts may also **imply** reply shape for that turn only (for example trade-off questions → Pros/Cons layout, “in a table” → markdown table preference, “answer in Spanish” → reply language) — see *Brain trace* **`prompt_signals:`** when detected.
 - **Session controls (say it in chat, no slash command):**
   - *What is my current scope?*, *Show my session settings* -> prints scope + toggles (FAQ context, routing, trace)
   - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
@@ -2053,9 +2053,19 @@ def main() -> None:
 
             chat_line = route["text"] or msg
 
+        sig_overrides, sig_extras = analyze_embedded_prompt_signals(msg)
+        eff_session = dict(ub_session)
+        eff_session.update(sig_overrides)
         trace: list[str] = []
+        if sig_overrides or sig_extras:
+            bits = [f"{k}={v}" for k, v in sorted(sig_overrides.items())]
+            if sig_extras:
+                bits.append("language")
+            trace.append("prompt_signals:" + "+".join(bits))
         extras: list[str] = []
-        _append_reply_style_hints(extras, ub_session)
+        _append_reply_style_hints(extras, eff_session)
+        for para in sig_extras:
+            extras.append(para)
         if web_trace:
             trace.append(web_trace)
 

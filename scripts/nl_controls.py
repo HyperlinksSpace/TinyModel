@@ -650,3 +650,150 @@ def parse_control_action(message: str) -> ControlAction | None:
 
     return None
 
+
+# Tokens for "write the reply in …" detection (allowlist avoids "in Python" / "in 24 hours").
+_REPLY_LANG_TOKENS: dict[str, str] = {
+    "arabic": "Arabic",
+    "chinese": "Chinese (Simplified)",
+    "czech": "Czech",
+    "danish": "Danish",
+    "dutch": "Dutch",
+    "english": "English",
+    "finnish": "Finnish",
+    "french": "French",
+    "german": "German",
+    "greek": "Greek",
+    "hebrew": "Hebrew",
+    "hindi": "Hindi",
+    "hungarian": "Hungarian",
+    "indonesian": "Indonesian",
+    "italian": "Italian",
+    "japanese": "Japanese",
+    "korean": "Korean",
+    "norwegian": "Norwegian",
+    "polish": "Polish",
+    "portuguese": "Portuguese",
+    "romanian": "Romanian",
+    "russian": "Russian",
+    "spanish": "Spanish",
+    "swedish": "Swedish",
+    "thai": "Thai",
+    "turkish": "Turkish",
+    "ukrainian": "Ukrainian",
+    "vietnamese": "Vietnamese",
+}
+
+
+def _reply_lang_phrase(m: str) -> str | None:
+    """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
+    for mo in re.finditer(
+        r"\b(respond|answer|reply|write|explain)\s+(?:in|using)\s+([a-z]{3,20})\b(?:\s*[.?!]|$|,|\s+please|\s+thanks)?",
+        m,
+    ):
+        tok = mo.group(2)
+        if tok in _REPLY_LANG_TOKENS:
+            return _REPLY_LANG_TOKENS[tok]
+    mo = re.search(
+        r"\b(translate|translating)\s+(?:this|that|it|your answer|the above|my text)\s+(?:to|into)\s+([a-z]{3,20})\b",
+        m,
+    )
+    if mo and mo.group(2) in _REPLY_LANG_TOKENS:
+        return _REPLY_LANG_TOKENS[mo.group(2)]
+    mo = re.search(r"\b(entire reply|whole answer|full answer)\s+(?:in|using)\s+([a-z]{3,20})\b", m)
+    if mo and mo.group(2) in _REPLY_LANG_TOKENS:
+        return _REPLY_LANG_TOKENS[mo.group(2)]
+    # Trailing clause: "... in french" / "... in spanish, please"
+    tail = m[-100:] if len(m) > 100 else m
+    mo = re.search(r"\b(in|into)\s+([a-z]{3,20})\s*(?:[,.]|please|thanks)?\s*$", tail)
+    if mo and mo.group(2) in _REPLY_LANG_TOKENS:
+        return _REPLY_LANG_TOKENS[mo.group(2)]
+    return None
+
+
+def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[str]]:
+    """Infer reply-style preferences from wording inside longer questions (one-shot overlays).
+
+    Used only when ``parse_control_action`` does not treat the line as a dedicated control
+    command. Conservative patterns avoid hijacking short chit-chat.
+
+    Returns:
+        (field_overrides, extra_system_paragraphs) — overrides use the same keys/values as
+        ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections.
+    """
+    m = _norm(message)
+    overrides: dict[str, str] = {}
+    extras: list[str] = []
+
+    if len(m) >= 24:
+        lang = _reply_lang_phrase(m)
+        if lang:
+            extras.append(
+                f"The user asked (via natural wording) for the assistant reply in **{lang}**. "
+                f"Write the **entire** answer in {lang}, including headings and lists, unless a quoted passage must stay "
+                "verbatim in another language."
+            )
+
+    if len(m) < 48:
+        return overrides, extras
+
+    # Comparison layout (prefer narrative if user explicitly rejects rigid pros/cons).
+    if re.search(r"\b(no pros|without pros|avoid pros|no pros\/cons)\b", m) and re.search(
+        r"\b(compare|comparison|contrast|trade-?offs?)\b",
+        m,
+    ):
+        overrides["comparison_frame"] = "narrative"
+    elif re.search(r"\b(flowing prose|continuous prose|narrative comparison)\b", m) and re.search(
+        r"\b(compare|comparison|contrast)\b",
+        m,
+    ):
+        overrides["comparison_frame"] = "narrative"
+    elif (
+        re.search(r"\b(trade-?offs?|pros and cons|advantages and disadvantages)\b", m)
+        or re.search(r"\bdifference between\b.+\band\b", m)
+        or re.search(r"\b(compare|comparing|comparison|contrasted?|contrast)\b.+\b(vs\.?|versus)\b", m)
+        or (
+            re.search(r"\b(compare|comparing|comparison)\b", m)
+            and re.search(r"\b(and|with)\b", m)
+            and len(m) >= 72
+            and re.search(
+                r"\b(versus|vs\.?|option|approach|tool|stack|framework|language|model|database|db|cloud)\b",
+                m,
+            )
+        )
+    ):
+        overrides["comparison_frame"] = "pros_cons"
+
+    # Procedure-style questions → numbered steps for this answer.
+    if re.search(r"\b(step by step|step-by-step)\b", m) or re.search(
+        r"\b(walk me through|show me how)\b",
+        m,
+    ):
+        overrides["step_style"] = "numbered"
+    elif re.search(r"\b(how do i|how can i|how should i|how to)\b", m) and re.search(
+        r"\b(install|set up|setup|configure|enable|deploy|migrate|upgrade|fix|debug|troubleshoot)\b",
+        m,
+    ):
+        overrides["step_style"] = "numbered"
+
+    # Tables when the user names the shape they want.
+    if re.search(r"\b(no tables?|without a table|avoid tables?)\b", m):
+        overrides["table_style"] = "avoid"
+    elif re.search(
+        r"\b(in a table|as a table|markdown table|tabular format|two-?column|rows and columns)\b",
+        m,
+    ):
+        overrides["table_style"] = "prefer"
+
+    # Bullets from natural phrasing (longer prompts only).
+    if re.search(r"\b(bullet points?|bulleted list|use bullets)\b", m):
+        overrides["reply_format"] = "bullets"
+
+    # Math-like rigor without a standalone "show your work" control line.
+    if re.search(
+        r"\b(show your work|show (all )?steps|with (a )?derivation|prove (that|it)|rigorously)\b",
+        m,
+    ):
+        overrides["math_detail"] = "show_work"
+
+    return overrides, extras
+
