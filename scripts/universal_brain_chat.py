@@ -112,7 +112,7 @@ from rag_faq_smoke import _pick_model, hybrid_retrieve, load_chunks  # noqa: E40
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
 HELP_TEXT = """**How to use**
-- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.). Longer prompts may also **imply** reply shape for that turn only (for example trade-off questions → Pros/Cons layout, “in a table” → markdown table preference, “answer in Spanish” → reply language) — see *Brain trace* **`prompt_signals:`** when detected.
+- **Normal language:** ask in plain English (or mixed); the app **infers** what you want (summarize, search FAQ, save a note, etc.). Longer prompts may also **imply** reply shape for that turn only (for example trade-off questions → Pros/Cons layout, “in a table” → markdown table preference, “answer in Spanish” → reply language, **code only** → code-first output, **in under N words** → length cap) — see *Brain trace* **`prompt_signals:`** when detected.
 - **Session controls (say it in chat, no slash command):**
   - *What is my current scope?*, *Show my session settings* -> prints scope + toggles (FAQ context, routing, trace)
   - *Start a new private session*, *Begin a fresh scope* -> generates a **new memory scope key** so notes are isolated from the shared default demo scope
