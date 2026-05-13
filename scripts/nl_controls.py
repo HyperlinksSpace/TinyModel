@@ -911,6 +911,28 @@ def _embedded_json_output(m: str) -> bool:
     )
 
 
+def _embedded_speculation_strict(m: str) -> bool:
+    """True if a longer prompt demands low-speculation / anti-guessing (not the short *No speculation* control)."""
+    if len(m) < 44:
+        return False
+    if re.search(
+        r"\b(brainstorm freely|speculate freely|wild ideas|creative speculation|"
+        r"go ahead and guess|reasonable guesses welcome|speculate a bit)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(don'?t guess|no guessing|avoid guessing|only high confidence|stick to (?:the\s+)?facts|"
+            r"avoid halluc|no hallucinations|don'?t hallucinate|if you don'?t know say|"
+            r"if unsure say|say when you(?:'re|\s+are)\s+unsure|no speculation|avoid speculation|"
+            r"don'?t speculate|fact[- ]checked|grounded only|evidence[- ]based only|"
+            r"only if (?:you(?:'re|\s+are)\s+)?(?:certain|sure)|do not invent (?:facts|numbers))\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -998,6 +1020,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_json_output(m):
         overrides["output_format"] = "json"
+
+    if _embedded_speculation_strict(m):
+        overrides["speculation"] = "strict"
 
     if len(m) < 48:
         return overrides, extras, trace_tags

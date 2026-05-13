@@ -641,6 +641,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("output_format"))
 
+    def test_embedded_speculation_strict_in_prose(self) -> None:
+        msg = (
+            "We're writing an incident report for leadership about yesterday's partial outage. "
+            "Stick to facts we can support from logs; if you are not sure about root cause, say so clearly—no guessing."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("speculation"), "strict")
+
+    def test_embedded_speculation_skips_when_brainstorm_requested(self) -> None:
+        msg = (
+            "Brainstorm freely about future product directions, but also don't guess current revenue numbers—"
+            "only cite public figures."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("speculation"))
+
 
 if __name__ == "__main__":
     unittest.main()
