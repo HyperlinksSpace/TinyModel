@@ -915,5 +915,24 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ):
         overrides["math_detail"] = "show_work"
 
+    # Critique / red-team embedded in a longer prompt (not the short "Challenge my assumptions" control).
+    if (
+        len(m) >= 52
+        and not re.search(r"\b(don'?t challenge|be gentle|go easy on me|no criticism|don'?t be harsh)\b", m)
+        and re.search(
+            r"\b(red team|red-team|stress[- ]?test|pick apart|tear down|what am i missing|sanity check|"
+            r"challenge my|poke holes|find (?:weaknesses|gaps|flaws)|critique (?:my|this|our)|"
+            r"devil'?s advocate)\b",
+            m,
+        )
+        and re.search(
+            r"\b(plan|plans|design|approach|idea|ideas|architecture|security|threat|attack|assumption|"
+            r"proposal|strategy|implementation|rollout|schema|migration|deployment|code|system|thesis|"
+            r"launch|release)\b",
+            m,
+        )
+    ):
+        overrides["counterpoint_tone"] = "challenge"
+
     return overrides, extras, trace_tags
 

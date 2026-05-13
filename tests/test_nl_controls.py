@@ -538,6 +538,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertIn("guided", t)
         self.assertTrue(any("guided discovery" in x.lower() for x in e))
 
+    def test_embedded_red_team_sets_challenge(self) -> None:
+        msg = (
+            "We're about to launch a public API behind a single shared API key for our first 50 beta users. "
+            "Red team this rollout plan: what am I missing on abuse, key rotation, and rate limits?"
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("counterpoint_tone"), "challenge")
+
+    def test_embedded_critique_respects_soft_tone(self) -> None:
+        msg = (
+            "Here is my deployment design for the payments service. Don't challenge me too hard—be gentle—but "
+            "sanity check whether the rollback story is credible."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("counterpoint_tone"))
+
 
 if __name__ == "__main__":
     unittest.main()
