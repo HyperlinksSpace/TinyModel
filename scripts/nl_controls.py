@@ -1051,6 +1051,56 @@ def _embedded_example_density(m: str) -> str | None:
     return None
 
 
+def _embedded_exposition_order(m: str) -> str | None:
+    """``definitions_first`` vs ``intuition_first`` from prose (not short *Definitions first* controls)."""
+    if len(m) < 48:
+        return None
+    if re.search(
+        r"\b(skip definitions first|don'?t start with definitions|"
+        r"no formal definitions upfront)\b",
+        m,
+    ):
+        return None
+    if re.search(
+        r"\b(skip the intuition|cut the warm[- ]?up|no hand[- ]?wavy intro)\b",
+        m,
+    ):
+        return None
+    defn = bool(
+        re.search(
+            r"\b(define (?:the\s+)?(?:key\s+)?terms? (?:first|before|upfront)|"
+            r"definitions?\s+(?:first|before|upfront)|"
+            r"start with (?:a\s+)?(?:brief\s+)?definition|"
+            r"formal definitions? (?:first|before)|"
+            r"precise definitions? before|"
+            r"terminology (?:first|upfront)|"
+            r"establish definitions before|"
+            r"glossary[- ]style (?:intro|opening)|"
+            r"define jargon before)\b",
+            m,
+        )
+    )
+    intu = bool(
+        re.search(
+            r"\b(intuition (?:first|before (?:the\s+)?(?:math|formal|proof|details?))|"
+            r"big[- ]picture (?:first|before|then)|"
+            r"high[- ]level intuition (?:first|before)|"
+            r"motivation before (?:the\s+)?(?:formal|proof|math)|"
+            r"informal (?:picture|overview) before|"
+            r"start with (?:the\s+)?(?:big\s+picture|intuition|high[- ]level sketch)|"
+            r"warm(?:\s+up)? with (?:an?\s+)?intuitive)\b",
+            m,
+        )
+    )
+    if defn and intu:
+        return None
+    if defn:
+        return "definitions_first"
+    if intu:
+        return "intuition_first"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1236,6 +1286,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         )
     ):
         overrides["counterpoint_tone"] = "challenge"
+
+    eord = _embedded_exposition_order(m)
+    if eord:
+        overrides["exposition_order"] = eord
 
     return overrides, extras, trace_tags
 

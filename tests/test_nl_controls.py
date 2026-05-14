@@ -737,6 +737,32 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("example_density"))
 
+    def test_embedded_exposition_definitions_first(self) -> None:
+        msg = (
+            "I'm writing lecture notes on PAC learning for CS undergrads who know probability but not ML notation. "
+            "Please define terms first—hypothesis class, sample complexity, probably approximately correct—before "
+            "you walk through any theorems."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("exposition_order"), "definitions_first")
+
+    def test_embedded_exposition_intuition_first(self) -> None:
+        msg = (
+            "Our product team keeps confusing eventual consistency with linearizability when we talk to customers. "
+            "Give intuition before the formal definitions so the tradeoff story lands before the mathy bits."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("exposition_order"), "intuition_first")
+
+    def test_embedded_exposition_conflict_skips(self) -> None:
+        msg = (
+            "Explain how gradient checkpointing saves memory in transformer training. "
+            "I want definitions first for the notation, but also big picture first so the team stays motivated—"
+            "please pick one ordering only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("exposition_order"))
+
 
 if __name__ == "__main__":
     unittest.main()
