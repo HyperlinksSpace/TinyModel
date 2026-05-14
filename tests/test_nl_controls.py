@@ -814,6 +814,31 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("clarify_first"))
 
+    def test_embedded_section_headings_prefer(self) -> None:
+        msg = (
+            "We're publishing an internal runbook for the on-call rotation after the last database failover drill. "
+            "Please structure the answer with clear headings so each escalation tier is easy to skim in the wiki."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("section_headings"), "prefer")
+
+    def test_embedded_section_headings_avoid(self) -> None:
+        msg = (
+            "I need to paste your reply into a vendor email thread where markdown renders badly. "
+            "Give a flat answer with no section headings—continuous prose only—and keep it under one screen."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("section_headings"), "avoid")
+
+    def test_embedded_section_headings_conflict_skips(self) -> None:
+        msg = (
+            "Summarize our API rate-limiting policy for the compliance workshop. "
+            "Use markdown headings for each audience, but also avoid markdown headings because some attendees "
+            "read from plain-text slides—pick one format only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("section_headings"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1173,6 +1173,40 @@ def _embedded_clarify_first(m: str) -> str | None:
     return None
 
 
+def _embedded_section_headings(m: str) -> str | None:
+    """``prefer`` vs ``avoid`` for markdown ##/### structure (not short *Use section headings* controls)."""
+    if len(m) < 48:
+        return None
+    avoid = bool(
+        re.search(
+            r"\b(flat answer|no section headings|avoid markdown headings|"
+            r"no (?:##|hash)\s*style headings|without (?:##|markdown) title lines|"
+            r"continuous prose (?:only|without headings)|"
+            r"don'?t use (?:leading\s+)?#+\s*headings?|"
+            r"skip (?:the\s+)?##\s*headers?)\b",
+            m,
+        )
+    )
+    prefer = bool(
+        re.search(
+            r"\b(use (?:markdown\s+)?(?:section\s+)?headings|organize with (?:markdown\s+)?headings|"
+            r"structure (?:the\s+)?answer with (?:clear\s+)?headings|"
+            r"break (?:it|this|the answer) into (?:titled\s+)?sections|"
+            r"(?:clear\s+)?markdown headings for each|"
+            r"##\s*(?:or|/)\s*###\s*headings|"
+            r"top[- ]level headings for each (?:major\s+)?(?:topic|section))\b",
+            m,
+        )
+    )
+    if avoid and prefer:
+        return None
+    if avoid:
+        return "avoid"
+    if prefer:
+        return "prefer"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1370,6 +1404,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     clf = _embedded_clarify_first(m)
     if clf:
         overrides["clarify_first"] = clf
+
+    shd = _embedded_section_headings(m)
+    if shd:
+        overrides["section_headings"] = shd
 
     return overrides, extras, trace_tags
 
