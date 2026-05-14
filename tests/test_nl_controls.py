@@ -713,6 +713,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("confidence_tone"))
 
+    def test_embedded_example_density_rich_worked_example(self) -> None:
+        msg = (
+            "Our junior engineers confuse eventual consistency with read-your-writes in replicated databases. "
+            "Explain the difference and walk me through a toy example with two replicas so they can picture failure modes."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("example_density"), "rich")
+
+    def test_embedded_example_density_sparse_theory_only(self) -> None:
+        msg = (
+            "I need a crisp architecture overview of CQRS versus plain CRUD for an internal wiki. "
+            "Keep it abstract and theory only—skip examples; I just need definitions and tradeoffs."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("example_density"), "sparse")
+
+    def test_embedded_example_density_ambiguous_skips(self) -> None:
+        msg = (
+            "For onboarding docs: explain idempotency keys for payment retries. "
+            "Skip examples in the prose, but also walk me through a toy example—pick one style only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("example_density"))
+
 
 if __name__ == "__main__":
     unittest.main()

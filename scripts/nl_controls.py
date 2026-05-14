@@ -1016,6 +1016,41 @@ def _embedded_confidence_transparent(m: str) -> bool:
     )
 
 
+def _embedded_example_density(m: str) -> str | None:
+    """``rich`` or ``sparse`` from prose (not the short *Include examples* / *Skip examples* control lines)."""
+    if len(m) < 44:
+        return None
+    sparse = bool(
+        re.search(
+            r"\b(skip examples?|don'?t add examples?|don'?t include examples?|"
+            r"without examples?|keep (?:it\s+)?abstract|theory[- ]only|abstract only|"
+            r"example[- ]free|no examples? (?:please|in your (?:answer|reply))|"
+            r"avoid illustrative examples?)\b",
+            m,
+        )
+    )
+    rich = bool(
+        re.search(
+            r"\b(include (?:at\s+least\s+)?(?:one|two|a few)\s+concrete examples?|"
+            r"at least one (?:short\s+)?concrete example|"
+            r"illustrate (?:this|that|it)\s+with (?:a\s+)?(?:concrete\s+|real[- ]world\s+)?example|"
+            r"worked example|walk(?:\s+me)? through (?:a\s+)?(?:small|tiny|toy|minimal)\s+example|"
+            r"\b(?:a\s+)?toy example\b|miniature scenario|"
+            r"ground (?:this|it|your answer) in (?:a\s+)?(?:concrete\s+)?example|"
+            r"give (?:me\s+)?a (?:concrete\s+)?example|"
+            r"show (?:me\s+)?(?:this\s+)?with (?:a\s+)?(?:concrete\s+)?example)\b",
+            m,
+        )
+    )
+    if sparse and rich:
+        return None
+    if sparse:
+        return "sparse"
+    if rich:
+        return "rich"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1116,6 +1151,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_confidence_transparent(m):
         overrides["confidence_tone"] = "transparent"
+
+    exd = _embedded_example_density(m)
+    if exd:
+        overrides["example_density"] = exd
 
     if len(m) < 48:
         return overrides, extras, trace_tags
