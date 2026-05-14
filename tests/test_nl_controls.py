@@ -788,6 +788,32 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("followup_close"))
 
+    def test_embedded_clarify_first_on(self) -> None:
+        msg = (
+            "We're picking between two observability vendors for a hybrid cloud footprint and the pricing pages "
+            "are ambiguous about per-host vs per-metric billing. If anything is unclear ask me first about our "
+            "cardinality and retention needs before you recommend a shortlist."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("clarify_first"), "on")
+
+    def test_embedded_clarify_first_off(self) -> None:
+        msg = (
+            "I need a one-page explainer on why we chose gRPC for internal east-west traffic for an exec readout. "
+            "No clarifying questions please—answer immediately even if the spec is incomplete; I'll edit tone later."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("clarify_first"), "off")
+
+    def test_embedded_clarify_first_conflict_skips(self) -> None:
+        msg = (
+            "Help me draft acceptance criteria for the new SSO rollout. "
+            "Ask clarifying questions before you answer about our IdP, but also don't interrogate me first—"
+            "I need one consistent interaction style in this thread."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("clarify_first"))
+
 
 if __name__ == "__main__":
     unittest.main()

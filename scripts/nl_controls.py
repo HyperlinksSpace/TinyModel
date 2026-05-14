@@ -1135,6 +1135,44 @@ def _embedded_followup_close(m: str) -> str | None:
     return None
 
 
+def _embedded_clarify_first(m: str) -> str | None:
+    """``on`` vs ``off`` from prose (not short *Clarify first* / *No clarifying questions* controls)."""
+    if len(m) < 48:
+        return None
+    off = bool(
+        re.search(
+            r"\b(no clarifying questions (?:first|please)?|don'?t ask clarifying questions|"
+            r"skip clarifying questions|answer without asking questions first|"
+            r"don'?t (?:pause to\s+)?ask questions first|"
+            r"give (?:your\s+)?best answer without asking|"
+            r"don'?t interrogate me first|skip the q&a preamble|"
+            r"answer immediately (?:even\s+)?if (?:the\s+)?(?:spec|specs) (?:is|are) incomplete)\b",
+            m,
+        )
+    )
+    on = bool(
+        re.search(
+            r"\b(ask clarifying questions before (?:you\s+)?answer|"
+            r"clarify (?:any\s+)?ambiguities before|"
+            r"if anything is unclear ask me first|"
+            r"before you (?:answer|dive in) ask (?:me\s+)?(?:what\s+you\s+need|any questions)|"
+            r"pause and ask (?:me\s+)?(?:short\s+)?questions if|"
+            r"confirm my (?:constraints|requirements) before|"
+            r"ask what you need (?:to know )?first|"
+            r"i may have left details out[-—]\s*ask|"
+            r"feel free to ask (?:me\s+)?(?:1[-–]3\s+)?clarifying questions first)\b",
+            m,
+        )
+    )
+    if on and off:
+        return None
+    if off:
+        return "off"
+    if on:
+        return "on"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1328,6 +1366,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     fuc = _embedded_followup_close(m)
     if fuc:
         overrides["followup_close"] = fuc
+
+    clf = _embedded_clarify_first(m)
+    if clf:
+        overrides["clarify_first"] = clf
 
     return overrides, extras, trace_tags
 
