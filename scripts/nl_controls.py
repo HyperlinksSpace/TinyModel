@@ -1207,6 +1207,41 @@ def _embedded_section_headings(m: str) -> str | None:
     return None
 
 
+def _embedded_analogy_use(m: str) -> str | None:
+    """``prefer`` vs ``avoid`` for analogies/metaphors (not short *Use analogies* / *No analogies* controls)."""
+    if len(m) < 48:
+        return None
+    avoid = bool(
+        re.search(
+            r"\b(no analogies|skip metaphors|avoid metaphors|skip the analogies|"
+            r"without analogies or metaphors|literal (?:explanations?|wording) only|"
+            r"don'?t use analogies|don'?t use metaphors|no cute comparisons|"
+            r"stick to literal (?:technical\s+)?(?:language|description|wording)|"
+            r"keep (?:it\s+)?strictly literal)\b",
+            m,
+        )
+    )
+    prefer = bool(
+        re.search(
+            r"\b(use (?:a\s+)?(?:helpful\s+|tight\s+)?analogy|"
+            r"explain (?:it\s+)?with (?:a\s+)?(?:simple\s+)?(?:real[- ]world\s+)?analogy|"
+            r"include (?:a\s+)?(?:brief\s+)?(?:metaphor|analogy)|"
+            r"liken (?:this|it) to (?:something|a\s+familiar)|"
+            r"compare (?:this|it)\s+to (?:a\s+)?(?:real[- ]world|everyday)|"
+            r"map (?:this|it) to an everyday example|"
+            r"metaphor that helps|ground (?:the\s+)?idea in (?:an?\s+)?analogy)\b",
+            m,
+        )
+    )
+    if avoid and prefer:
+        return None
+    if avoid:
+        return "avoid"
+    if prefer:
+        return "prefer"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1408,6 +1443,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     shd = _embedded_section_headings(m)
     if shd:
         overrides["section_headings"] = shd
+
+    anu = _embedded_analogy_use(m)
+    if anu:
+        overrides["analogy_use"] = anu
 
     return overrides, extras, trace_tags
 

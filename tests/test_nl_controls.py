@@ -839,6 +839,31 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("section_headings"))
 
+    def test_embedded_analogy_use_prefer(self) -> None:
+        msg = (
+            "Our interns struggle with why write-ahead logs make crash recovery safer than plain btree flushes. "
+            "Please use a helpful analogy from everyday life before you get into the filesystem jargon."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("analogy_use"), "prefer")
+
+    def test_embedded_analogy_use_avoid(self) -> None:
+        msg = (
+            "I'm briefing compliance reviewers who dislike informal language. Explain differential privacy "
+            "with literal explanations only—no analogies or metaphors—and cite standard definitions."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("analogy_use"), "avoid")
+
+    def test_embedded_analogy_use_conflict_skips(self) -> None:
+        msg = (
+            "Help the sales engineers understand why our multi-tenant cache isolates noisy neighbors. "
+            "Map it to an everyday example for intuition, but also stick to literal technical description only—"
+            "pick one style for this answer."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("analogy_use"))
+
 
 if __name__ == "__main__":
     unittest.main()
