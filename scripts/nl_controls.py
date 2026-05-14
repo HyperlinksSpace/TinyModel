@@ -978,6 +978,44 @@ def _embedded_actionability_commands(m: str) -> bool:
     )
 
 
+def _embedded_confidence_transparent(m: str) -> bool:
+    """True if a longer prompt asks for explicit assumptions, limitations, or caveats (not the short control lines)."""
+    if len(m) < 44:
+        return False
+    if re.search(
+        r"\b(no assumptions? section|skip (?:the\s+)?assumptions?|don'?t list assumptions|"
+        r"without caveats|no caveats|omit limitations)\b",
+        m,
+    ):
+        return False
+    if re.search(
+        r"\b(no hedging|don'?t hedge|be decisive|firm answers?|minimal hedging|"
+        r"sound\s+confident|avoid disclaimers)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(state|list|spell out|call out|identify|enumerate|label)\s+"
+            r"(?:your\s+|the\s+|our\s+|key\s+|main\s+)?(?:key\s+|main\s+)?assumptions?\b",
+            m,
+        )
+        or re.search(
+            r"\b(assumptions?\s+and\s+limitations?|limitations?\s+and\s+caveats?|"
+            r"limitations?\s+section|caveats?\s+(?:first|upfront|at\s+the\s+top)|"
+            r"upfront\s+caveats?|scope\s+and\s+assumptions?|boundary\s+conditions?|"
+            r"what\s+(?:we\s+)?(?:are\s+)?assuming\b|"
+            r"explicit(?:ly)?\s+about\s+(?:limitations?|uncertainty|what\s+we\s+don'?t\s+know)|"
+            r"where\s+this\s+(?:breaks?\s+down|stops?\s+working|doesn'?t\s+apply))\b",
+            m,
+        )
+        or re.search(
+            r"\b(flag|surface|highlight)\s+(?:key\s+)?(?:uncertainties|unknowns|gaps|risk\s+factors)\b",
+            m,
+        )
+    )
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1014,7 +1052,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``).
+        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``). Session-style overrides
+        (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
     overrides: dict[str, str] = {}
@@ -1074,6 +1113,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_actionability_commands(m):
         overrides["actionability"] = "commands"
+
+    if _embedded_confidence_transparent(m):
+        overrides["confidence_tone"] = "transparent"
 
     if len(m) < 48:
         return overrides, extras, trace_tags

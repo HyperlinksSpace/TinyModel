@@ -689,6 +689,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("actionability"))
 
+    def test_embedded_assumptions_limitations_sets_transparent_confidence(self) -> None:
+        msg = (
+            "We're drafting an internal memo on moving our batch jobs from cron to a managed scheduler. "
+            "Please state your assumptions and limitations clearly—what breaks if our jobs are not idempotent?"
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("confidence_tone"), "transparent")
+
+    def test_embedded_assumptions_respects_decisive_opt_out(self) -> None:
+        msg = (
+            "We need a vendor pick for log aggregation. Be decisive and sound confident in the recommendation, "
+            "but also list the main assumptions behind the choice in one short paragraph."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("confidence_tone"))
+
+    def test_embedded_assumptions_respects_skip_assumptions(self) -> None:
+        msg = (
+            "Summarize why we might shard Postgres by tenant for our SaaS control plane. "
+            "Skip the assumptions section—just give the operational tradeoffs in prose."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("confidence_tone"))
+
 
 if __name__ == "__main__":
     unittest.main()
