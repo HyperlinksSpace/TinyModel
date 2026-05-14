@@ -174,7 +174,18 @@ If routing misfires, try rephrasing or use a slash command; **`--no-smart-route`
 # Shown under the chat + controls in the Gradio UI (Hugging Face Space and local).
 GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 
-**Universal Brain** pairs a small **generative** model with the **TinyModel1** encoder (AG News–style topics: World, Business, Sports, Sci/Tech), **FAQ retrieval** over a bundled corpus, **SQLite memory** scoped per session, and **natural-language routing** so many tasks work without slash commands. First CPU startup can take a few minutes while weights download.
+**Universal Brain** is a **text** assistant built from: (1) a **small generative instruct model** (default in code: **SmolLM2-360M-Instruct**, overridable via **`HORIZON2_MODEL`**), (2) the **TinyModel1** encoder for **4-way topics** (World, Business, Sports, Sci/Tech) plus **embeddings**, (3) **FAQ hybrid retrieval** over a bundled corpus, (4) **SQLite memory** per session scope, (5) a **JSON intent router** so many tasks work in plain language, (6) optional **Google web search** when `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX` are set (`/web`, smart-route **web search**, optional **auto-web**). First CPU startup can take a few minutes while weights download.
+
+#### What it can do (summary)
+
+| Area | Capacity |
+| --- | --- |
+| **Chat & tools** | Summarize, rewrite, grounded Q&A (`|||` facts), FAQ search, **live web** (if configured), classify, similarity, embeddings, nearest-option, **/status**, memory CRUD — via natural language or **`/…`** shortcuts. |
+| **Encoder** | Soft **topic hint** + trace line **`classify:…`**; **`/classify`** for full label probabilities. |
+| **RAG** | Injects top FAQ **chunks**; tune strictness with phrases like *Strict FAQ* (see `/help`). |
+| **Memory** | Long-term + session notes; **scope** isolation phrases for demos; export / forget from chat. |
+| **Style (long prompts)** | **Embedded prompt signals** adjust **one turn** from wording (tradeoffs, tables, steps, language, code-only, caps, hints-only, red-team, ephemeral, a11y, ELI5-style, register, JSON, strict facts, BLUF, shell commands, assumptions, examples, teach-order, closers, clarify-first, headings, analogies) — see **`prompt_signals:`** in the *Brain trace* and the table **Testing embedded prompt signals** below. |
+| **Limits** | Small models can **hallucinate** or miss nuance; FAQ/web only **constrain** answers when relevant snippets exist. **Not multimodal** here. Shared default **memory scope** is not private auth. |
 
 ---
 

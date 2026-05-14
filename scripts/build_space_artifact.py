@@ -169,7 +169,17 @@ pinned: false
 
 # {space_name}
 
-**Universal Brain chat** — natural-language routing, generative replies, FAQ RAG, SQLite memory, and TinyModel classification. Uses encoder **`{model_id}`** (see also [model card]({model_hub_url})).
+**Universal Brain chat** — natural-language routing, a **small generative instruct model** (default in code: **SmolLM2-360M-Instruct**, override with **`HORIZON2_MODEL`**), **TinyModel1** encoder (**{model_id}**), **FAQ hybrid RAG**, **SQLite memory**, optional **Google web search**, and **embedded prompt signals** (one-turn reply shape from long natural wording — see in-app **Testing embedded prompt signals**). See the [model card]({model_hub_url}) for classifier weights.
+
+| Capability | Notes |
+| --- | --- |
+| **Generation** | Chat + composed answers from the causal instruct LM (quality/size depends on **`HORIZON2_MODEL`** and CPU/GPU). |
+| **Encoder** | 4-way **AG News–style** labels; **embeddings** for FAQ retrieval, **`/similarity`**, **`/nearest`**. |
+| **FAQ RAG** | Bundled corpus; toggle injection from chat; grounding phrases in `/help`. |
+| **Memory** | Scoped SQLite notes; use *Start a new private session* / *Switch to scope …* on shared demos. |
+| **Routing** | JSON router for summarize / reformulate / grounded / retrieve / **web_search** / classify / similarity / embedding / nearest / memory / status. |
+| **Web** | Requires **`GOOGLE_CSE_API_KEY`** + **`GOOGLE_CSE_CX`**; optional **auto-web** (disable with **`NO_AUTO_WEB`**). |
+| **NL + embedded** | Short **session control** phrases + long-message **`prompt_signals:`** style overlays (see Gradio copy under the chat). |
 
 - **App URL:** [{public_app_url}]({public_app_url})
 - **Source:** [{github_repo_url}]({github_repo_url})
