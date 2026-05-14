@@ -763,6 +763,31 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("exposition_order"))
 
+    def test_embedded_followup_close_minimal(self) -> None:
+        msg = (
+            "I need a tight internal memo on why we are postponing the monolith split. "
+            "Please finish crisply—no questions at the end—this will be pasted into Confluence as-is."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("followup_close"), "minimal")
+
+    def test_embedded_followup_close_suggest(self) -> None:
+        msg = (
+            "We finished the security review for the public API and have findings scattered across three docs. "
+            "Summarize the top risks and end with actionable next steps our team should schedule next sprint."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("followup_close"), "suggest")
+
+    def test_embedded_followup_close_conflict_skips(self) -> None:
+        msg = (
+            "Draft a blameless postmortem outline for the checkout outage. "
+            "Suggest next steps at the end for leadership, but also don't ask if I need anything else—"
+            "I'm pasting into email and want one consistent closing style."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("followup_close"))
+
 
 if __name__ == "__main__":
     unittest.main()

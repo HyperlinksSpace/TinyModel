@@ -1101,6 +1101,40 @@ def _embedded_exposition_order(m: str) -> str | None:
     return None
 
 
+def _embedded_followup_close(m: str) -> str | None:
+    """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
+    if len(m) < 48:
+        return None
+    minimal = bool(
+        re.search(
+            r"\b(no questions? at the end|don'?t (?:ask|end) with (?:a\s+)?questions?|"
+            r"don'?t ask if i need (?:anything|more) else|don'?t ask whether i need more|"
+            r"skip (?:the\s+)?(?:stock\s+)?closer|no follow[- ]up questions (?:at\s+the\s+)?(?:end|please)?|"
+            r"don'?t prompt for follow[- ]ups?|finish crisply|stop after the core answer|"
+            r"avoid rhetorical closers?|no offers? to help further|"
+            r"don'?t (?:close|end) with (?:an?\s+)?(?:offer|invitation) to continue)\b",
+            m,
+        )
+    )
+    suggest = bool(
+        re.search(
+            r"\b(suggest next steps|optional next steps at the end|"
+            r"end with (?:brief\s+)?(?:actionable\s+)?next steps|"
+            r"close with suggested next actions|what should we do next|"
+            r"offer ways to go deeper|give me follow[- ]ups? i can take|"
+            r"recommend what to do next|include (?:optional\s+)?next steps)\b",
+            m,
+        )
+    )
+    if minimal and suggest:
+        return None
+    if minimal:
+        return "minimal"
+    if suggest:
+        return "suggest"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1290,6 +1324,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     eord = _embedded_exposition_order(m)
     if eord:
         overrides["exposition_order"] = eord
+
+    fuc = _embedded_followup_close(m)
+    if fuc:
+        overrides["followup_close"] = fuc
 
     return overrides, extras, trace_tags
 
