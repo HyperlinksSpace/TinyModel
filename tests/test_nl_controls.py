@@ -864,6 +864,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("analogy_use"))
 
+    def test_embedded_term_emphasis_highlight(self) -> None:
+        msg = (
+            "We're sending this incident summary to directors who skim on mobile. "
+            "Please bold the key terms and highlight important phrases so the timeline is easy to scan."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("term_emphasis"), "highlight")
+
+    def test_embedded_term_emphasis_minimal(self) -> None:
+        msg = (
+            "I need a neutral postmortem paragraph for our public status page. "
+            "Keep bold to a minimum and don't overuse bold—plain professional prose only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("term_emphasis"), "minimal")
+
+    def test_embedded_term_emphasis_conflict_skips(self) -> None:
+        msg = (
+            "Draft release notes for v2.4. Bold the key terms for scanning, but also avoid excessive bold "
+            "because legal wants one consistent style—pick one emphasis level only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("term_emphasis"))
+
 
 if __name__ == "__main__":
     unittest.main()

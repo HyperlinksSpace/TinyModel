@@ -1242,6 +1242,38 @@ def _embedded_analogy_use(m: str) -> str | None:
     return None
 
 
+def _embedded_term_emphasis(m: str) -> str | None:
+    """``highlight`` vs ``minimal`` inline bold (not short *Bold key terms* controls)."""
+    if len(m) < 48:
+        return None
+    minimal = bool(
+        re.search(
+            r"\b(minimal bold|don'?t overuse bold|avoid excessive bold|"
+            r"sparse bold|keep bold (?:to a )?minimum|"
+            r"no bold except (?:for )?code|plain text without bold|"
+            r"don'?t bold every|avoid bolding (?:whole|entire) sentences)\b",
+            m,
+        )
+    )
+    highlight = bool(
+        re.search(
+            r"\b(bold (?:the\s+)?(?:key\s+)?terms|highlight (?:the\s+)?(?:key\s+)?(?:terms|phrases)|"
+            r"emphasize (?:the\s+)?(?:key\s+)?(?:terms|keywords)|"
+            r"make (?:the\s+)?key terms stand out|"
+            r"use bold (?:on|for) (?:a\s+)?(?:few\s+)?(?:key\s+)?(?:terms|phrases|keywords)|"
+            r"so (?:execs|leadership|managers) can scan.{0,50}bold)\b",
+            m,
+        )
+    )
+    if minimal and highlight:
+        return None
+    if minimal:
+        return "minimal"
+    if highlight:
+        return "highlight"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1447,6 +1479,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     anu = _embedded_analogy_use(m)
     if anu:
         overrides["analogy_use"] = anu
+
+    tem = _embedded_term_emphasis(m)
+    if tem:
+        overrides["term_emphasis"] = tem
 
     return overrides, extras, trace_tags
 
