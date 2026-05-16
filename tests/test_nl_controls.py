@@ -888,6 +888,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("term_emphasis"))
 
+    def test_embedded_acronym_style_spell_out(self) -> None:
+        msg = (
+            "Our compliance team will read this SOC2 control mapping. "
+            "Please spell out acronyms on first use and define acronyms when you introduce PCI, SSO, and KMS terms."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("acronym_style"), "spell_out")
+
+    def test_embedded_acronym_style_terse(self) -> None:
+        msg = (
+            "This is an internal architecture review for senior SREs who already know our stack. "
+            "Assume we know acronyms—keep acronyms as-is and skip acronym expansion in the write-up."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("acronym_style"), "terse")
+
+    def test_embedded_acronym_style_conflict_skips(self) -> None:
+        msg = (
+            "Prepare a briefing for mixed audiences. Spell out acronyms for newcomers, but also "
+            "don't expand acronyms because the appendix is for staff engineers only—use one style."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("acronym_style"))
+
 
 if __name__ == "__main__":
     unittest.main()

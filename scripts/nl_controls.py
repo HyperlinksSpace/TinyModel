@@ -1274,6 +1274,39 @@ def _embedded_term_emphasis(m: str) -> str | None:
     return None
 
 
+def _embedded_acronym_style(m: str) -> str | None:
+    """``spell_out`` vs ``terse`` acronym handling (not short *Spell out acronyms* controls)."""
+    if len(m) < 48:
+        return None
+    terse = bool(
+        re.search(
+            r"\b(assume (?:i|we) know acronyms|don'?t expand acronyms|"
+            r"keep acronyms as[- ]is|skip acronym expansion|"
+            r"no need to spell out acronyms|acronym[- ]literate (?:audience|readers?)|"
+            r"terse acronyms only)\b",
+            m,
+        )
+    )
+    spell = bool(
+        re.search(
+            r"\b(spell out acronyms|expand acronyms (?:on|at) first use|"
+            r"define acronyms when you (?:use|introduce)|"
+            r"write out acronyms (?:on|at) first mention|"
+            r"full form (?:once|on first mention).{0,40}(?:acronym|initialism)|"
+            r"expand (?:each\s+)?(?:api|sla|sso|gdpr|hipaa|pci)[- ]style (?:term|acronym)|"
+            r"for (?:auditors|compliance|non-technical).{0,50}spell out)\b",
+            m,
+        )
+    )
+    if spell and terse:
+        return None
+    if terse:
+        return "terse"
+    if spell:
+        return "spell_out"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1483,6 +1516,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     tem = _embedded_term_emphasis(m)
     if tem:
         overrides["term_emphasis"] = tem
+
+    acs = _embedded_acronym_style(m)
+    if acs:
+        overrides["acronym_style"] = acs
 
     return overrides, extras, trace_tags
 
