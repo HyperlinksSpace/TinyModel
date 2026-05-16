@@ -1342,6 +1342,39 @@ def _embedded_risk_posture(m: str) -> str | None:
     return None
 
 
+def _embedded_quote_style(m: str) -> str | None:
+    """``quote`` vs ``paraphrase`` when relying on supplied FAQ excerpts (not short *Quote the FAQ* controls)."""
+    if len(m) < 48:
+        return None
+    src = r"(?:faq|excerpt|policy|knowledge base|kb article|documentation|provided (?:text|docs))"
+    paraphrase = bool(
+        re.search(
+            rf"\b(paraphrase (?:the )?{src}|paraphrase only|"
+            rf"(?:don'?t|do not) quote (?:the )?{src}|no direct quotes? from (?:the )?{src}|"
+            rf"summarize (?:the )?{src} in your own words|"
+            rf"avoid quoting (?:the )?{src}|in your own words.{0,40}(?:faq|excerpt))\b",
+            m,
+        )
+    )
+    quote = bool(
+        re.search(
+            rf"\b((?<!not )(?<!don't )quote (?:the )?{src}|direct quotes? from (?:the )?{src}|"
+            rf"cite with (?:direct )?quotes? when (?:you )?(?:use|reference) (?:the )?{src}|"
+            rf"verbatim (?:quotes?|passages?) from (?:the )?{src}|"
+            rf"include (?:a )?(?:short )?verbatim quote.{0,50}(?:faq|excerpt)|"
+            rf"when you rely on (?:the )?{src}.{0,50}quote)\b",
+            m,
+        )
+    )
+    if quote and paraphrase:
+        return None
+    if quote:
+        return "quote"
+    if paraphrase:
+        return "paraphrase"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1559,6 +1592,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     rsk = _embedded_risk_posture(m)
     if rsk:
         overrides["risk_posture"] = rsk
+
+    qst = _embedded_quote_style(m)
+    if qst:
+        overrides["quote_style"] = qst
 
     return overrides, extras, trace_tags
 

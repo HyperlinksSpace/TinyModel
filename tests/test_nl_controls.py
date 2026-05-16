@@ -936,6 +936,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("risk_posture"))
 
+    def test_embedded_quote_style_quote(self) -> None:
+        msg = (
+            "Using the FAQ excerpts you retrieve about data retention, please quote the FAQ excerpts "
+            "with direct quotes from the policy before you explain what it means for EU customers."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("quote_style"), "quote")
+
+    def test_embedded_quote_style_paraphrase(self) -> None:
+        msg = (
+            "I need a support answer grounded in our knowledge base article on refunds. "
+            "Paraphrase the FAQ in your own words and do not quote the excerpt verbatim for the customer email."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("quote_style"), "paraphrase")
+
+    def test_embedded_quote_style_conflict_skips(self) -> None:
+        msg = (
+            "Review the policy documentation excerpt about SSO. Quote the FAQ excerpts with verbatim passages, "
+            "but also paraphrase only and summarize the policy in your own words—pick one style."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("quote_style"))
+
 
 if __name__ == "__main__":
     unittest.main()
