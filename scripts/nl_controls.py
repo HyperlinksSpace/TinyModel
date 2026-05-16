@@ -1375,6 +1375,37 @@ def _embedded_quote_style(m: str) -> str | None:
     return None
 
 
+def _embedded_emoji_style(m: str) -> str | None:
+    """``include`` vs ``avoid`` emoji in replies (not short *Use emoji* / *No emoji* controls)."""
+    if len(m) < 48:
+        return None
+    avoid = bool(
+        re.search(
+            r"\b(no emojis? in (?:your|the) reply|avoid emoji|emoji[- ]free (?:reply|tone)|"
+            r"don'?t use emoji|do not use emoji|keep (?:it\s+)?(?:strictly\s+)?professional.{0,40}no emoji|"
+            r"without emoji|skip (?:the\s+)?emoji|no cute emoji|"
+            r"plain text only.{0,30}no emoji)\b",
+            m,
+        )
+    )
+    include = bool(
+        re.search(
+            r"\b(use (?:a few\s+)?(?:tasteful\s+)?emoji|include emoji|emoji (?:are|is) ok|"
+            r"emoji welcome|feel free to use emoji|sprinkle (?:in\s+)?emoji|"
+            r"a few emoji (?:are|is) fine|light emoji (?:are|is) ok|"
+            r"you may use emoji|add (?:a few\s+)?emoji (?:if|when) (?:helpful|appropriate))\b",
+            m,
+        )
+    )
+    if avoid and include:
+        return None
+    if avoid:
+        return "avoid"
+    if include:
+        return "include"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1596,6 +1627,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     qst = _embedded_quote_style(m)
     if qst:
         overrides["quote_style"] = qst
+
+    emj = _embedded_emoji_style(m)
+    if emj:
+        overrides["emoji_style"] = emj
 
     return overrides, extras, trace_tags
 

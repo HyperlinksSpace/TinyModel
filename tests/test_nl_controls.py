@@ -960,6 +960,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("quote_style"))
 
+    def test_embedded_emoji_style_include(self) -> None:
+        msg = (
+            "I'm drafting a friendly onboarding checklist for new hires in Slack. "
+            "Use a few tasteful emoji in your reply when they help scanning, but keep the steps clear."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("emoji_style"), "include")
+
+    def test_embedded_emoji_style_avoid(self) -> None:
+        msg = (
+            "This needs to go into our formal investor update email template. "
+            "No emoji in your reply—keep it professional and emoji-free tone throughout."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("emoji_style"), "avoid")
+
+    def test_embedded_emoji_style_conflict_skips(self) -> None:
+        msg = (
+            "Write a short morale note for the team channel. Use emoji when helpful, "
+            "but also avoid emoji and keep the reply emoji-free—pick one style only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("emoji_style"))
+
 
 if __name__ == "__main__":
     unittest.main()
