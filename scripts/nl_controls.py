@@ -1406,6 +1406,42 @@ def _embedded_emoji_style(m: str) -> str | None:
     return None
 
 
+def _embedded_faq_grounding(m: str) -> str | None:
+    """``strict`` vs ``relaxed`` FAQ/RAG grounding (not short *Strict FAQ* / *Relaxed FAQ* controls)."""
+    if len(m) < 48:
+        return None
+    src = r"(?:faq|excerpt|policy|knowledge base|kb article|documentation|provided excerpts|retrieved passages)"
+    strict = bool(
+        re.search(
+            rf"\b(stick to (?:the )?{src}|only use (?:the )?{src}|"
+            rf"only trust (?:the )?{src}|faq[- ]only (?:for|on) (?:this|the)|"
+            rf"strict faq (?:grounding|only)|if (?:it(?:'s| is) )?not in (?:the )?{src}.{0,40}(?:say|admit)|"
+            rf"don'?t go beyond (?:the )?{src}|must be supported by (?:the )?{src}|"
+            rf"policy claims must come from (?:the )?{src}|"
+            rf"grounded strictly in (?:the )?{src})\b",
+            m,
+        )
+    )
+    relaxed = bool(
+        re.search(
+            rf"\b(faq plus general knowledge|mix (?:the )?{src} with general knowledge|"
+            rf"relaxed faq (?:grounding|mode)|"
+            rf"general knowledge (?:is )?ok.{0,50}(?:faq|excerpt|policy|documentation)|"
+            rf"(?:faq|excerpt|policy|documentation).{0,50}general knowledge (?:is )?ok|"
+            rf"supplement (?:the )?{src} with (?:brief )?general[- ]knowledge|"
+            rf"beyond (?:the )?{src} you may add (?:brief )?general context)\b",
+            m,
+        )
+    )
+    if strict and relaxed:
+        return None
+    if strict:
+        return "strict"
+    if relaxed:
+        return "relaxed"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1631,6 +1667,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     emj = _embedded_emoji_style(m)
     if emj:
         overrides["emoji_style"] = emj
+
+    fgr = _embedded_faq_grounding(m)
+    if fgr:
+        overrides["faq_grounding"] = fgr
 
     return overrides, extras, trace_tags
 

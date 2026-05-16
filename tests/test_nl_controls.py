@@ -984,6 +984,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("emoji_style"))
 
+    def test_embedded_faq_grounding_strict(self) -> None:
+        msg = (
+            "I'm replying to a billing dispute using the support FAQ retrieval you inject. "
+            "Only use the FAQ excerpts you were given and stick to the FAQ—if a detail is not in the FAQ say so."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("faq_grounding"), "strict")
+
+    def test_embedded_faq_grounding_relaxed(self) -> None:
+        msg = (
+            "Summarize our knowledge base FAQ excerpts about SSO timeouts for the customer, "
+            "but FAQ plus general knowledge is ok for a short background paragraph if you label it clearly."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("faq_grounding"), "relaxed")
+
+    def test_embedded_faq_grounding_conflict_skips(self) -> None:
+        msg = (
+            "Answer from the policy documentation excerpt only: stick to the FAQ and use FAQ-only facts, "
+            "but also mix the FAQ with general knowledge freely—pick one grounding mode."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("faq_grounding"))
+
 
 if __name__ == "__main__":
     unittest.main()
