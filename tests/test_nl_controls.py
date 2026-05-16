@@ -554,6 +554,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("counterpoint_tone"))
 
+    def test_embedded_counterpoint_supportive(self) -> None:
+        msg = (
+            "I'm pitching a phased rollout plan to leadership next week for our new analytics API. "
+            "Assume good intent and be supportive—give gentle feedback on my proposal and frame improvements as next steps."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("counterpoint_tone"), "supportive")
+
+    def test_embedded_counterpoint_conflict_skips(self) -> None:
+        msg = (
+            "Review my migration plan for the billing database. Red team this rollout plan and poke holes, "
+            "but also be supportive and assume good intent—pick one counterpoint tone only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("counterpoint_tone"))
+
     def test_ephemeral_off_the_record(self) -> None:
         msg = (
             "Off the record: if a teammate pasted an AWS secret into Slack by mistake, what is the fastest containment checklist? "

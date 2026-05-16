@@ -1433,6 +1433,49 @@ def _embedded_emoji_style(m: str) -> str | None:
     return None
 
 
+def _embedded_counterpoint_tone(m: str) -> str | None:
+    """``challenge`` vs ``supportive`` pushback on plans (not short *Challenge my assumptions* controls)."""
+    if len(m) < 52:
+        return None
+    ctx = (
+        r"\b(plan|plans|design|approach|idea|ideas|architecture|proposal|strategy|"
+        r"implementation|rollout|pitch|deck|draft|thesis|launch|release|migration|schema|"
+        r"deployment|code|system)\b"
+    )
+    gentle = bool(
+        re.search(r"\b(don'?t challenge|be gentle|go easy on me|no criticism|don'?t be harsh)\b", m)
+    )
+    challenge = bool(
+        not gentle
+        and re.search(
+            r"\b(red team|red-team|stress[- ]?test|pick apart|tear down|what am i missing|sanity check|"
+            r"challenge my|poke holes|find (?:weaknesses|gaps|flaws)|critique (?:my|this|our)|"
+            r"devil'?s advocate)\b",
+            m,
+        )
+        and re.search(ctx, m)
+    )
+    supportive = bool(
+        re.search(
+            r"\b(be supportive (?:of|about|with)|assume good intent|encourage my (?:idea|plan|proposal)|"
+            r"constructive and supportive|help me build on (?:this|my) (?:idea|plan)|"
+            r"coach me through (?:this|my) (?:idea|plan|pitch)|"
+            r"gentle (?:feedback|pushback) on (?:my|this|our)|"
+            r"avoid harsh criticism|frame improvements as next steps|"
+            r"lean supportive and (?:specific|actionable))\b",
+            m,
+        )
+        and re.search(ctx, m)
+    )
+    if challenge and supportive:
+        return None
+    if challenge:
+        return "challenge"
+    if supportive:
+        return "supportive"
+    return None
+
+
 def _embedded_math_detail(m: str) -> str | None:
     """``show_work`` vs ``final_only`` for math-like answers (not short *Show your work* controls)."""
     if len(m) < 44:
@@ -1669,24 +1712,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if mth:
         overrides["math_detail"] = mth
 
-    # Critique / red-team embedded in a longer prompt (not the short "Challenge my assumptions" control).
-    if (
-        len(m) >= 52
-        and not re.search(r"\b(don'?t challenge|be gentle|go easy on me|no criticism|don'?t be harsh)\b", m)
-        and re.search(
-            r"\b(red team|red-team|stress[- ]?test|pick apart|tear down|what am i missing|sanity check|"
-            r"challenge my|poke holes|find (?:weaknesses|gaps|flaws)|critique (?:my|this|our)|"
-            r"devil'?s advocate)\b",
-            m,
-        )
-        and re.search(
-            r"\b(plan|plans|design|approach|idea|ideas|architecture|security|threat|attack|assumption|"
-            r"proposal|strategy|implementation|rollout|schema|migration|deployment|code|system|thesis|"
-            r"launch|release)\b",
-            m,
-        )
-    ):
-        overrides["counterpoint_tone"] = "challenge"
+    cpt = _embedded_counterpoint_tone(m)
+    if cpt:
+        overrides["counterpoint_tone"] = cpt
 
     eord = _embedded_exposition_order(m)
     if eord:
