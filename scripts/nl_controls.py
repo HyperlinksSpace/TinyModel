@@ -867,6 +867,33 @@ def _embedded_simple_audience(m: str) -> bool:
     )
 
 
+def _embedded_technical_audience(m: str) -> bool:
+    """True if a longer prompt asks for expert-depth explanations (not short *Expert mode* controls)."""
+    if len(m) < 40:
+        return False
+    if re.search(
+        r"\b(eli5|explain like i'?m(?:\s+a)? five|total beginner|i'?m\s+a\s+beginner\b|beginner\s+here\b|"
+        r"lay audience|no technical background|zero prior knowledge|explain simply)\b",
+        m,
+    ):
+        return False
+    if not re.search(
+        r"\b(expert mode|technical audience|assume i'?m technical|phd level|for experts|deep technical|"
+        r"staff engineer audience|senior (?:sre|eng|engineer) audience|"
+        r"use jargon freely|skip the basics|don'?t dumb (?:it )?down|"
+        r"peer[- ]level technical|internals[- ]focused|implementation[- ]heavy)\b",
+        m,
+    ):
+        return False
+    return bool(
+        re.search(
+            r"\b(why|how|what|when|where|explain|describe|tell me|walk me through|"
+            r"compare|design|architect|debug|troubleshoot|analyze|review|implement)\b",
+            m,
+        )
+    )
+
+
 def _embedded_register_tone(m: str) -> str | None:
     """One-shot formal vs casual register when prose names an audience (not the short *Formal tone* control)."""
     if len(m) < 48:
@@ -1523,6 +1550,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
+    elif _embedded_technical_audience(m):
+        overrides["audience"] = "technical"
 
     ert = _embedded_register_tone(m)
     if ert:

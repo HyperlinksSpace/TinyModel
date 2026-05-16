@@ -601,6 +601,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("audience"))
 
+    def test_embedded_technical_audience_sets_technical(self) -> None:
+        msg = (
+            "Our platform team is debugging cross-region Postgres failover lag during cutovers. "
+            "Assume I'm technical and explain the internals-focused replication path—skip the basics on WAL shipping."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("audience"), "technical")
+
+    def test_embedded_technical_respects_beginner_intent(self) -> None:
+        msg = (
+            "I'm a total beginner to Kubernetes networking. Also assume I'm technical and give a deep technical "
+            "walkthrough of CNI plugins—pick one audience level only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("audience"))
+
     def test_embedded_register_formal_board_ready(self) -> None:
         msg = (
             "Our startup is preparing the Q2 board deck. Draft a board-ready paragraph explaining why we chose "
