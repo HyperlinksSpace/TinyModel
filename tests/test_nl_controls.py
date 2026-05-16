@@ -912,6 +912,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("acronym_style"))
 
+    def test_embedded_risk_posture_conservative(self) -> None:
+        msg = (
+            "We're planning a blue-green cutover for the payments API this weekend. "
+            "Please err on the side of safety and prefer low-risk options that minimize blast radius if we rollback."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("risk_posture"), "conservative")
+
+    def test_embedded_risk_posture_pragmatic(self) -> None:
+        msg = (
+            "Our startup needs to unblock a broken nightly deploy before Monday's demo. "
+            "Be pragmatic about the fix—optimize for speed and avoid over-engineering a permanent platform."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("risk_posture"), "pragmatic")
+
+    def test_embedded_risk_posture_conflict_skips(self) -> None:
+        msg = (
+            "Recommend how we should patch the auth service. Err on the side of safety for production, "
+            "but also ship fast and optimize for speed this week—pick one risk posture only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("risk_posture"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1307,6 +1307,41 @@ def _embedded_acronym_style(m: str) -> str | None:
     return None
 
 
+def _embedded_risk_posture(m: str) -> str | None:
+    """``conservative`` vs ``pragmatic`` recommendation tone (not short *Be risk averse* controls)."""
+    if len(m) < 48:
+        return None
+    pragmatic = bool(
+        re.search(
+            r"\b(optimize for speed|good enough is fine|be pragmatic about|"
+            r"avoid over[- ]engineering|ship (?:it )?fast|move fast (?:and|&)|"
+            r"time[- ]efficient (?:fix|approach|recommendation)|"
+            r"practical trade[- ]offs over perfection|"
+            r"don'?t gold[- ]plate|bias toward shipping)\b",
+            m,
+        )
+    )
+    conservative = bool(
+        re.search(
+            r"\b(err on the side of safety|be risk[- ]averse|"
+            r"risk[- ]averse (?:recommendation|approach)|"
+            r"choose the (?:safest|lower[- ]risk) option|"
+            r"minimize (?:downside|blast radius)|"
+            r"prefer (?:safer|low[- ]risk) (?:options?|paths?)|"
+            r"conservative (?:recommendation|rollout|approach)|"
+            r"safety[- ]first (?:for|on) (?:this|the) (?:rollout|migration|change))\b",
+            m,
+        )
+    )
+    if conservative and pragmatic:
+        return None
+    if conservative:
+        return "conservative"
+    if pragmatic:
+        return "pragmatic"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1520,6 +1555,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     acs = _embedded_acronym_style(m)
     if acs:
         overrides["acronym_style"] = acs
+
+    rsk = _embedded_risk_posture(m)
+    if rsk:
+        overrides["risk_posture"] = rsk
 
     return overrides, extras, trace_tags
 
