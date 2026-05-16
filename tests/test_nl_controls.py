@@ -1024,6 +1024,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("faq_grounding"))
 
+    def test_embedded_math_detail_show_work(self) -> None:
+        msg = (
+            "For my calculus homework on definite integrals, show your work and walk through the derivation "
+            "when you integrate x^2 e^{-x} from zero to infinity."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("math_detail"), "show_work")
+
+    def test_embedded_math_detail_final_only(self) -> None:
+        msg = (
+            "I'm checking a statistics problem set before class. For this Bayes theorem exercise, "
+            "give me the final answer only and skip the steps—I just need the posterior probability."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("math_detail"), "final_only")
+
+    def test_embedded_math_detail_conflict_skips(self) -> None:
+        msg = (
+            "Solve the quadratic equation for the exam review. Show your work with intermediate steps, "
+            "but also final answer only with no derivation—pick one math detail style."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("math_detail"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1433,6 +1433,40 @@ def _embedded_emoji_style(m: str) -> str | None:
     return None
 
 
+def _embedded_math_detail(m: str) -> str | None:
+    """``show_work`` vs ``final_only`` for math-like answers (not short *Show your work* controls)."""
+    if len(m) < 44:
+        return None
+    show = bool(
+        re.search(
+            r"\b(show your work|show (?:all )?(?:the )?steps|with (?:a )?derivation|prove (that|it)|rigorously|"
+            r"walk through (?:the )?derivation|show intermediate steps|step[- ]by[- ]step derivation|"
+            r"derive (?:it|the result) (?:step by step|explicitly))\b",
+            m,
+        )
+    )
+    final = bool(
+        re.search(
+            r"\b(final answer only|no derivation|skip (?:the )?steps|just (?:give )?(?:me )?the (?:final )?result|"
+            r"don'?t show your work|do not show your work|answer without (?:showing )?steps|"
+            r"no intermediate steps|closed[- ]form (?:answer|result) only|"
+            r"(?:numerical |numeric )?answer only.{0,30}no steps)\b",
+            m,
+        )
+    )
+    if show and final:
+        return None
+    if show:
+        return "show_work"
+    if final and re.search(
+        r"\b(math|equation|integral|derivative|probability|calculate|calculus|algebra|"
+        r"proof|formula|theorem|matrix|solve|statistics|bayes|variance|expected value)\b",
+        m,
+    ):
+        return "final_only"
+    return None
+
+
 def _embedded_faq_grounding(m: str) -> str | None:
     """``strict`` vs ``relaxed`` FAQ/RAG grounding (not short *Strict FAQ* / *Relaxed FAQ* controls)."""
     if len(m) < 48:
@@ -1631,12 +1665,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if re.search(r"\b(bullet points?|bulleted list|use bullets)\b", m):
         overrides["reply_format"] = "bullets"
 
-    # Math-like rigor without a standalone "show your work" control line.
-    if re.search(
-        r"\b(show your work|show (all )?steps|with (a )?derivation|prove (that|it)|rigorously)\b",
-        m,
-    ):
-        overrides["math_detail"] = "show_work"
+    mth = _embedded_math_detail(m)
+    if mth:
+        overrides["math_detail"] = mth
 
     # Critique / red-team embedded in a longer prompt (not the short "Challenge my assumptions" control).
     if (
