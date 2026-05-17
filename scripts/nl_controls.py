@@ -938,17 +938,21 @@ def _embedded_json_output(m: str) -> bool:
     )
 
 
-def _embedded_speculation_strict(m: str) -> bool:
-    """True if a longer prompt demands low-speculation / anti-guessing (not the short *No speculation* control)."""
+def _embedded_speculation(m: str) -> str | None:
+    """``strict`` vs ``creative`` speculation level (not short *No speculation* / *Brainstorm freely* controls)."""
     if len(m) < 44:
-        return False
-    if re.search(
-        r"\b(brainstorm freely|speculate freely|wild ideas|creative speculation|"
-        r"go ahead and guess|reasonable guesses welcome|speculate a bit)\b",
-        m,
-    ):
-        return False
-    return bool(
+        return None
+    creative = bool(
+        re.search(
+            r"\b(brainstorm freely|speculate freely|wild ideas(?:\s+ok)?|creative speculation|"
+            r"go ahead and guess|reasonable guesses welcome|speculate a bit|"
+            r"blue[- ]sky (?:thinking|ideas)|throw out (?:some )?possibilities|"
+            r"explore hypotheticals|what[- ]if scenarios (?:are )?welcome|"
+            r"ideation (?:mode|session)|open[- ]ended brainstorming)\b",
+            m,
+        )
+    )
+    strict = bool(
         re.search(
             r"\b(don'?t guess|no guessing|avoid guessing|only high confidence|stick to (?:the\s+)?facts|"
             r"avoid halluc|no hallucinations|don'?t hallucinate|if you don'?t know say|"
@@ -958,6 +962,13 @@ def _embedded_speculation_strict(m: str) -> bool:
             m,
         )
     )
+    if creative and strict:
+        return None
+    if strict:
+        return "strict"
+    if creative:
+        return "creative"
+    return None
 
 
 def _embedded_answer_lead_tldr(m: str) -> bool:
@@ -1672,8 +1683,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if _embedded_json_output(m):
         overrides["output_format"] = "json"
 
-    if _embedded_speculation_strict(m):
-        overrides["speculation"] = "strict"
+    spc = _embedded_speculation(m)
+    if spc:
+        overrides["speculation"] = spc
 
     if _embedded_answer_lead_tldr(m):
         overrides["answer_lead"] = "tldr_first"

@@ -689,6 +689,14 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("speculation"))
 
+    def test_embedded_speculation_creative(self) -> None:
+        msg = (
+            "We're kicking off a product workshop on improving first-week activation for new users. "
+            "Brainstorm freely about onboarding UX improvements—wild ideas are welcome if you label assumptions."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("speculation"), "creative")
+
     def test_embedded_answer_lead_tldr_bluf(self) -> None:
         msg = (
             "We need to brief the CFO in two minutes on why our cloud egress bill spiked last month. "
