@@ -1612,6 +1612,36 @@ def _embedded_code_block_style(m: str) -> str | None:
     return "inline"
 
 
+def _embedded_reply_format(m: str) -> str | None:
+    """``bullets`` vs ``prose`` list layout (not short *Use bullet points* / *No bullets* controls)."""
+    if len(m) < 48:
+        return None
+    prose = bool(
+        re.search(
+            r"\b(no bullets?|plain paragraphs?|prose only|stop using lists|"
+            r"continuous prose only|avoid bullet lists?|write in paragraphs|"
+            r"paragraph form only|don'?t use bullet points?|"
+            r"keep (?:it\s+)?in (?:flowing )?prose|not as a bulleted list)\b",
+            m,
+        )
+    )
+    bullets = bool(
+        re.search(
+            r"\b(bullet points?|bulleted list|use bullets|format as bullets|"
+            r"list (?:the\s+)?key points in bullets|markdown bullets?|"
+            r"give me a bulleted list|bullet(?:ed)? format)\b",
+            m,
+        )
+    )
+    if prose and bullets:
+        return None
+    if prose:
+        return "prose"
+    if bullets:
+        return "bullets"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1773,9 +1803,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ):
         overrides["table_style"] = "prefer"
 
-    # Bullets from natural phrasing (longer prompts only).
-    if re.search(r"\b(bullet points?|bulleted list|use bullets)\b", m):
-        overrides["reply_format"] = "bullets"
+    rpf = _embedded_reply_format(m)
+    if rpf:
+        overrides["reply_format"] = rpf
 
     mth = _embedded_math_detail(m)
     if mth:

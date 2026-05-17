@@ -745,6 +745,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("actionability"))
 
+    def test_embedded_reply_format_bullets(self) -> None:
+        msg = (
+            "Summarize the main risks of adopting serverless Postgres for our fintech control plane. "
+            "Use bullet points and format the answer as bullets so I can paste into a slide."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("reply_format"), "bullets")
+
+    def test_embedded_reply_format_prose(self) -> None:
+        msg = (
+            "Explain how our webhook retry policy should behave during partial outages for the partner API. "
+            "No bullets—plain paragraphs only for a legal review memo footnote."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("reply_format"), "prose")
+
+    def test_embedded_reply_format_conflict_skips(self) -> None:
+        msg = (
+            "Outline our incident communication plan for customers. Use bullet points for the timeline, "
+            "but also prose only with no bullets—pick one reply format."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("reply_format"))
+
     def test_embedded_assumptions_limitations_sets_transparent_confidence(self) -> None:
         msg = (
             "We're drafting an internal memo on moving our batch jobs from cron to a managed scheduler. "
