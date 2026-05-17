@@ -705,10 +705,18 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("answer_lead"), "tldr_first")
 
-    def test_embedded_answer_lead_respects_skip_summary(self) -> None:
+    def test_embedded_answer_lead_direct(self) -> None:
         msg = (
             "Explain how object storage lifecycle policies interact with versioning. Answer directly without a tldr; "
             "I need continuous prose for a design doc footnote."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("answer_lead"), "direct")
+
+    def test_embedded_answer_lead_conflict_skips(self) -> None:
+        msg = (
+            "Brief the team on the outage timeline. Use BLUF and summary first, but also answer directly "
+            "and skip the summary—pick one opening style only."
         )
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("answer_lead"))

@@ -971,17 +971,20 @@ def _embedded_speculation(m: str) -> str | None:
     return None
 
 
-def _embedded_answer_lead_tldr(m: str) -> bool:
-    """True if a longer prompt wants an upfront summary / BLUF (not the short *TLDR first* control line)."""
+def _embedded_answer_lead(m: str) -> str | None:
+    """``tldr_first`` vs ``direct`` answer opening (not short *TLDR first* / *Answer directly* controls)."""
     if len(m) < 44:
-        return False
-    if re.search(
-        r"\b(no tldr|skip (?:the )?summary|answer directly|without a (?:summary|tldr)|"
-        r"no executive summary|don'?t (?:add|give) a tldr)\b",
-        m,
-    ):
-        return False
-    return bool(
+        return None
+    direct = bool(
+        re.search(
+            r"\b(no tldr|skip (?:the )?summary|answer directly|without a (?:summary|tldr)|"
+            r"no executive summary|don'?t (?:add|give) a tldr|direct answer only|"
+            r"jump straight to the answer|no summary (?:upfront|at the top)|"
+            r"get straight to the (?:answer|point)|omit (?:the )?(?:opening )?summary)\b",
+            m,
+        )
+    )
+    tldr = bool(
         re.search(
             r"\b(tl;?dr first|tldr first|lead with (?:a\s+)?(?:one[- ]line\s+)?summary|summary first|"
             r"executive summary first|bottom line up front|bluf|"
@@ -990,6 +993,13 @@ def _embedded_answer_lead_tldr(m: str) -> bool:
             m,
         )
     )
+    if direct and tldr:
+        return None
+    if direct:
+        return "direct"
+    if tldr:
+        return "tldr_first"
+    return None
 
 
 def _embedded_actionability_commands(m: str) -> bool:
@@ -1687,8 +1697,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if spc:
         overrides["speculation"] = spc
 
-    if _embedded_answer_lead_tldr(m):
-        overrides["answer_lead"] = "tldr_first"
+    ald = _embedded_answer_lead(m)
+    if ald:
+        overrides["answer_lead"] = ald
 
     if _embedded_actionability_commands(m):
         overrides["actionability"] = "commands"
