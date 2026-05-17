@@ -1546,6 +1546,41 @@ def _embedded_faq_grounding(m: str) -> str | None:
     return None
 
 
+def _embedded_code_block_style(m: str) -> str | None:
+    """``fenced`` vs ``inline`` code layout (not short *Use code fences* / *Inline code only* controls)."""
+    if len(m) < 48:
+        return None
+    code_ctx = (
+        r"\b(code|snippet|command|script|bash|shell|python|curl|kubectl|docker|sql|"
+        r"regex|yaml|terraform|powershell|config|api call|terminal)\b"
+    )
+    fenced = bool(
+        re.search(
+            r"\b(use code fences|fenced code blocks?|markdown code fences?|"
+            r"triple[- ]backtick fences?|put (?:the )?(?:code|commands?|script) in (?:a )?fenced block|"
+            r"use markdown fenced code blocks?|wrap (?:the )?(?:code|snippet) in (?:triple )?backticks)\b",
+            m,
+        )
+    )
+    inline = bool(
+        re.search(
+            r"\b(inline code only|no triple backticks?|no fenced code blocks?|"
+            r"avoid code fences|single backticks? only|don'?t use fenced blocks?|"
+            r"keep (?:code|snippets?) inline|inline backticks? only)\b",
+            m,
+        )
+    )
+    if not fenced and not inline:
+        return None
+    if not re.search(code_ctx, m):
+        return None
+    if fenced and inline:
+        return None
+    if fenced:
+        return "fenced"
+    return "inline"
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1759,6 +1794,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     fgr = _embedded_faq_grounding(m)
     if fgr:
         overrides["faq_grounding"] = fgr
+
+    cbs = _embedded_code_block_style(m)
+    if cbs:
+        overrides["code_block_style"] = cbs
 
     return overrides, extras, trace_tags
 

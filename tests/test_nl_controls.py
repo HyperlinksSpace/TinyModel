@@ -1064,6 +1064,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("math_detail"))
 
+    def test_embedded_code_block_style_fenced(self) -> None:
+        msg = (
+            "I'm documenting a kubectl rollout for our platform team. "
+            "Put the bash commands in fenced code blocks with markdown code fences so I can paste into the runbook."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("code_block_style"), "fenced")
+
+    def test_embedded_code_block_style_inline(self) -> None:
+        msg = (
+            "For this short Python API snippet in chat, use inline code only—no triple backticks and "
+            "keep the one-liner commands inline in the sentence."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("code_block_style"), "inline")
+
+    def test_embedded_code_block_style_conflict_skips(self) -> None:
+        msg = (
+            "Share a docker compose example for local dev. Use fenced code blocks for the yaml, "
+            "but also inline code only with no fenced code blocks—pick one code layout."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("code_block_style"))
+
 
 if __name__ == "__main__":
     unittest.main()
