@@ -801,6 +801,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("confidence_tone"), "assertive")
 
+    def test_embedded_step_style_numbered(self) -> None:
+        msg = (
+            "I'm onboarding a new SRE who has never used our Helm chart before. "
+            "Walk me through how to install the observability stack step by step on a fresh EKS cluster."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("step_style"), "numbered")
+
+    def test_embedded_step_style_continuous(self) -> None:
+        msg = (
+            "Explain how our canary deployment controller decides when to promote a release, "
+            "but use continuous prose only—no numbered steps—for an architecture blog draft."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("step_style"), "continuous")
+
+    def test_embedded_step_style_conflict_skips(self) -> None:
+        msg = (
+            "How do I migrate our Postgres from RDS to Aurora? Show me how step by step, "
+            "but also prose without steps and no numbered steps—pick one step style."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("step_style"))
+
     def test_embedded_example_density_rich_worked_example(self) -> None:
         msg = (
             "Our junior engineers confuse eventual consistency with read-your-writes in replicated databases. "

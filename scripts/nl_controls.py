@@ -1661,6 +1661,40 @@ def _embedded_reply_format(m: str) -> str | None:
     return None
 
 
+def _embedded_step_style(m: str) -> str | None:
+    """``numbered`` vs ``continuous`` procedure layout (not short *Step by step* controls)."""
+    if len(m) < 48:
+        return None
+    continuous = bool(
+        re.search(
+            r"\b(no numbered steps|don'?t number steps|skip step numbers|"
+            r"prose without steps|avoid numbered step lists?|"
+            r"continuous prose (?:only|instead)|not as numbered steps|"
+            r"connected paragraphs?(?:\s+only)?|explain as (?:flowing )?prose)\b",
+            m,
+        )
+    )
+    numbered = bool(
+        re.search(r"\b(step by step|step-by-step)\b", m)
+        or re.search(r"\b(walk me through|show me how)\b", m)
+        or re.search(r"\b(?<!no )(?:use )?numbered steps\b|break it into steps\b", m)
+        or (
+            re.search(r"\b(how do i|how can i|how should i|how to)\b", m)
+            and re.search(
+                r"\b(install|set up|setup|configure|enable|deploy|migrate|upgrade|fix|debug|troubleshoot)\b",
+                m,
+            )
+        )
+    )
+    if continuous and numbered:
+        return None
+    if continuous:
+        return "continuous"
+    if numbered:
+        return "numbered"
+    return None
+
+
 def _reply_lang_phrase(m: str) -> str | None:
     """Return display name (e.g. 'French') if the user asked for a reply in a known language."""
     for mo in re.finditer(
@@ -1802,17 +1836,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ):
         overrides["comparison_frame"] = "pros_cons"
 
-    # Procedure-style questions → numbered steps for this answer.
-    if re.search(r"\b(step by step|step-by-step)\b", m) or re.search(
-        r"\b(walk me through|show me how)\b",
-        m,
-    ):
-        overrides["step_style"] = "numbered"
-    elif re.search(r"\b(how do i|how can i|how should i|how to)\b", m) and re.search(
-        r"\b(install|set up|setup|configure|enable|deploy|migrate|upgrade|fix|debug|troubleshoot)\b",
-        m,
-    ):
-        overrides["step_style"] = "numbered"
+    stl = _embedded_step_style(m)
+    if stl:
+        overrides["step_style"] = stl
 
     # Tables when the user names the shape they want.
     if re.search(r"\b(no tables?|without a table|avoid tables?)\b", m):
