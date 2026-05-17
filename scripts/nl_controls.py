@@ -1002,17 +1002,20 @@ def _embedded_answer_lead(m: str) -> str | None:
     return None
 
 
-def _embedded_actionability_commands(m: str) -> bool:
-    """True if a longer prompt asks for runnable shell/tooling snippets (not the short *Make it actionable* control)."""
+def _embedded_actionability(m: str) -> str | None:
+    """``commands`` vs ``conceptual`` actionability (not short *Make it actionable* / *Conceptual only* controls)."""
     if len(m) < 44:
-        return False
-    if re.search(
-        r"\b(no commands|conceptual only|high level only|without commands|no shell commands|"
-        r"no code|no snippets|theory only)\b",
-        m,
-    ):
-        return False
-    return bool(
+        return None
+    conceptual = bool(
+        re.search(
+            r"\b(conceptual only|high level only|no commands|without commands|no shell commands|"
+            r"avoid command dumps|don'?t include (?:bash|shell|terminal) commands|"
+            r"focus on concepts(?:\s+and\s+rationale)?|strategic discussion only|"
+            r"architecture overview only|no runnable snippets|theory and tradeoffs only)\b",
+            m,
+        )
+    )
+    commands = bool(
         re.search(
             r"\b(include (?:a\s+)?(?:bash|sh|zsh|powershell) snippet|run(?:nable)? commands?|"
             r"copy[- ]paste (?:into )?(?:the\s+)?(?:terminal|shell)|"
@@ -1024,6 +1027,13 @@ def _embedded_actionability_commands(m: str) -> bool:
             m,
         )
     )
+    if conceptual and commands:
+        return None
+    if conceptual:
+        return "conceptual"
+    if commands:
+        return "commands"
+    return None
 
 
 def _embedded_confidence_transparent(m: str) -> bool:
@@ -1701,8 +1711,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ald:
         overrides["answer_lead"] = ald
 
-    if _embedded_actionability_commands(m):
-        overrides["actionability"] = "commands"
+    act = _embedded_actionability(m)
+    if act:
+        overrides["actionability"] = act
 
     if _embedded_confidence_transparent(m):
         overrides["confidence_tone"] = "transparent"

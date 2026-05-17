@@ -729,10 +729,18 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("actionability"), "commands")
 
-    def test_embedded_actionability_respects_conceptual_only(self) -> None:
+    def test_embedded_actionability_conceptual_only(self) -> None:
         msg = (
             "Compare blue-green vs canary deploy strategies for API rollouts. Conceptual only—no shell commands—"
             "I want tradeoffs for an architecture review slide."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("actionability"), "conceptual")
+
+    def test_embedded_actionability_conflict_skips(self) -> None:
+        msg = (
+            "Help me debug our Redis failover. Include kubectl commands I can paste into the terminal, "
+            "but also conceptual only with no commands—pick one actionability style."
         )
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("actionability"))
