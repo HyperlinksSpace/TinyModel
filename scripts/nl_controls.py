@@ -1036,42 +1036,61 @@ def _embedded_actionability(m: str) -> str | None:
     return None
 
 
-def _embedded_confidence_transparent(m: str) -> bool:
-    """True if a longer prompt asks for explicit assumptions, limitations, or caveats (not the short control lines)."""
+def _embedded_confidence_tone(m: str) -> str | None:
+    """``transparent`` vs ``assertive`` confidence (not short *Flag assumptions* / *Be decisive* controls)."""
     if len(m) < 44:
-        return False
-    if re.search(
-        r"\b(no assumptions? section|skip (?:the\s+)?assumptions?|don'?t list assumptions|"
-        r"without caveats|no caveats|omit limitations)\b",
-        m,
-    ):
-        return False
-    if re.search(
-        r"\b(no hedging|don'?t hedge|be decisive|firm answers?|minimal hedging|"
-        r"sound\s+confident|avoid disclaimers)\b",
-        m,
-    ):
-        return False
-    return bool(
+        return None
+    skip_transparent = bool(
         re.search(
-            r"\b(state|list|spell out|call out|identify|enumerate|label)\s+"
-            r"(?:your\s+|the\s+|our\s+|key\s+|main\s+)?(?:key\s+|main\s+)?assumptions?\b",
-            m,
-        )
-        or re.search(
-            r"\b(assumptions?\s+and\s+limitations?|limitations?\s+and\s+caveats?|"
-            r"limitations?\s+section|caveats?\s+(?:first|upfront|at\s+the\s+top)|"
-            r"upfront\s+caveats?|scope\s+and\s+assumptions?|boundary\s+conditions?|"
-            r"what\s+(?:we\s+)?(?:are\s+)?assuming\b|"
-            r"explicit(?:ly)?\s+about\s+(?:limitations?|uncertainty|what\s+we\s+don'?t\s+know)|"
-            r"where\s+this\s+(?:breaks?\s+down|stops?\s+working|doesn'?t\s+apply))\b",
-            m,
-        )
-        or re.search(
-            r"\b(flag|surface|highlight)\s+(?:key\s+)?(?:uncertainties|unknowns|gaps|risk\s+factors)\b",
+            r"\b(no assumptions? section|skip (?:the\s+)?assumptions?|don'?t list assumptions|"
+            r"without caveats|no caveats|omit limitations)\b",
             m,
         )
     )
+    transparent = (
+        not skip_transparent
+        and (
+            bool(
+                re.search(
+                    r"\b(state|list|spell out|call out|identify|enumerate|label)\s+"
+                    r"(?:your\s+|the\s+|our\s+|key\s+|main\s+)?(?:key\s+|main\s+)?assumptions?\b",
+                    m,
+                )
+            )
+            or bool(
+                re.search(
+                    r"\b(assumptions?\s+and\s+limitations?|limitations?\s+and\s+caveats?|"
+                    r"limitations?\s+section|caveats?\s+(?:first|upfront|at\s+the\s+top)|"
+                    r"upfront\s+caveats?|scope\s+and\s+assumptions?|boundary\s+conditions?|"
+                    r"what\s+(?:we\s+)?(?:are\s+)?assuming\b|"
+                    r"explicit(?:ly)?\s+about\s+(?:limitations?|uncertainty|what\s+we\s+don'?t\s+know)|"
+                    r"where\s+this\s+(?:breaks?\s+down|stops?\s+working|doesn'?t\s+apply))\b",
+                    m,
+                )
+            )
+            or bool(
+                re.search(
+                    r"\b(flag|surface|highlight)\s+(?:key\s+)?(?:uncertainties|unknowns|gaps|risk\s+factors)\b",
+                    m,
+                )
+            )
+        )
+    )
+    assertive = bool(
+        re.search(
+            r"\b(be decisive|don'?t hedge|give firm answers?|minimal hedging|"
+            r"sound\s+confident|avoid disclaimers|confident (?:recommendation|tone)|"
+            r"take a clear stance|no throat[- ]clearing|decisive recommendation)\b",
+            m,
+        )
+    )
+    if transparent and assertive:
+        return None
+    if transparent:
+        return "transparent"
+    if assertive:
+        return "assertive"
+    return None
 
 
 def _embedded_example_density(m: str) -> str | None:
@@ -1745,8 +1764,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if act:
         overrides["actionability"] = act
 
-    if _embedded_confidence_transparent(m):
-        overrides["confidence_tone"] = "transparent"
+    cft = _embedded_confidence_tone(m)
+    if cft:
+        overrides["confidence_tone"] = cft
 
     exd = _embedded_example_density(m)
     if exd:

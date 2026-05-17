@@ -793,6 +793,14 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("confidence_tone"))
 
+    def test_embedded_confidence_tone_assertive(self) -> None:
+        msg = (
+            "We need a vendor pick for log aggregation by Friday for the ops review. "
+            "Be decisive, don't hedge, and give firm answers—pick one option and justify it briefly."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("confidence_tone"), "assertive")
+
     def test_embedded_example_density_rich_worked_example(self) -> None:
         msg = (
             "Our junior engineers confuse eventual consistency with read-your-writes in replicated databases. "
