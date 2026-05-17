@@ -470,6 +470,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("comparison_frame"), "pros_cons")
 
+    def test_embedded_comparison_frame_narrative(self) -> None:
+        msg = (
+            "We are choosing between Vitess and Citus for sharding our Postgres workload on GCP. "
+            "Compare them in flowing prose for a narrative comparison—no pros and cons sections, just continuous prose."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("comparison_frame"), "narrative")
+
+    def test_embedded_comparison_frame_conflict_skips(self) -> None:
+        msg = (
+            "Help me decide between Kafka and Pulsar for our event backbone. List pros and cons for each, "
+            "but also compare in flowing prose with no pros/cons sections—pick one comparison layout."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("comparison_frame"))
+
     def test_short_message_no_structural_signals(self) -> None:
         o, e, t = analyze_embedded_prompt_signals("What is the capital of France?")
         self.assertEqual(o, {})

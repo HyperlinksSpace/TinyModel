@@ -1661,6 +1661,49 @@ def _embedded_reply_format(m: str) -> str | None:
     return None
 
 
+def _embedded_comparison_frame(m: str) -> str | None:
+    """``pros_cons`` vs ``narrative`` comparison layout (not short *Use pros and cons* controls)."""
+    if len(m) < 48:
+        return None
+    if not re.search(r"\b(compare|comparing|comparison|contrasted?|contrast|trade-?offs?)\b", m):
+        return None
+    narrative = bool(
+        re.search(
+            r"\b(no pros|without pros|avoid pros|no pros\/cons|no pros and cons sections?)\b",
+            m,
+        )
+        or re.search(
+            r"\b(flowing prose|continuous prose|narrative comparison|prose comparison only|"
+            r"compare in flowing prose)\b",
+            m,
+        )
+    )
+    pros = bool(
+        re.search(
+            r"\b(trade-?offs?|(?<!no )pros and cons|advantages and disadvantages)\b",
+            m,
+        )
+        or re.search(r"\bdifference between\b.+\band\b", m)
+        or re.search(r"\b(compare|comparing|comparison|contrasted?|contrast)\b.+\b(vs\.?|versus)\b", m)
+        or (
+            re.search(r"\b(compare|comparing|comparison)\b", m)
+            and re.search(r"\b(and|with)\b", m)
+            and len(m) >= 72
+            and re.search(
+                r"\b(versus|vs\.?|option|approach|tool|stack|framework|language|model|database|db|cloud)\b",
+                m,
+            )
+        )
+    )
+    if narrative and pros:
+        return None
+    if narrative:
+        return "narrative"
+    if pros:
+        return "pros_cons"
+    return None
+
+
 def _embedded_step_style(m: str) -> str | None:
     """``numbered`` vs ``continuous`` procedure layout (not short *Step by step* controls)."""
     if len(m) < 48:
@@ -1809,32 +1852,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if len(m) < 48:
         return overrides, extras, trace_tags
 
-    # Comparison layout (prefer narrative if user explicitly rejects rigid pros/cons).
-    if re.search(r"\b(no pros|without pros|avoid pros|no pros\/cons)\b", m) and re.search(
-        r"\b(compare|comparison|contrast|trade-?offs?)\b",
-        m,
-    ):
-        overrides["comparison_frame"] = "narrative"
-    elif re.search(r"\b(flowing prose|continuous prose|narrative comparison)\b", m) and re.search(
-        r"\b(compare|comparison|contrast)\b",
-        m,
-    ):
-        overrides["comparison_frame"] = "narrative"
-    elif (
-        re.search(r"\b(trade-?offs?|pros and cons|advantages and disadvantages)\b", m)
-        or re.search(r"\bdifference between\b.+\band\b", m)
-        or re.search(r"\b(compare|comparing|comparison|contrasted?|contrast)\b.+\b(vs\.?|versus)\b", m)
-        or (
-            re.search(r"\b(compare|comparing|comparison)\b", m)
-            and re.search(r"\b(and|with)\b", m)
-            and len(m) >= 72
-            and re.search(
-                r"\b(versus|vs\.?|option|approach|tool|stack|framework|language|model|database|db|cloud)\b",
-                m,
-            )
-        )
-    ):
-        overrides["comparison_frame"] = "pros_cons"
+    cmf = _embedded_comparison_frame(m)
+    if cmf:
+        overrides["comparison_frame"] = cmf
 
     stl = _embedded_step_style(m)
     if stl:
