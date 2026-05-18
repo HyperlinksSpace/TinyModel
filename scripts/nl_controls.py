@@ -918,17 +918,20 @@ def _embedded_register_tone(m: str) -> str | None:
     return None
 
 
-def _embedded_json_output(m: str) -> bool:
-    """True if a longer prompt asks for JSON-shaped output (not the short *Answer in JSON* control line)."""
+def _embedded_output_format(m: str) -> str | None:
+    """``json`` vs ``plain`` output shape (not short *Answer in JSON* / *Plain text only* controls)."""
     if len(m) < 40:
-        return False
-    if re.search(
-        r"\b(no json|not json|avoid json|skip json|plain text only|no structured output|"
-        r"don'?t use json|without json)\b",
-        m,
-    ):
-        return False
-    return bool(
+        return None
+    plain = bool(
+        re.search(
+            r"\b(plain text only|no json(?:\s+block)?|not json|avoid json|skip json|"
+            r"no structured output|don'?t use json|without json|"
+            r"normal (?:plain )?text(?:\s+only)?|prose only.{0,30}no json|"
+            r"don'?t (?:return|emit|output) json)\b",
+            m,
+        )
+    )
+    json_fmt = bool(
         re.search(
             r"\b(valid json|return json|reply in json|answer in json|json output|structured json|"
             r"json object|json array|as json\b|as a json|machine[- ]readable json|emit json|"
@@ -936,6 +939,13 @@ def _embedded_json_output(m: str) -> bool:
             m,
         )
     )
+    if plain and json_fmt:
+        return None
+    if plain:
+        return "plain"
+    if json_fmt:
+        return "json"
+    return None
 
 
 def _embedded_speculation(m: str) -> str | None:
@@ -1826,8 +1836,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ert:
         overrides["register_tone"] = ert
 
-    if _embedded_json_output(m):
-        overrides["output_format"] = "json"
+    oft = _embedded_output_format(m)
+    if oft:
+        overrides["output_format"] = oft
 
     spc = _embedded_speculation(m)
     if spc:

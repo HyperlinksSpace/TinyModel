@@ -689,6 +689,14 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("output_format"))
 
+    def test_embedded_output_format_plain(self) -> None:
+        msg = (
+            "We're drafting customer-facing release notes for the mobile app v4.2 security patch. "
+            "Explain what changed in plain text only—no JSON or structured output blocks in your reply."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("output_format"), "plain")
+
     def test_embedded_speculation_strict_in_prose(self) -> None:
         msg = (
             "We're writing an incident report for leadership about yesterday's partial outage. "
