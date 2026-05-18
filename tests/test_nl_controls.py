@@ -508,6 +508,22 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("table_style"), "prefer")
 
+    def test_embedded_table_style_avoid(self) -> None:
+        msg = (
+            "Compare our three on-call escalation policies for the security review. "
+            "Keep it in prose only—no tables and avoid tabular format so it reads well in email."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("table_style"), "avoid")
+
+    def test_embedded_table_style_conflict_skips(self) -> None:
+        msg = (
+            "List feature flags for the billing service rollout. Put this in a markdown table, "
+            "but also no tables and without a table—pick one table style only."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("table_style"))
+
     def test_answer_in_spanish_short(self) -> None:
         msg = "What is 2+2? Please answer in spanish."
         o, e, t = analyze_embedded_prompt_signals(msg)

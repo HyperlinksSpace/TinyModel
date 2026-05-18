@@ -1714,6 +1714,35 @@ def _embedded_comparison_frame(m: str) -> str | None:
     return None
 
 
+def _embedded_table_style(m: str) -> str | None:
+    """``prefer`` vs ``avoid`` markdown tables (not short *Use tables* / *No tables* controls)."""
+    if len(m) < 48:
+        return None
+    avoid = bool(
+        re.search(
+            r"\b(no tables?|without a table|avoid tables?|no markdown tables?|"
+            r"don'?t use tables?|skip the table|table[- ]free (?:summary|answer)|"
+            r"not in a table|avoid tabular format)\b",
+            m,
+        )
+    )
+    prefer = bool(
+        re.search(
+            r"\b(in a table|as a table|markdown table|(?<!avoid )tabular format|two-?column|rows and columns|"
+            r"use a (?:markdown )?table|format as a table|put (?:it|this) in a table|"
+            r"present (?:it|the comparison) in a table)\b",
+            m,
+        )
+    )
+    if avoid and prefer:
+        return None
+    if avoid:
+        return "avoid"
+    if prefer:
+        return "prefer"
+    return None
+
+
 def _embedded_step_style(m: str) -> str | None:
     """``numbered`` vs ``continuous`` procedure layout (not short *Step by step* controls)."""
     if len(m) < 48:
@@ -1871,14 +1900,9 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if stl:
         overrides["step_style"] = stl
 
-    # Tables when the user names the shape they want.
-    if re.search(r"\b(no tables?|without a table|avoid tables?)\b", m):
-        overrides["table_style"] = "avoid"
-    elif re.search(
-        r"\b(in a table|as a table|markdown table|tabular format|two-?column|rows and columns)\b",
-        m,
-    ):
-        overrides["table_style"] = "prefer"
+    tbl = _embedded_table_style(m)
+    if tbl:
+        overrides["table_style"] = tbl
 
     rpf = _embedded_reply_format(m)
     if rpf:
