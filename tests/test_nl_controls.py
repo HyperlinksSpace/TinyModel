@@ -572,6 +572,35 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("code_explained", t)
         self.assertEqual(o, {})
 
+    def test_embedded_cite_sources_trace(self) -> None:
+        msg = (
+            "Our compliance team pasted several FAQ excerpts about enterprise refund windows and SLA credits. "
+            "Please cite your sources and attribute each claim with links—I need audit-ready references."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("cite_sources", t)
+        self.assertTrue(any("source attribution" in x.lower() for x in e))
+
+    def test_embedded_cite_minimal_trace(self) -> None:
+        msg = (
+            "Using the policy excerpt below about international shipping times, summarize the key facts "
+            "in plain prose with no source links or footnotes—just the answer for our support macro."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("cite_minimal", t)
+        self.assertNotIn("cite_sources", t)
+
+    def test_cite_sources_vs_minimal_conflict_skips(self) -> None:
+        msg = (
+            "We retrieved web search snippets about the latest EU AI Act enforcement timeline. "
+            "Cite your sources with links, but also answer without citing and no source links please."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("cite_sources", t)
+        self.assertNotIn("cite_minimal", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "

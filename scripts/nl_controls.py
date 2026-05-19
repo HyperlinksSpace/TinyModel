@@ -899,6 +899,55 @@ def _accessibility_sr_instruction(m: str) -> tuple[str, str] | None:
     return instr, "a11y"
 
 
+def _embedded_source_citations(m: str) -> tuple[str, str] | None:
+    """``cite_sources`` vs ``cite_minimal`` — inline attribution for FAQ/web/supplied context."""
+    if len(m) < 44:
+        return None
+    if not re.search(
+        r"\b(faq|policy|article|paper|report|study|news|web|search|source|reference|claim|fact|"
+        r"research|documentation|docs|excerpt|snippet|evidence|retrieved|grounded)\b",
+        m,
+    ):
+        return None
+    sources = bool(
+        re.search(
+            r"\b(cite (?:your )?sources|include (?:source )?links|link to (?:your )?sources|"
+            r"(?:give|provide) (?:inline )?citations|attribute (?:each )?(?:claim|point)|"
+            r"reference(?:s)? for (?:each|every)|where (?:did|does) (?:this|that) come from|"
+            r"back (?:each )?(?:claim|point) with (?:a )?(?:link|source)|"
+            r"include (?:the )?urls|show (?:me )?(?:the )?sources you used|"
+            r"audit[- ]ready (?:citations|references)|source attribution)\b",
+            m,
+        )
+    )
+    minimal = bool(
+        re.search(
+            r"\b(no (?:source )?links|don'?t cite(?: sources)?|skip (?:the )?links|"
+            r"without links or citations|no bibliography|don'?t include urls|"
+            r"no footnotes|answer without citing)\b",
+            m,
+        )
+    )
+    if sources and minimal:
+        return None
+    if sources:
+        instr = (
+            "The user asked for **explicit source attribution**: when using FAQ excerpts, web snippets, "
+            "or supplied context, **cite them inline** (e.g. `[FAQ excerpt 2]`, `[Web 1]`) and prefer "
+            "**short links or clear source labels** for factual claims; say when something is general knowledge "
+            "without a provided source."
+        )
+        return instr, "cite_sources"
+    if minimal:
+        instr = (
+            "The user asked to **avoid heavy citation formatting**: answer in clear prose **without** "
+            "a bibliography, long URL lists, or footnote blocks unless a single inline cite is essential "
+            "for policy or safety."
+        )
+        return instr, "cite_minimal"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -1901,7 +1950,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``). Session-style overrides
+        ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
+        ``cite_sources``, ``cite_minimal``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -1949,6 +1999,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ax:
         extras.append(ax[0])
         trace_tags.append(ax[1])
+
+    sc = _embedded_source_citations(m)
+    if sc:
+        extras.append(sc[0])
+        trace_tags.append(sc[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
