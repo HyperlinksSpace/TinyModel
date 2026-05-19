@@ -918,6 +918,36 @@ def _embedded_register_tone(m: str) -> str | None:
     return None
 
 
+def _embedded_verbosity(m: str) -> str | None:
+    """``brief`` vs ``detailed`` reply length (not short *Be brief* controls; distinct from ``len_cap``)."""
+    if len(m) < 44:
+        return None
+    detailed = bool(
+        re.search(
+            r"\b(more detail|go deeper|in greater detail|explain thoroughly|longer answers?|"
+            r"detailed answers?|comprehensive explanation|deep dive|"
+            r"don'?t skimp on detail|fuller explanation|elaborate (?:on|please)|"
+            r"walk me through (?:it )?in depth)\b",
+            m,
+        )
+    )
+    brief = bool(
+        re.search(
+            r"\b(be brief|stay brief|keep it short|short answers?|answer briefly|concise replies?|"
+            r"keep (?:your )?answer short|just the essentials|high[- ]level summary only|"
+            r"don'?t ramble|brevity (?:please|is key))\b",
+            m,
+        )
+    )
+    if brief and detailed:
+        return None
+    if brief:
+        return "brief"
+    if detailed:
+        return "detailed"
+    return None
+
+
 def _embedded_output_format(m: str) -> str | None:
     """``json`` vs ``plain`` output shape (not short *Answer in JSON* / *Plain text only* controls)."""
     if len(m) < 40:
@@ -1868,6 +1898,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     oft = _embedded_output_format(m)
     if oft:
         overrides["output_format"] = oft
+
+    vrb = _embedded_verbosity(m)
+    if vrb:
+        overrides["verbosity"] = vrb
 
     spc = _embedded_speculation(m)
     if spc:

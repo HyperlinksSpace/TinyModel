@@ -713,6 +713,30 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertEqual(o.get("output_format"), "plain")
 
+    def test_embedded_verbosity_brief(self) -> None:
+        msg = (
+            "I'm pasting this into a Slack thread during an incident. "
+            "Be brief and keep your answer short—just the essentials on what likely caused the 502 spike."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("verbosity"), "brief")
+
+    def test_embedded_verbosity_detailed(self) -> None:
+        msg = (
+            "Our platform team is evaluating service mesh options for mTLS between internal microservices. "
+            "Go deeper and explain thoroughly how Istio compares to Linkerd for our Kubernetes footprint."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o.get("verbosity"), "detailed")
+
+    def test_embedded_verbosity_conflict_skips(self) -> None:
+        msg = (
+            "Summarize the outage postmortem for executives. Be brief and keep it short, "
+            "but also go deeper with a comprehensive explanation—pick one verbosity level."
+        )
+        o, _e, _t = analyze_embedded_prompt_signals(msg)
+        self.assertIsNone(o.get("verbosity"))
+
     def test_embedded_speculation_strict_in_prose(self) -> None:
         msg = (
             "We're writing an incident report for leadership about yesterday's partial outage. "
