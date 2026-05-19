@@ -948,6 +948,49 @@ def _embedded_source_citations(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_ranked_options(m: str) -> tuple[str, str] | None:
+    """``ranked_options`` — user wants choices ordered by priority/merit, not flat peer lists."""
+    if len(m) < 48:
+        return None
+    if not re.search(
+        r"\b(option|choice|alternative|approach|vendor|tool|framework|candidate|stack|"
+        r"path|strategy|pick|recommend|solution|provider|platform|library|database|"
+        r"architecture|design|method|technique|product)\b",
+        m,
+    ):
+        return None
+    ranked = bool(
+        re.search(
+            r"\b(rank (?:them|these|the|your)|ranked (?:list|recommendations?)|"
+            r"in order of (?:priority|importance|preference|merit|likelihood)|"
+            r"top \d+ (?:options?|choices?|picks?|recommendations?)|"
+            r"ordered (?:from|by)|prioriti[sz]e (?:these|the|your)|"
+            r"best to worst|strongest to weakest|from most to least|"
+            r"highest to lowest(?: priority)?|"
+            r"which (?:one|option) (?:first|should we pick first)|"
+            r"order (?:them|these) by)\b",
+            m,
+        )
+    )
+    flat = bool(
+        re.search(
+            r"\b(no ranking|don'?t rank|order doesn'?t matter|unordered (?:list|options?)|"
+            r"don'?t priorit[iy]ze|all options are equal|no priority order)\b",
+            m,
+        )
+    )
+    if ranked and flat:
+        return None
+    if ranked:
+        instr = (
+            "The user asked for a **ranked recommendation**: present options in a **clear priority order** "
+            "(best-first or explicitly numbered 1., 2., 3.) with a short rationale for the ordering; "
+            "do not present every alternative as equally good when they asked for ranking."
+        )
+        return instr, "ranked_options"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -1951,7 +1994,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
-        ``cite_sources``, ``cite_minimal``). Session-style overrides
+        ``cite_sources``, ``cite_minimal``, ``ranked_options``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2004,6 +2047,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if sc:
         extras.append(sc[0])
         trace_tags.append(sc[1])
+
+    ro = _embedded_ranked_options(m)
+    if ro:
+        extras.append(ro[0])
+        trace_tags.append(ro[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

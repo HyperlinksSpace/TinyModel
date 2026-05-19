@@ -601,6 +601,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("cite_sources", t)
         self.assertNotIn("cite_minimal", t)
 
+    def test_embedded_ranked_options_trace(self) -> None:
+        msg = (
+            "We are choosing a vector database for our RAG pipeline—Pinecone, Weaviate, pgvector, and Qdrant "
+            "are on the table. Rank these options in order of priority for a small team with strict cost caps "
+            "and tell me which platform we should pick first."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("ranked_options", t)
+        self.assertTrue(any("ranked recommendation" in x.lower() for x in e))
+
+    def test_ranked_options_vs_no_rank_conflict_skips(self) -> None:
+        msg = (
+            "Our architecture review compares three deployment approaches: blue-green, canary, and rolling. "
+            "Rank them best to worst for our SLO, but also say order doesn't matter and no ranking—all equal."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("ranked_options", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
