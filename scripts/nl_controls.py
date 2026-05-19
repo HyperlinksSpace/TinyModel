@@ -743,7 +743,8 @@ def _code_only_instruction(m: str) -> str | None:
     if len(m) < 18:
         return None
     if re.search(
-        r"\b(just the code|code only|only code|no prose,?\s*just code|no explanation,?\s*just (?:the )?code|"
+        r"\b(just the code|(?<!not )(?<!no )code only|only code|no prose,?\s*just code|"
+        r"no explanation,?\s*just (?:the )?code|"
         r"skip (?:the )?explanation|omit (?:the )?explanation|(?:give|send|return)\s+me\s+only\s+the\s+code|"
         r"output\s+only\s+(?:the\s+)?code)\b",
         m,
@@ -754,6 +755,39 @@ def _code_only_instruction(m: str) -> str | None:
             "is self-explanatory."
         )
     return None
+
+
+def _embedded_code_commentary(m: str) -> tuple[str, str] | None:
+    """``code_explained`` — snippet plus walkthrough (complement to ``code_only`` trace tag)."""
+    if len(m) < 32:
+        return None
+    if not re.search(
+        r"\b(code|script|function|snippet|program|implementation|bash|python|sql|regex|api|curl|"
+        r"typescript|rust|java|module|class|method|algorithm)\b",
+        m,
+    ):
+        return None
+    explained = bool(
+        re.search(
+            r"\b(code (?:with|plus|and) (?:an? )?explanation|explain (?:the|what) (?:the )?code(?: does)?|"
+            r"walk me through the (?:code|snippet)|comment(?:ed)? code|annotate (?:the )?(?:code|snippet)|"
+            r"code (?:with|plus) (?:inline )?comments|don'?t (?:just )?give code without explaining|"
+            r"not (?:just )?code only|no code[- ]only|"
+            r"with (?:a )?line[- ]by[- ]line (?:walkthrough|explanation)|"
+            r"explain (?:each|every) (?:line|part|step)|teach (?:me )?(?:through|with) the code|"
+            r"show (?:me )?(?:the )?code (?:and|then) explain|"
+            r"include (?:brief )?comments (?:in|on) the code)\b",
+            m,
+        )
+    )
+    if not explained:
+        return None
+    instr = (
+        "The user asked for **code with explanation**: include a **fenced code block** (or clearly separated snippet) "
+        "**and** a concise walkthrough—what it does, non-obvious lines, and how to run or adapt it. "
+        "Do **not** return code alone without prose."
+    )
+    return instr, "code_explained"
 
 
 def _embedded_guided_discovery(m: str) -> tuple[str, str] | None:
@@ -1867,7 +1901,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         (field_overrides, extra_system_paragraphs, trace_tags) — overrides use the same keys/values as
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
-        ``code_only``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``). Session-style overrides
+        ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -1886,9 +1920,15 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
             )
 
     co = _code_only_instruction(m)
-    if co:
+    cex = _embedded_code_commentary(m)
+    if co and cex:
+        pass
+    elif co:
         trace_tags.append("code_only")
         extras.append(co)
+    elif cex:
+        extras.append(cex[0])
+        trace_tags.append(cex[1])
 
     lc = _length_cap_instruction(m)
     if lc:

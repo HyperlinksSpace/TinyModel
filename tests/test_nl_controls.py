@@ -551,6 +551,27 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertIn("code_only", t)
         self.assertTrue(any("code-first" in x for x in e))
 
+    def test_embedded_code_explained_trace(self) -> None:
+        msg = (
+            "I'm wiring a FastAPI endpoint that validates JWT bearer tokens against our OIDC issuer. "
+            "Show me the Python code and explain what each part does—not code only, I need a walkthrough."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("code_explained", t)
+        self.assertNotIn("code_only", t)
+        self.assertTrue(any("code with explanation" in x.lower() for x in e))
+
+    def test_code_only_vs_explained_conflict_skips(self) -> None:
+        msg = (
+            "Write a bash script that rotates nginx access logs daily with logrotate. "
+            "Code only please, but also explain the code line by line for my team."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("code_only", t)
+        self.assertNotIn("code_explained", t)
+        self.assertEqual(o, {})
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
