@@ -570,6 +570,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertIn("guided", t)
         self.assertTrue(any("guided discovery" in x.lower() for x in e))
 
+    def test_embedded_full_solution_not_hints(self) -> None:
+        msg = (
+            "I'm stuck on this dynamic programming homework problem about longest increasing subsequence. "
+            "Give me the full worked solution with the recurrence and an example—don't do hints only."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("full_solution", t)
+        self.assertTrue(any("complete solution" in x.lower() for x in e))
+
+    def test_embedded_guided_vs_full_solution_conflict_skips(self) -> None:
+        msg = (
+            "Help me prove why the greedy interval scheduling algorithm is optimal. "
+            "Hints only please, but also give me the full complete solution now—pick one mode."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("guided", t)
+        self.assertNotIn("full_solution", t)
+
     def test_embedded_red_team_sets_challenge(self) -> None:
         msg = (
             "We're about to launch a public API behind a single shared API key for our first 50 beta users. "

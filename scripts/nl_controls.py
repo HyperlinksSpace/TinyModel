@@ -756,33 +756,57 @@ def _code_only_instruction(m: str) -> str | None:
     return None
 
 
-def _guided_discovery_instruction(m: str) -> tuple[str, str] | None:
-    """User wants hints, nudges, or questions instead of a fully worked answer on the first reply."""
+def _embedded_guided_discovery(m: str) -> tuple[str, str] | None:
+    """``guided`` (hints-first) vs ``full_solution`` for problem-solving (not one-line controls)."""
     if len(m) < 36:
         return None
-    if not re.search(
-        r"\b(don'?t (give|spell|hand) (me )?(the )?full (answer|solution)|don'?t spoil the solution|"
-        r"hints? only|only hints|guide me with (hints|questions)|nudge me (in the right direction|toward)|"
-        r"i want to (figure|work) it out myself|socratic(\s+method)?|"
-        r"lead me to (the )?answer|questions first instead of answering|"
-        r"without (giving|spelling) (out )?(the )?(whole )?solution)\b",
-        m,
-    ):
-        return None
-    # Require a problem-seeking cue so casual chat ("no spoilers for the movie") does not flip modes.
     if not re.search(
         r"\b(why|how|explain|prove|derive|solve|puzzle|homework|problem|exercise|bug|code|implement|"
         r"design|compare|understand|learn|teach|practice|algorithm|proof|debug|refactor)\b",
         m,
     ):
         return None
-    instr = (
-        "The user asked for **guided discovery** (Socratic / hint-first): prefer short **questions**, "
-        "**nudges**, and **partial hints** over a complete solution in this turn. "
-        "If one concrete step is essential, show **at most one** move, then check whether they want to continue. "
-        "Offer the full worked answer if they say they are stuck or ask you to finish."
+    guided = bool(
+        re.search(
+            r"\b(don'?t (give|spell|hand) (me )?(the )?full (answer|solution)|don'?t spoil the solution|"
+            r"hints? only|only hints|guide me with (hints|questions)|nudge me (in the right direction|toward)|"
+            r"i want to (figure|work) it out myself|socratic(\s+method)?|"
+            r"lead me to (the )?answer|questions first instead of answering|"
+            r"without (giving|spelling) (out )?(the )?(whole )?solution)\b",
+            m,
+        )
+        and not re.search(r"\bdon'?t do hints only\b", m)
     )
-    return instr, "guided"
+    full = bool(
+        re.search(
+            r"\b(give me the (?:full|complete) (?:worked )?(?:answer|solution)|"
+            r"(?:show|spell out) (?:me )?(?:the )?(?:full|entire|complete) (?:worked )?solution|"
+            r"complete solution now|don'?t do hints only|no hints only|skip the socratic|"
+            r"not hints only|"
+            r"just (?:give|tell) me the answer|"
+            r"finish the (?:proof|solution) for me|"
+            r"i'?m stuck.{0,40}(?:full|complete) solution)\b",
+            m,
+        )
+    )
+    if guided and full:
+        return None
+    if guided:
+        instr = (
+            "The user asked for **guided discovery** (Socratic / hint-first): prefer short **questions**, "
+            "**nudges**, and **partial hints** over a complete solution in this turn. "
+            "If one concrete step is essential, show **at most one** move, then check whether they want to continue. "
+            "Offer the full worked answer if they say they are stuck or ask you to finish."
+        )
+        return instr, "guided"
+    if full:
+        instr = (
+            "The user asked for a **complete solution** in this turn: provide the full worked answer with "
+            "clear steps or reasoning—do **not** stay in hint-only or Socratic question mode unless a safety "
+            "check is required."
+        )
+        return instr, "full_solution"
+    return None
 
 
 def _ephemeral_privacy_instruction(m: str) -> tuple[str, str] | None:
@@ -1871,10 +1895,10 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         extras.append(lc[0])
         trace_tags.append(lc[1])
 
-    gd = _guided_discovery_instruction(m)
-    if gd:
-        extras.append(gd[0])
-        trace_tags.append(gd[1])
+    gdd = _embedded_guided_discovery(m)
+    if gdd:
+        extras.append(gdd[0])
+        trace_tags.append(gdd[1])
 
     ep = _ephemeral_privacy_instruction(m)
     if ep:
