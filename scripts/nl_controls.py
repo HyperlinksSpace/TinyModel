@@ -1080,6 +1080,68 @@ def _embedded_pseudocode(m: str) -> tuple[str, str] | None:
     return None
 
 
+_OPTION_COUNT_WORDS: dict[str, int] = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
+
+_OPTION_COUNT_PATTERNS = (
+    re.compile(
+        r"\b(?:(?:give|provide|list|offer|suggest|propose|present|limit(?:\s+to)?|need)\s+(?:me\s+)?)?"
+        r"(?:exactly|just|only|at most|no more than)\s+"
+        r"(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+        r"(?:distinct|different|separate)?\s*"
+        r"(?:options?|choices?|alternatives?|approaches?|ideas?|recommendations?|picks?|paths?|solutions?)\b"
+    ),
+    re.compile(
+        r"\btop\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+        r"(?:options?|choices?|alternatives?|picks?|recommendations?)\b"
+    ),
+)
+
+
+def _parse_option_count_token(tok: str) -> int | None:
+    if tok.isdigit():
+        n = int(tok)
+        return n if 1 <= n <= 10 else None
+    return _OPTION_COUNT_WORDS.get(tok)
+
+
+def _embedded_fixed_option_count(m: str) -> tuple[str, str] | None:
+    """``options_n=N`` — user wants exactly N distinct alternatives (not an open-ended list)."""
+    if len(m) < 44:
+        return None
+    if not re.search(
+        r"\b(options?|choices?|alternatives?|approaches?|ideas?|recommendations?|picks?|"
+        r"paths?|solutions?|vendors?|tools?|frameworks?|strategies?|candidates?)\b",
+        m,
+    ):
+        return None
+    found: set[int] = set()
+    for pat in _OPTION_COUNT_PATTERNS:
+        for mo in pat.finditer(m):
+            n = _parse_option_count_token(mo.group(1))
+            if n is not None:
+                found.add(n)
+    if len(found) != 1:
+        return None
+    n = next(iter(found))
+    instr = (
+        f"The user asked for **exactly {n} distinct options**: present **{n}** clearly labeled alternatives "
+        f"(e.g. **Option 1** … **Option {n}**); do not pad with extras or collapse into fewer unless "
+        f"{n} is infeasible—in that case say why in one short sentence."
+    )
+    return instr, f"options_n={n}"
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2084,7 +2146,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
-        ``pseudocode``, ``runnable_code``). Session-style overrides
+        ``pseudocode``, ``runnable_code``, ``options_n=N``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2152,6 +2214,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if cl:
         extras.append(cl[0])
         trace_tags.append(cl[1])
+
+    oc = _embedded_fixed_option_count(m)
+    if oc:
+        extras.append(oc[0])
+        trace_tags.append(oc[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

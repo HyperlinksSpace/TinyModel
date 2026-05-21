@@ -679,6 +679,32 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("pseudocode", t)
         self.assertNotIn("runnable_code", t)
 
+    def test_embedded_options_n_three_trace(self) -> None:
+        msg = (
+            "Our startup is picking a first observability stack for a five-person backend team on Kubernetes. "
+            "Give me exactly three distinct options for tools—no more alternatives than that."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("options_n=3", t)
+        self.assertTrue(any("exactly 3" in x for x in e))
+
+    def test_embedded_options_n_top_five(self) -> None:
+        msg = (
+            "We're redesigning our API gateway and need a short list of vendor approaches for rate limiting "
+            "and auth at the edge. Suggest the top five recommendations as separate options for leadership."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("options_n=5", t)
+
+    def test_options_n_conflict_two_counts_skips(self) -> None:
+        msg = (
+            "Help me choose a managed Postgres provider for our EU SaaS product with strict GDPR needs. "
+            "Give me exactly three options but also provide exactly five alternatives in the same answer."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertFalse(any(x.startswith("options_n=") for x in t))
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
