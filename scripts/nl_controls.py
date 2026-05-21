@@ -991,6 +991,49 @@ def _embedded_ranked_options(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_checklist_reply(m: str) -> tuple[str, str] | None:
+    """``checklist`` vs ``no_checklist`` — markdown ``- [ ]`` task layout (not bullet-only lists)."""
+    if len(m) < 44:
+        return None
+    if not re.search(
+        r"\b(rollout|deploy|launch|onboard|audit|review|procedure|task|step|plan|"
+        r"migrate|implement|runbook|playbook|incident|release|checklist|todo|action item)\b",
+        m,
+    ):
+        return None
+    prefer = bool(
+        re.search(
+            r"\b((?:give|provide|format|return|list|use|write).{0,24}checklist|"
+            r"as a checklist|checklist (?:format|style)|action[- ]items? checklist|"
+            r"task checklist|tick[- ]box(?:es)?|checkbox(?:es)? (?:list|format)|"
+            r"markdown checkbox|to[- ]do list format)\b",
+            m,
+        )
+    )
+    avoid = bool(
+        re.search(
+            r"\b(no checklist|not a checklist|don'?t use checkboxes|avoid checklist|"
+            r"without checkboxes|not tick[- ]boxes)\b",
+            m,
+        )
+    )
+    if prefer and avoid:
+        return None
+    if prefer:
+        instr = (
+            "The user asked for a **markdown checklist**: use **`- [ ]` task lines** (or `- [x]` if noting done) "
+            "for actionable items; keep each item one short line; optional brief intro, then the checklist."
+        )
+        return instr, "checklist"
+    if avoid:
+        instr = (
+            "The user asked **not** to format the answer as a markdown checkbox checklist; use prose, bullets, "
+            "or numbered steps instead of `- [ ]` task lines."
+        )
+        return instr, "no_checklist"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -1994,7 +2037,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
-        ``cite_sources``, ``cite_minimal``, ``ranked_options``). Session-style overrides
+        ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2052,6 +2095,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ro:
         extras.append(ro[0])
         trace_tags.append(ro[1])
+
+    cl = _embedded_checklist_reply(m)
+    if cl:
+        extras.append(cl[0])
+        trace_tags.append(cl[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

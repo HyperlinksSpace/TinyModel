@@ -620,6 +620,36 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("ranked_options", t)
 
+    def test_embedded_checklist_trace(self) -> None:
+        msg = (
+            "We are rolling out SOC2 access reviews for engineering managers this quarter. "
+            "Give me an actionable checklist format for quarterly user-access recertification with "
+            "tick-box items I can paste into Notion."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("checklist", t)
+        self.assertNotIn("no_checklist", t)
+        self.assertTrue(any("markdown checklist" in x.lower() for x in e))
+
+    def test_embedded_no_checklist_trace(self) -> None:
+        msg = (
+            "Our incident response playbook needs a concise postmortem outline for on-call engineers "
+            "after a production outage. Write the steps in plain prose with no checklist and don't use checkboxes."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("no_checklist", t)
+        self.assertNotIn("checklist", t)
+
+    def test_checklist_vs_no_checklist_conflict_skips(self) -> None:
+        msg = (
+            "We're planning a Kubernetes cluster upgrade runbook for the platform team. "
+            "Format as a checklist with tick boxes, but also say not a checklist and avoid checkboxes."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("checklist", t)
+        self.assertNotIn("no_checklist", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
