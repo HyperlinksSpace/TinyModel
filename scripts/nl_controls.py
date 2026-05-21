@@ -1034,6 +1034,52 @@ def _embedded_checklist_reply(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_pseudocode(m: str) -> tuple[str, str] | None:
+    """``pseudocode`` vs ``runnable_code`` — abstract algorithm vs executable snippet."""
+    if len(m) < 36:
+        return None
+    if not re.search(
+        r"\b(code|algorithm|function|script|program|logic|implementation|sort|search|"
+        r"loop|recursion|data structure|complexity)\b",
+        m,
+    ):
+        return None
+    pseudo = bool(
+        re.search(
+            r"\b(pseudo[- ]code only|pseudocode only|pseudo code only|"
+            r"language[- ]agnostic(?: algorithm)?|"
+            r"don'?t need (?:real |working |runnable )?code|"
+            r"abstract algorithm|plain[- ]english algorithm|"
+            r"no syntax(?:-specific)? (?:code|details)|not runnable|non[- ]runnable)\b",
+            m,
+        )
+    )
+    runnable = bool(
+        re.search(
+            r"\b((?<!not )runnable|(?<!not )executable|working code|production[- ]ready code|"
+            r"copy[- ]paste(?:able)? code|(?<!not )real code|(?<!not )actual code|"
+            r"(?<!not )runnable (?:python|javascript|bash|typescript|snippet))\b",
+            m,
+        )
+    )
+    if pseudo and runnable:
+        return None
+    if pseudo:
+        instr = (
+            "The user asked for **pseudocode**: use clear indented pseudocode or plain-language "
+            "algorithm steps—not a language-specific runnable program; omit imports, compiler flags, "
+            "and deployment detail unless essential."
+        )
+        return instr, "pseudocode"
+    if runnable:
+        instr = (
+            "The user asked for **runnable, language-specific code**: prefer a concrete snippet they "
+            "can copy-paste or execute, not abstract pseudocode alone."
+        )
+        return instr, "runnable_code"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2037,7 +2083,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``ub_session`` reply-style fields; extra paragraphs are appended as separate system sections;
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
-        ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``). Session-style overrides
+        ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
+        ``pseudocode``, ``runnable_code``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2065,6 +2112,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     elif cex:
         extras.append(cex[0])
         trace_tags.append(cex[1])
+
+    pc = _embedded_pseudocode(m)
+    if pc and not (co or cex):
+        extras.append(pc[0])
+        trace_tags.append(pc[1])
 
     lc = _length_cap_instruction(m)
     if lc:

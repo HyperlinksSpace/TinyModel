@@ -650,6 +650,35 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("checklist", t)
         self.assertNotIn("no_checklist", t)
 
+    def test_embedded_pseudocode_trace(self) -> None:
+        msg = (
+            "I'm preparing for a algorithms interview and need to explain how merge sort works on linked lists. "
+            "Give me pseudocode only—language agnostic, not runnable Python or Java."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("pseudocode", t)
+        self.assertNotIn("runnable_code", t)
+        self.assertTrue(any("pseudocode" in x.lower() for x in e))
+
+    def test_embedded_runnable_code_trace(self) -> None:
+        msg = (
+            "Our CI pipeline needs a script to binary-search a sorted JSON lines file for a record id. "
+            "Show runnable Python code I can copy-paste into pytest—executable working code, not abstract pseudocode."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("runnable_code", t)
+        self.assertNotIn("pseudocode", t)
+
+    def test_pseudocode_vs_runnable_conflict_skips(self) -> None:
+        msg = (
+            "Help me implement Dijkstra's algorithm for a weighted graph homework problem. "
+            "Pseudocode only please, but also give runnable production-ready code I can execute."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("pseudocode", t)
+        self.assertNotIn("runnable_code", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
