@@ -1142,6 +1142,56 @@ def _embedded_fixed_option_count(m: str) -> tuple[str, str] | None:
     return instr, f"options_n={n}"
 
 
+def _embedded_diagram_visual(m: str) -> tuple[str, str] | None:
+    """``diagram`` vs ``no_diagram`` — Mermaid/flowchart/ASCII visual vs text-only."""
+    if len(m) < 44:
+        return None
+    if not re.search(
+        r"\b(architecture|system|flow|pipeline|process|workflow|diagram|chart|topology|"
+        r"sequence|component|service|deploy|design|how|explain|model|map|overview|"
+        r"interaction|request|data)\b",
+        m,
+    ):
+        return None
+    prefer = bool(
+        re.search(
+            r"\b(sequence diagram|architecture diagram|component diagram|system diagram|"
+            r"flowchart|flow chart|"
+            r"mermaid.{0,20}diagram|"
+            r"(?:include|add|draw|show|provide|use|give me).{0,28}diagram|"
+            r"(?:ascii|text[- ]based) diagram|"
+            r"visual(?:ize| diagram)|"
+            r"as a (?:mermaid )?flowchart)\b",
+            m,
+        )
+    )
+    avoid = bool(
+        re.search(
+            r"\b(no diagrams?|without diagrams?|don'?t (?:use|include) (?:a )?diagrams?|"
+            r"avoid (?:mermaid|flowcharts?|diagrams?)|"
+            r"text[- ]only (?:please|answer)|no (?:mermaid|flowcharts?)|"
+            r"skip (?:the )?diagrams?|prose only no (?:charts?|diagrams?))\b",
+            m,
+        )
+    )
+    if prefer and avoid:
+        return None
+    if prefer:
+        instr = (
+            "The user asked for a **visual diagram** in the reply: include **one** concise "
+            "**Mermaid** diagram (preferred) or a short **ASCII** diagram when Mermaid is awkward; "
+            "add brief prose before/after; keep node labels short."
+        )
+        return instr, "diagram"
+    if avoid:
+        instr = (
+            "The user asked for **no diagrams**: answer in prose, bullets, numbered steps, or tables "
+            "only—do **not** include Mermaid blocks, flowcharts, or ASCII art diagrams."
+        )
+        return instr, "no_diagram"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2146,7 +2196,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
-        ``pseudocode``, ``runnable_code``, ``options_n=N``). Session-style overrides
+        ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2219,6 +2269,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if oc:
         extras.append(oc[0])
         trace_tags.append(oc[1])
+
+    dv = _embedded_diagram_visual(m)
+    if dv:
+        extras.append(dv[0])
+        trace_tags.append(dv[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

@@ -705,6 +705,36 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertFalse(any(x.startswith("options_n=") for x in t))
 
+    def test_embedded_diagram_mermaid_trace(self) -> None:
+        msg = (
+            "I'm documenting our event-driven order pipeline from the API gateway through Kafka to "
+            "downstream fulfillment workers. Include a simple Mermaid sequence diagram showing the main "
+            "services and retries—keep labels short for a design review."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("diagram", t)
+        self.assertNotIn("no_diagram", t)
+        self.assertTrue(any("mermaid" in x.lower() for x in e))
+
+    def test_embedded_no_diagram_trace(self) -> None:
+        msg = (
+            "Explain how our three-tier web application handles session stickiness behind the load balancer "
+            "for new engineers. Text-only answer please—no diagrams, flowcharts, or Mermaid blocks."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("no_diagram", t)
+        self.assertNotIn("diagram", t)
+
+    def test_diagram_vs_no_diagram_conflict_skips(self) -> None:
+        msg = (
+            "Map the CI/CD flow from GitHub Actions through staging to production for our platform team. "
+            "Draw a Mermaid flowchart, but also say no diagrams and text only in the same message."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("diagram", t)
+        self.assertNotIn("no_diagram", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
