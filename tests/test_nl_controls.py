@@ -735,6 +735,35 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("diagram", t)
         self.assertNotIn("no_diagram", t)
 
+    def test_embedded_risks_first_trace(self) -> None:
+        msg = (
+            "We're planning a phased rollout of real-time ML fraud scoring in our checkout service. "
+            "Start with risks and downsides first—what could go wrong operationally before any benefits."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("risks_first", t)
+        self.assertNotIn("benefits_first", t)
+        self.assertTrue(any("risks" in x.lower() and "first" in x.lower() for x in e))
+
+    def test_embedded_benefits_first_trace(self) -> None:
+        msg = (
+            "Our product team is pitching a migration from a Django monolith to a modular monolith architecture. "
+            "Lead with benefits and upsides first for the steering committee, then note the main caveats."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("benefits_first", t)
+        self.assertNotIn("risks_first", t)
+
+    def test_risks_vs_benefits_first_conflict_skips(self) -> None:
+        msg = (
+            "We're evaluating whether to ship a public GraphQL API for partners on our B2B platform. "
+            "Risks first in your answer, but also benefits first and lead with the positives please."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("risks_first", t)
+        self.assertNotIn("benefits_first", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "

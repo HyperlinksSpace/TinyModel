@@ -1192,6 +1192,51 @@ def _embedded_diagram_visual(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_risks_benefits_order(m: str) -> tuple[str, str] | None:
+    """``risks_first`` vs ``benefits_first`` — section order for trade-offs (not ``risk_posture``)."""
+    if len(m) < 48:
+        return None
+    if not re.search(
+        r"\b(plan|proposal|rollout|launch|migrate|design|strategy|decision|invest|build|ship|"
+        r"product|feature|architecture|change|initiative|roadmap|pitch|trade[- ]?off)\b",
+        m,
+    ):
+        return None
+    risks = bool(
+        re.search(
+            r"\b(risks? first|downsides? first|cons first|what could go wrong first|"
+            r"start with (?:the )?risks?|lead with (?:the )?risks?|"
+            r"pitfalls? first|negative(?:s)? before positives?|"
+            r"caveats? (?:before|then) benefits?|worst[- ]case first)\b",
+            m,
+        )
+    )
+    benefits = bool(
+        re.search(
+            r"\b(benefits? first|upsides? first|pros first|"
+            r"start with (?:the )?benefits?|lead with (?:the )?upsides?|"
+            r"positives? before negatives?|sell (?:me on )?the upside first|"
+            r"good news first)\b",
+            m,
+        )
+    )
+    if risks and benefits:
+        return None
+    if risks:
+        instr = (
+            "The user asked for **risks / downsides first**: open with key **risks, caveats, and failure modes** "
+            "before benefits or recommendations; keep the ordering explicit even if you later add upsides."
+        )
+        return instr, "risks_first"
+    if benefits:
+        instr = (
+            "The user asked for **benefits / upsides first**: open with **advantages and positive outcomes** "
+            "before risks or caveats; keep the ordering explicit even if you note downsides later."
+        )
+        return instr, "benefits_first"
+    return None
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2196,7 +2241,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``trace_tags`` are short tokens for the brain-trace ``prompt_signals:`` line (e.g. ``language``,
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
-        ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``). Session-style overrides
+        ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
+        ``risks_first``, ``benefits_first``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2274,6 +2320,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if dv:
         extras.append(dv[0])
         trace_tags.append(dv[1])
+
+    rbo = _embedded_risks_benefits_order(m)
+    if rbo:
+        extras.append(rbo[0])
+        trace_tags.append(rbo[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
