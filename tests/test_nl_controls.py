@@ -803,6 +803,35 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("topic_guard", t)
 
+    def test_embedded_frame_star_trace(self) -> None:
+        msg = (
+            "I'm preparing for a senior SRE behavioral interview at a fintech company next week. "
+            "For a production incident under time pressure, draft an example answer using STAR format "
+            "with clear Situation, Task, Action, and Result headings."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("frame_star", t)
+        self.assertTrue(any("STAR" in x for x in e))
+
+    def test_embedded_frame_prep_trace(self) -> None:
+        msg = (
+            "Our PM needs a crisp executive update on why we are delaying the mobile app launch by two weeks. "
+            "Write the response in PREP format—point, reason, example, point—for the steering committee."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("frame_prep", t)
+        self.assertNotIn("frame_star", t)
+
+    def test_answer_frame_conflict_skips(self) -> None:
+        msg = (
+            "Law school study group: analyze whether our city can ban short-term rentals under the zoning code. "
+            "Use IRAC format and also answer in STAR format in the same reply please."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("frame_irac", t)
+        self.assertNotIn("frame_star", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "

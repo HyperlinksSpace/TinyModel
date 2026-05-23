@@ -1317,6 +1317,48 @@ def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
     return instr, "topic_guard"
 
 
+def _embedded_answer_frame(m: str) -> tuple[str, str] | None:
+    """``frame_star`` / ``frame_prep`` / ``frame_irac`` — named professional answer scaffolds."""
+    if len(m) < 48:
+        return None
+    if not re.search(
+        r"\b(answer|write|explain|describe|respond|interview|behavioral|prompt|story|"
+        r"example|scenario|case|memo|report|outline)\b",
+        m,
+    ):
+        return None
+    candidates: list[tuple[str, str]] = []
+    if re.search(
+        r"\b(star format|star method|situation[- ]task[- ]action[- ]result|"
+        r"\bstar\b.{0,30}(?:situation|task|action|result))\b",
+        m,
+    ):
+        candidates.append(
+            (
+                "Structure the answer using **STAR** with markdown headings **Situation**, **Task**, "
+                "**Action**, and **Result** (one short paragraph each unless a length cap applies).",
+                "frame_star",
+            )
+        )
+    if re.search(r"\b(prep format|prep method|point[- ]reason[- ]example[- ]point)\b", m):
+        candidates.append(
+            (
+                "Structure the answer using **PREP**: **Point**, **Reason**, **Example**, then restate the **Point**.",
+                "frame_prep",
+            )
+        )
+    if re.search(r"\b(irac format|irac method|issue[- ]rule[- ]analysis[- ]conclusion)\b", m):
+        candidates.append(
+            (
+                "Structure the answer using **IRAC**: **Issue**, **Rule**, **Analysis**, **Conclusion**.",
+                "frame_irac",
+            )
+        )
+    if len(candidates) != 1:
+        return None
+    return candidates[0]
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2322,7 +2364,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``topic_guard``). Session-style overrides
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``topic_guard``,
+        ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2415,6 +2458,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if tg:
         extras.append(tg[0])
         trace_tags.append(tg[1])
+
+    af = _embedded_answer_frame(m)
+    if af:
+        extras.append(af[0])
+        trace_tags.append(af[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
