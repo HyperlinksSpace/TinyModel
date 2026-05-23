@@ -1280,6 +1280,43 @@ def _embedded_revise_draft(m: str) -> tuple[str, str] | None:
     return instr, "revise_draft"
 
 
+def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
+    """``topic_guard`` — user asked to omit specific subjects from the reply."""
+    if len(m) < 44:
+        return None
+    avoid = bool(
+        re.search(
+            r"\b(don'?t mention|do not mention|avoid (?:mentioning|discussing|talking about)|"
+            r"skip (?:mentioning|discussing)|leave out|no discussion of|"
+            r"do not discuss|steer clear of|without mentioning|"
+            r"don'?t bring up|do not bring up|exclude (?:any )?discussion of)\b",
+            m,
+        )
+    )
+    must_cover = bool(
+        re.search(
+            r"\b(make sure to mention|be sure to (?:mention|cover)|must (?:mention|cover|discuss)|"
+            r"you must (?:mention|cover)|focus (?:only )?on|only discuss|"
+            r"include (?:a )?section on)\b",
+            m,
+        )
+    )
+    if not avoid or must_cover:
+        return None
+    if not re.search(
+        r"\b(explain|describe|what|how|why|help|write|draft|answer|summarize|compare|"
+        r"faq|policy|guide|customer|user|team|product)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user set **topic guardrails**: do **not** mention or elaborate on subjects they flagged to "
+        "avoid in this message (for example pricing, competitors, politics, or internal tools)—even if "
+        "tangentially relevant; you may note briefly that you are omitting a flagged topic."
+    )
+    return instr, "topic_guard"
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2285,7 +2322,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``). Session-style overrides
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``topic_guard``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2373,6 +2410,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rd:
         extras.append(rd[0])
         trace_tags.append(rd[1])
+
+    tg = _embedded_topic_guard(m)
+    if tg:
+        extras.append(tg[0])
+        trace_tags.append(tg[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

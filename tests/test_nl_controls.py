@@ -784,6 +784,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("revise_draft", t)
 
+    def test_embedded_topic_guard_trace(self) -> None:
+        msg = (
+            "We're drafting FAQ answers for our self-serve billing portal for small teams. "
+            "Explain how proration works when a customer upgrades mid-cycle, but don't mention "
+            "enterprise sales or custom contracts—keep the answer SMB self-serve only."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("topic_guard", t)
+        self.assertTrue(any("topic guardrails" in x.lower() for x in e))
+
+    def test_topic_guard_vs_must_cover_conflict_skips(self) -> None:
+        msg = (
+            "Help me write a customer-facing note about our new usage-based pricing tiers for developers. "
+            "Don't mention competitors, but make sure to mention competitor comparison tables in detail."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("topic_guard", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
