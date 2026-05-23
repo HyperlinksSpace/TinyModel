@@ -1237,6 +1237,49 @@ def _embedded_risks_benefits_order(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_revise_draft(m: str) -> tuple[str, str] | None:
+    """``revise_draft`` — rewrite/polish user-supplied copy (not a greenfield explain-only ask)."""
+    if len(m) < 48:
+        return None
+    revise = bool(
+        re.search(
+            r"\b(improve (?:my |this |the )?draft|polish (?:my |this |the )?(?:draft|email|memo)?|"
+            r"rewrite (?:it|this|the (?:text|email|message))|"
+            r"rewrite (?:my |this |the )?(?:draft|email|paragraph|message|memo|post|letter)|"
+            r"edit (?:my |this )?(?:draft|text|copy)|proofread (?:my |this )?|"
+            r"tighten (?:my |this )?(?:draft|writing|wording)|"
+            r"make (?:this |it |the text )(?:clearer|more professional|more concise|shorter)|"
+            r"copy[- ]?edit|wordsmithe)\b",
+            m,
+        )
+    )
+    no_revise = bool(
+        re.search(
+            r"\b(don'?t rewrite|do not rewrite|no rewrite|keep (?:my |the )?wording (?:as[- ]is|unchanged)|"
+            r"don'?t edit (?:my |the )?text)\b",
+            m,
+        )
+    )
+    if not revise or no_revise:
+        return None
+    has_artifact = bool(
+        re.search(
+            r"\b(?:my|this|the)\s+draft\b|draft\s+(?:email|message|memo|slack|paragraph|letter|post)\b|"
+            r"(?:text|email|memo)\s+below|following\s+(?:text|email|draft|memo)|"
+            r"draft:\s|here(?:'s| is)\s+(?:my|the)\s+draft\b",
+            m,
+        )
+    )
+    if not has_artifact and len(m) < 100:
+        return None
+    instr = (
+        "The user wants a **revision of supplied text**: treat their message as source copy to "
+        "**rewrite or polish in place**—preserve intent and facts; return the improved version prominently "
+        "(add brief bullets on what changed only if helpful); do **not** answer as if no draft was provided."
+    )
+    return instr, "revise_draft"
+
+
 def _embedded_simple_audience(m: str) -> bool:
     """True if a longer prompt asks for child-level / lay explanations (ELI5-style) in prose."""
     if len(m) < 40:
@@ -2242,7 +2285,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``). Session-style overrides
+        ``risks_first``, ``benefits_first``, ``revise_draft``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
     m = _norm(message)
@@ -2325,6 +2368,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rbo:
         extras.append(rbo[0])
         trace_tags.append(rbo[1])
+
+    rd = _embedded_revise_draft(m)
+    if rd:
+        extras.append(rd[0])
+        trace_tags.append(rd[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

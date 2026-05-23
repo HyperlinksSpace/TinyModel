@@ -764,6 +764,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("risks_first", t)
         self.assertNotIn("benefits_first", t)
 
+    def test_embedded_revise_draft_trace(self) -> None:
+        msg = (
+            "I need to email our enterprise customer about a delayed migration window this weekend. "
+            "Here's my draft email—please rewrite it to sound more professional and concise while keeping "
+            "the same facts. Draft: Dear team, we had to push the cutover because the replica lag alarm "
+            "never cleared; the new window is Sunday 02:00–06:00 UTC."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("revise_draft", t)
+        self.assertTrue(any("revision of supplied text" in x.lower() for x in e))
+
+    def test_revise_draft_no_rewrite_conflict_skips(self) -> None:
+        msg = (
+            "Please polish my draft Slack message for the incident channel. "
+            "Draft: prod is flaky again. Don't rewrite—keep my wording unchanged."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("revise_draft", t)
+
     def test_length_cap_words_trace(self) -> None:
         msg = (
             "Explain how TCP slow start interacts with modern BBR congestion control for a junior network engineer. "
