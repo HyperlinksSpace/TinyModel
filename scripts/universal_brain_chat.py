@@ -174,7 +174,7 @@ If routing misfires, try rephrasing or use a slash command; **`--no-smart-route`
 # Shown under the chat + controls in the Gradio UI (Hugging Face Space and local).
 GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 
-**Universal Brain** is a **text** assistant built from: (1) a **small generative instruct model** (default in code: **SmolLM2-360M-Instruct**, overridable via **`HORIZON2_MODEL`**), (2) the **TinyModel1** encoder for **4-way topics** (World, Business, Sports, Sci/Tech) plus **embeddings**, (3) **FAQ hybrid retrieval** over a bundled corpus, (4) **SQLite memory** per session scope, (5) a **JSON intent router** so many tasks work in plain language, (6) optional **Google web search** when `GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX` are set (`/web`, smart-route **web search**, optional **auto-web**). First CPU startup can take a few minutes while weights download.
+**Universal Brain** is a **text-in / text-out** assistant: (1) **generative instruct LM** (default **SmolLM2-360M-Instruct**, override **`HORIZON2_MODEL`**), (2) **TinyModel1** encoder (**4 topic labels** + **embeddings**), (3) **FAQ hybrid RAG**, (4) **scoped SQLite memory**, (5) **JSON intent routing** (summarize, retrieve, web, memory, classify, …), (6) optional **Google web search** (`GOOGLE_CSE_API_KEY` + `GOOGLE_CSE_CX`), (7) **short session control phrases** + **embedded prompt signals** in long chat (see **`prompt_signals:`** in the brain trace). First CPU start can take several minutes while weights download.
 
 #### What it can do (summary)
 
@@ -184,7 +184,8 @@ GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 | **Encoder** | Soft **topic hint** + trace line **`classify:…`**; **`/classify`** for full label probabilities. |
 | **RAG** | Injects top FAQ **chunks**; tune strictness with phrases like *Strict FAQ* (see `/help`). |
 | **Memory** | Long-term + session notes; **scope** isolation phrases for demos; export / forget from chat. |
-| **Style (long prompts)** | **Embedded prompt signals** adjust **one turn** from wording (tradeoffs, tables, steps, language, code-only, caps, hints-only, red-team, ephemeral, a11y, ELI5-style, register, JSON, strict facts, BLUF, shell commands, assumptions, examples, teach-order, closers, clarify-first, headings, analogies) — see **`prompt_signals:`** in the *Brain trace* and the table **Testing embedded prompt signals** below. |
+| **Session controls** | Short phrases (no slash): scope, trace, FAQ/routing toggles, reply style — *Be brief*, *Strict FAQ*, *Start a new private session*, *Reset reply style*; full list via **`/help`**. |
+| **Embedded signals (long chat)** | **40+** one-turn cues from wording: layout (pros/cons, tables, steps, bullets), code modes, decisions (`ranked_options`, `options_n=N`, checklist), diagrams, STAR/PREP/IRAC, risks/benefits order, revise draft, topic guardrails, language, tone, FAQ/web citation style, … — footer **`prompt_signals:`** when trace is on; step-by-step table **below**. |
 | **Limits** | Small models can **hallucinate** or miss nuance; FAQ/web only **constrain** answers when relevant snippets exist. **Not multimodal** here. Shared default **memory scope** is not private auth. |
 
 ---

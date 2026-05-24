@@ -156,6 +156,7 @@ accelerate>=0.26.0
 safetensors>=0.4.0
 """
 
+    caps_doc_url = f"{github_repo_url}/blob/main/texts/universal-brain-capabilities.md"
     readme = f"""---
 title: {space_name}
 emoji: 🤗
@@ -169,37 +170,35 @@ pinned: false
 
 # {space_name}
 
-**Universal Brain chat** — natural-language routing, a **small generative instruct model** (default in code: **SmolLM2-360M-Instruct**, override with **`HORIZON2_MODEL`**), **TinyModel1** encoder (**{model_id}**), **FAQ hybrid RAG**, **SQLite memory**, optional **Google web search**, and **embedded prompt signals** (one-turn reply shape from long natural wording — see in-app **Testing embedded prompt signals**). See the [model card]({model_hub_url}) for classifier weights.
+**Universal Brain** is a **text** chat demo: plain-language **routing**, a small **instruct LM** (default **SmolLM2-360M-Instruct**, override **`HORIZON2_MODEL`**), **TinyModel1** encoder ([model card]({model_hub_url}) · `{model_id}`), **FAQ hybrid RAG**, **scoped SQLite memory**, optional **Google web search**, plus **40+ embedded prompt signals** detected from long messages.
 
-| Capability | Notes |
+**Try it:** type naturally or **`/help`** · say **Show the brain trace** · scroll below the chat to **Testing embedded prompt signals**.
+
+| What you can do | How |
 | --- | --- |
-| **Generation** | Chat + composed answers from the causal instruct LM (quality/size depends on **`HORIZON2_MODEL`** and CPU/GPU). |
-| **Encoder** | 4-way **AG News–style** labels; **embeddings** for FAQ retrieval, **`/similarity`**, **`/nearest`**. |
-| **FAQ RAG** | Bundled corpus; toggle injection from chat; grounding phrases in `/help`. |
-| **Memory** | Scoped SQLite notes; use *Start a new private session* / *Switch to scope …* on shared demos. |
-| **Routing** | JSON router for summarize / reformulate / grounded / retrieve / **web_search** / classify / similarity / embedding / nearest / memory / status. |
-| **Web** | Requires **`GOOGLE_CSE_API_KEY`** + **`GOOGLE_CSE_CX`**; optional **auto-web** (disable with **`NO_AUTO_WEB`**). |
-| **NL + embedded** | Short **session control** phrases + long-message **`prompt_signals:`** style overlays (see Gradio copy under the chat). |
+| **Chat & tools** | Summarize, rewrite, grounded Q&A, FAQ search, classify (4 topics), similarity, embeddings, nearest match, memory — via routing or **`/summarize`**, **`/retrieve`**, **`/web`**, … |
+| **Web (optional)** | **`GOOGLE_CSE_API_KEY`** + **`GOOGLE_CSE_CX`** secrets → live snippets with **[Web n]** cites |
+| **Memory** | Remember / list / export notes; *Start a new private session* for demo isolation |
+| **Session controls** | Short phrases: *Be brief*, *Strict FAQ*, *Use bullet points*, *Reset reply style*, … (persist; see **`/help`**) |
+| **Embedded signals** | Long questions: *pros and cons*, *in Spanish*, *code only*, *rank options*, *Mermaid diagram*, *STAR format*, *don't mention X*, … → footer **`prompt_signals:`** |
 
-- **App URL:** [{public_app_url}]({public_app_url})
-- **Source:** [{github_repo_url}]({github_repo_url})
+Full reference: [{caps_doc_url}]({caps_doc_url}) · Repo: [{github_repo_url}]({github_repo_url}) · App: [{public_app_url}]({public_app_url})
+
+**Not supported:** images/audio/video; guaranteed factual accuracy on hard reasoning; private multi-tenant auth on the public demo scope.
 
 ### Secrets (recommended)
 
-- `HF_TOKEN` — read token so Hub model downloads are reliable (same as classic classifier Space).
-- `GOOGLE_CSE_API_KEY` — Google Cloud API key restricted to **Custom Search API** (enables `/web` and smart-route **web search** in chat).
+- **`HF_TOKEN`** — reliable Hub downloads for generative + encoder weights.
+- **`GOOGLE_CSE_API_KEY`** + **`GOOGLE_CSE_CX`** — Google Custom Search (web in chat).
 
-### Optional environment variables
+### Optional environment
 
-- `HORIZON2_MODEL` — Hugging Face id for the **generative** instruct model (default in code: SmolLM2-360M-Instruct if unset in image).
-- `GOOGLE_CSE_CX` — Programmable Search Engine id (`cx` from the [PSE control panel](https://programmablesearchengine.google.com/controlpanel/all)); required together with `GOOGLE_CSE_API_KEY` for web search.
-- `GOOGLE_CSE_NUM` — results per request, 1–10 (default 5).
-- `GOOGLE_CSE_SAFE` — optional safe-search level for Google `cse.list` (e.g. `off`, `active`).
-- `NO_AUTO_WEB` — set to `1` / `true` / `on` to disable **automatic** chat→web upgrades (router + `/web` unchanged).
+- **`HORIZON2_MODEL`** — generative instruct model id.
+- **`NO_AUTO_WEB`** — `1` / `true` / `on` disables automatic chat→web upgrades (router + `/web` still work).
 
-### Note
+### Startup
 
-First CPU start can take several minutes (downloads + two models). For faster UX, enable a GPU Space or a smaller `HORIZON2_MODEL`.
+First **CPU** boot may take several minutes (two models). Use a **GPU** Space or a smaller **`HORIZON2_MODEL`** for faster replies.
 """
 
     (output_dir / "app.py").write_text(app_py, encoding="utf-8")
