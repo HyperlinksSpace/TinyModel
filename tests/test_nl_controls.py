@@ -784,6 +784,27 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("revise_draft", t)
 
+    def test_embedded_revise_diff_trace(self) -> None:
+        msg = (
+            "I need to send a status note to our enterprise customer about delayed maintenance. "
+            "Please rewrite my draft to sound calmer and more professional, and show before and after "
+            "so I can see what changed. Draft: Hi—sorry but we had to slip the window again because "
+            "replica lag never cleared; new time is Sunday 02:00–06:00 UTC."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("revise_draft", t)
+        self.assertIn("revise_diff", t)
+        self.assertTrue(any("before/after" in x.lower() or "track-changes" in x.lower() for x in e))
+
+    def test_revise_diff_no_diff_conflict_skips(self) -> None:
+        msg = (
+            "Polish this customer email draft and show what changed, but inline revision only with no diff—"
+            "keep a single revised version. Draft: We postponed the cutover due to replica lag alarms."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("revise_diff", t)
+
     def test_embedded_topic_guard_trace(self) -> None:
         msg = (
             "We're drafting FAQ answers for our self-serve billing portal for small teams. "

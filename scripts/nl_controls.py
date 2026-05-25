@@ -1280,6 +1280,57 @@ def _embedded_revise_draft(m: str) -> tuple[str, str] | None:
     return instr, "revise_draft"
 
 
+def _embedded_revise_diff(m: str) -> tuple[str, str] | None:
+    """``revise_diff`` — when revising supplied copy, show before/after or track-changes layout."""
+    if len(m) < 48:
+        return None
+    want_diff = bool(
+        re.search(
+            r"\b(before and after|before[- ]?after|side[- ]by[- ]side|"
+            r"show (?:me )?(?:what|the) changed|show (?:the )?changes|track changes?|"
+            r"redline(?:d)?(?:\s+version)?|diff format|as a diff|"
+            r"strikethrough (?:for|on) (?:removed|deletions)|"
+            r"highlight (?:what|the) changed|compare (?:the )?original (?:to|with|and))\b",
+            m,
+        )
+    )
+    no_diff = bool(
+        re.search(
+            r"\b(no before and after|don'?t show (?:a )?diff|without (?:a )?diff|"
+            r"no track changes?|inline revision only|revision only no diff|"
+            r"don'?t (?:show|include) (?:before|after)|skip (?:the )?diff)\b",
+            m,
+        )
+    )
+    if not want_diff or no_diff:
+        return None
+    revise = bool(
+        re.search(
+            r"\b(improve (?:my |this |the )?draft|polish|rewrite|edit (?:my |this )?|"
+            r"proofread|copy[- ]?edit|revise (?:my |this |the )?|tighten (?:my )?)\b",
+            m,
+        )
+    )
+    has_artifact = bool(
+        re.search(
+            r"\b(?:my|this|the)\s+draft\b|draft\s+(?:email|message|memo|slack|paragraph|letter|post)\b|"
+            r"(?:text|email|memo)\s+below|following\s+(?:text|email|draft|memo)|"
+            r"draft:\s|here(?:'s| is)\s+(?:my|the)\s+draft\b",
+            m,
+        )
+    )
+    if not revise and not has_artifact:
+        return None
+    if not has_artifact and len(m) < 96:
+        return None
+    instr = (
+        "The user wants a **before/after or track-changes style revision**: label sections **Before** "
+        "and **After** (or use a concise unified diff / `~~removed~~` / **added** markup for changed spans). "
+        "Keep the polished **After** copy complete; do not answer as if no source draft was provided."
+    )
+    return instr, "revise_diff"
+
+
 def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
     """``topic_guard`` — user asked to omit specific subjects from the reply."""
     if len(m) < 44:
@@ -2364,7 +2415,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2453,6 +2504,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rd:
         extras.append(rd[0])
         trace_tags.append(rd[1])
+
+    rdiff = _embedded_revise_diff(m)
+    if rdiff:
+        extras.append(rdiff[0])
+        trace_tags.append(rdiff[1])
 
     tg = _embedded_topic_guard(m)
     if tg:
