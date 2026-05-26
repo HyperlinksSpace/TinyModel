@@ -823,6 +823,19 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         )
         o, e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("topic_guard", t)
+        self.assertNotIn("topic_must", t)
+
+    def test_embedded_topic_must_trace(self) -> None:
+        msg = (
+            "We're preparing an enterprise RFP response for our observability platform. "
+            "Explain our data residency and encryption story for EU buyers, and make sure to mention "
+            "our 99.9% SLA, on-call escalation path, and disaster recovery runbooks—include a section on each."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("topic_must", t)
+        self.assertNotIn("topic_guard", t)
+        self.assertTrue(any("required topics" in x.lower() for x in e))
 
     def test_embedded_frame_star_trace(self) -> None:
         msg = (

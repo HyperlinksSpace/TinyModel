@@ -1368,6 +1368,45 @@ def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
     return instr, "topic_guard"
 
 
+def _embedded_topic_must(m: str) -> tuple[str, str] | None:
+    """``topic_must`` — user required specific subjects or sections in the reply."""
+    if len(m) < 44:
+        return None
+    must_cover = bool(
+        re.search(
+            r"\b(make sure to mention|be sure to (?:mention|cover)|must (?:mention|cover|discuss|include)|"
+            r"you must (?:mention|cover)|need (?:you )?to (?:mention|cover)|"
+            r"include (?:a )?(?:section|subsection) (?:on|about|for)|"
+            r"dedicated section (?:on|about|for)|don'?t skip (?:mentioning|discussing)|"
+            r"address (?:the )?(?:topic|question) of|cover (?:the )?topic of)\b",
+            m,
+        )
+    )
+    avoid = bool(
+        re.search(
+            r"\b(don'?t mention|do not mention|avoid (?:mentioning|discussing|talking about)|"
+            r"skip (?:mentioning|discussing)|leave out|no discussion of|"
+            r"do not discuss|steer clear of|without mentioning|"
+            r"don'?t bring up|do not bring up|exclude (?:any )?discussion of)\b",
+            m,
+        )
+    )
+    if not must_cover or avoid:
+        return None
+    if not re.search(
+        r"\b(explain|describe|what|how|why|help|write|draft|answer|summarize|compare|"
+        r"faq|policy|guide|customer|user|team|product|outline|prepare)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user set **required topics**: explicitly **cover** each subject or section they asked "
+        "you to mention (use clear headings or bullets per required item); do not omit flagged "
+        "must-cover topics even if they seem tangential."
+    )
+    return instr, "topic_must"
+
+
 def _embedded_answer_frame(m: str) -> tuple[str, str] | None:
     """``frame_star`` / ``frame_prep`` / ``frame_irac`` — named professional answer scaffolds."""
     if len(m) < 48:
@@ -2416,6 +2455,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
+        ``topic_must``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2514,6 +2554,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if tg:
         extras.append(tg[0])
         trace_tags.append(tg[1])
+
+    tm = _embedded_topic_must(m)
+    if tm:
+        extras.append(tm[0])
+        trace_tags.append(tm[1])
 
     af = _embedded_answer_frame(m)
     if af:
