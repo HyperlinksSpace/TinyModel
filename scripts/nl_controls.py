@@ -1826,6 +1826,44 @@ def _embedded_exposition_order(m: str) -> str | None:
     return None
 
 
+def _embedded_glossary_section(m: str) -> tuple[str, str] | None:
+    """``glossary`` — include a short glossary / key-terms definitions section."""
+    if len(m) < 48:
+        return None
+    no_glossary = bool(
+        re.search(
+            r"\b(no glossary|without glossary|skip glossary|avoid glossary|don'?t (?:include|add) glossary)\b",
+            m,
+        )
+    )
+    if no_glossary:
+        return None
+
+    no_headings = bool(
+        re.search(
+            r"\b(flat answer|no section headings|avoid markdown headings|continuous prose only|prose without headings)\b",
+            m,
+        )
+    )
+
+    want = bool(
+        re.search(
+            r"\b(glossary(?:[- ]style)?|provide (?:a )?glossary|include (?:a )?glossary|"
+            r"terms and definitions|define (?:the )?(?:key )?terms)\b",
+            m,
+        )
+    )
+    if not want or no_headings:
+        return None
+
+    instr = (
+        "The user requested a **Glossary**: include a short **Glossary** section defining 3–8 "
+        "key terms mentioned in the prompt (especially jargon). Provide each definition as a "
+        "single concise sentence."
+    )
+    return instr, "glossary"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2455,7 +2493,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
-        ``topic_must``,
+        ``topic_must``, ``glossary``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2564,6 +2602,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if af:
         extras.append(af[0])
         trace_tags.append(af[1])
+
+    gls = _embedded_glossary_section(m)
+    if gls:
+        extras.append(gls[0])
+        trace_tags.append(gls[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

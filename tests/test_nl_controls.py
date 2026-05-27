@@ -1273,6 +1273,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, _t = analyze_embedded_prompt_signals(msg)
         self.assertIsNone(o.get("exposition_order"))
 
+    def test_embedded_glossary_trace(self) -> None:
+        msg = (
+            "I'm drafting a technical onboarding guide for new operators. "
+            "Please include a short glossary of key terms like SLA, RAG, and encoder. "
+            "Define each briefly."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("glossary", t)
+        self.assertTrue(any("glossary" in x.lower() for x in e))
+
+    def test_embedded_glossary_no_glossary_conflict_skips(self) -> None:
+        msg = (
+            "Please include a short glossary of key terms like SLA and RAG, but no glossary section—"
+            "skip it and keep the reply plain."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertNotIn("glossary", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
