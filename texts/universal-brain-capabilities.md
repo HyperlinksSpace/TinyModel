@@ -55,7 +55,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Planning & editing** | `risks_first`, `benefits_first`, `revise_draft`, `revise_diff`, `topic_guard`, `topic_must`, `glossary` |
 | **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual` |
 | **Facts & sources** | `speculation=strict/creative`, `cite_sources`, `cite_minimal`, `faq_grounding=strict/relaxed`, `quote_style=quote/paraphrase` |
-| **Other** | `language`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |
+| **Other** | `language`, `spelling_uk`, `spelling_us`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |
 
 **Step-by-step examples:** scroll to **Testing embedded prompt signals** under the chat on the Space.
 

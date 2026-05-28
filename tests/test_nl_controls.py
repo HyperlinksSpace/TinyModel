@@ -1293,6 +1293,38 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertEqual(o, {})
         self.assertNotIn("glossary", t)
 
+    def test_embedded_spelling_uk_trace(self) -> None:
+        msg = (
+            "I'm preparing a customer-facing FAQ for our UK retail site about delivery delays. "
+            "Explain our courier SLA and refund policy clearly, and use British English spelling throughout "
+            "(colour, organise, centre)."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("spelling_uk", t)
+        self.assertNotIn("spelling_us", t)
+        self.assertTrue(any("british english" in x.lower() for x in e))
+
+    def test_embedded_spelling_us_trace(self) -> None:
+        msg = (
+            "Draft a support macro for our US helpdesk about password resets. "
+            "Keep it concise and use American English spelling—color, organize, center—not UK forms."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("spelling_us", t)
+        self.assertNotIn("spelling_uk", t)
+        self.assertTrue(any("american english" in x.lower() for x in e))
+
+    def test_embedded_spelling_locale_conflict_skips(self) -> None:
+        msg = (
+            "Write a bilingual style guide snippet for our docs team. Use British English spelling for the "
+            "UK section but also American English spelling for the US section in the same reply—pick one locale."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("spelling_uk", t)
+        self.assertNotIn("spelling_us", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

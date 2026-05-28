@@ -1864,6 +1864,45 @@ def _embedded_glossary_section(m: str) -> tuple[str, str] | None:
     return instr, "glossary"
 
 
+def _embedded_spelling_locale(m: str) -> tuple[str, str] | None:
+    """``spelling_uk`` / ``spelling_us`` — British vs American English spelling in the reply."""
+    if len(m) < 44:
+        return None
+    uk = bool(
+        re.search(
+            r"\b(british english|uk english|uk spelling|british spelling|"
+            r"use british spellings?|spell(?:ing)? (?:in )?british english|"
+            r"en[- ]?gb (?:spelling|english)|"
+            r"colour not color|favour not favor|organise not organize)\b",
+            m,
+        )
+    )
+    us = bool(
+        re.search(
+            r"\b(american english|us english|us spelling|american spelling|"
+            r"use american spellings?|spell(?:ing)? (?:in )?american english|"
+            r"en[- ]?us (?:spelling|english)|"
+            r"color not colour|favor not favour|organize not organise)\b",
+            m,
+        )
+    )
+    if uk and us:
+        return None
+    if uk:
+        instr = (
+            "The user asked for **British English (UK) spelling** throughout the reply "
+            "(e.g. colour, organise, centre, licence)—not US forms unless quoting source text verbatim."
+        )
+        return instr, "spelling_uk"
+    if us:
+        instr = (
+            "The user asked for **American English (US) spelling** throughout the reply "
+            "(e.g. color, organize, center, license)—not UK forms unless quoting source text verbatim."
+        )
+        return instr, "spelling_us"
+    return None
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2493,7 +2532,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
-        ``topic_must``, ``glossary``,
+        ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2607,6 +2646,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if gls:
         extras.append(gls[0])
         trace_tags.append(gls[1])
+
+    spl = _embedded_spelling_locale(m)
+    if spl:
+        extras.append(spl[0])
+        trace_tags.append(spl[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"
