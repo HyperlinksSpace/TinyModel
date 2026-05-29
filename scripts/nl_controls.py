@@ -1903,6 +1903,59 @@ def _embedded_spelling_locale(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_timeline_order(m: str) -> tuple[str, str] | None:
+    """``timeline_chron`` / ``timeline_reverse`` — chronological vs reverse-chronological event layout."""
+    if len(m) < 48:
+        return None
+    if re.search(
+        r"\b(no timeline|not a timeline|without a timeline|skip (?:the )?timeline|"
+        r"don'?t use a timeline)\b",
+        m,
+    ):
+        return None
+    reverse = bool(
+        re.search(
+            r"\b(reverse chronological|anti[- ]chronological|newest first|most recent first|"
+            r"latest first|work backwards|backward in time|from latest to earliest|"
+            r"most recent event first)\b",
+            m,
+        )
+    )
+    chron = bool(
+        re.search(
+            r"\b(?:in chronological order|(?<!reverse )chronological order|time order|"
+            r"timeline format|as a timeline|event timeline|what happened when|"
+            r"from earliest to latest|oldest first|earliest first|"
+            r"history in order)\b",
+            m,
+        )
+    )
+    if reverse and chron:
+        return None
+    if not re.search(
+        r"\b(explain|describe|summarize|outline|what happened|history|incident|outage|"
+        r"rollout|migration|deployment|release|postmortem|timeline|events|sequence|"
+        r"when did|how did .{0,40} unfold)\b",
+        m,
+    ):
+        return None
+    if reverse:
+        instr = (
+            "The user wants a **reverse-chronological timeline**: list events **newest → oldest** "
+            "with short date/time or phase labels (e.g. **Now**, **T+2h**, **Day 0**); one line or "
+            "bullet per milestone."
+        )
+        return instr, "timeline_reverse"
+    if chron:
+        instr = (
+            "The user wants a **chronological timeline**: list events **earliest → latest** "
+            "with short date/time or phase labels (e.g. **09:00 UTC**, **Phase 1**, **Day 2**); "
+            "one line or bullet per milestone."
+        )
+        return instr, "timeline_chron"
+    return None
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2533,6 +2586,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
+        ``timeline_chron``, ``timeline_reverse``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2651,6 +2705,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if spl:
         extras.append(spl[0])
         trace_tags.append(spl[1])
+
+    tlo = _embedded_timeline_order(m)
+    if tlo:
+        extras.append(tlo[0])
+        trace_tags.append(tlo[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

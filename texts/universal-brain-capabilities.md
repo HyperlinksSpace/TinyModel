@@ -51,7 +51,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Length & caps** | `verbosity=brief/detailed`, `len_cap=80w`, `len_cap=3s`, … |
 | **Code** | `code_only`, `code_explained`, `pseudocode`, `runnable_code`, `code_block_style=fenced/inline` |
 | **Decisions** | `ranked_options`, `options_n=3`, `checklist`, `no_checklist` |
-| **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac` |
+| **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac`, `timeline_chron`, `timeline_reverse` |
 | **Planning & editing** | `risks_first`, `benefits_first`, `revise_draft`, `revise_diff`, `topic_guard`, `topic_must`, `glossary` |
 | **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual` |
 | **Facts & sources** | `speculation=strict/creative`, `cite_sources`, `cite_minimal`, `faq_grounding=strict/relaxed`, `quote_style=quote/paraphrase` |

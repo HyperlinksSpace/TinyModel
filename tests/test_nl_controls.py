@@ -1325,6 +1325,39 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("spelling_uk", t)
         self.assertNotIn("spelling_us", t)
 
+    def test_embedded_timeline_chron_trace(self) -> None:
+        msg = (
+            "Our SRE team needs a customer-facing summary of last weekend's database failover incident. "
+            "Explain what happened when in chronological order—include detection, mitigation, and recovery "
+            "as a timeline from earliest event to latest."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("timeline_chron", t)
+        self.assertNotIn("timeline_reverse", t)
+        self.assertTrue(any("chronological timeline" in x.lower() for x in e))
+
+    def test_embedded_timeline_reverse_trace(self) -> None:
+        msg = (
+            "I'm writing an internal postmortem for leadership about the API gateway outage on Tuesday. "
+            "Summarize the sequence of events in reverse chronological order with newest first so execs "
+            "see the latest impact before the root cause chain."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("timeline_reverse", t)
+        self.assertNotIn("timeline_chron", t)
+        self.assertTrue(any("reverse-chronological" in x.lower() for x in e))
+
+    def test_embedded_timeline_order_conflict_skips(self) -> None:
+        msg = (
+            "Document the rollout timeline for our new auth service. Present events in chronological order "
+            "but also reverse chronological with newest first—pick one ordering only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("timeline_chron", t)
+        self.assertNotIn("timeline_reverse", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
