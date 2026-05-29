@@ -2,7 +2,7 @@
 
 # TinyModel
 
-### Tiny, deployable text classification baseline for rapid product iteration
+### Small-language-model stack for text understanding, retrieval, and chat
 
 [![Model](https://img.shields.io/badge/Hugging%20Face-TinyModel1-yellow)](https://huggingface.co/HyperlinksSpace/TinyModel1)
 [![Space Hub](https://img.shields.io/badge/Space%20Hub-TinyModel1Space-orange)](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)
@@ -10,14 +10,25 @@
 
 </div>
 
-`TinyModel` is a practical starter model line for text classification.
-End users consume deployed Hugging Face model and Space endpoints. Maintainer deployment policy lives in `texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`.
+**TinyModel** is an open-source **text understanding and assistant stack**. At its core is **TinyModel1** — a compact encoder for **topic classification** and **dense embeddings** — paired with **Universal Brain**, a deployable **Gradio chat** that wires that encoder to a small **instruct language model**, **FAQ-style RAG**, **scoped SQLite memory**, **JSON intent routing**, and **40+ natural-language reply controls** (session phrases plus one-turn **embedded prompt signals** in long chat).
 
-Repository: [HyperlinksSpace/TinyModel](https://github.com/HyperlinksSpace/TinyModel)
+| Deliverable | What it is |
+| --- | --- |
+| **[TinyModel1](https://huggingface.co/HyperlinksSpace/TinyModel1)** (Hub model) | Tiny BERT-style classifier + embeddings. Default demo labels: AG News–style **World / Business / Sports / Sci/Tech**. Train or fine-tune locally, publish weights, use in `transformers` or via **`TinyModelRuntime`**. |
+| **[Universal Brain](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space)** (Hub Space) | **Text-in / text-out** chat: plain-language or **`/…`** tools (summarize, FAQ retrieve, classify, embed, remember, optional web search). Optional *Brain trace* shows routing, RAG, memory, and **`prompt_signals:`**. |
+| **This repository** | End-to-end tooling: **Phase 1–3** training and comparison, **Phase 2** eval/routing artifacts, **ONNX** export and serving smoke, **Space artifact** builder ([`scripts/build_space_artifact.py`](scripts/build_space_artifact.py)), CI workflows, and maintainer docs. |
 
-### Universal Brain (Hugging Face Space): what it can do today
+**Quick links:** [Live chat app](https://hyperlinksspace-tinymodel1space.hf.space) · [Space on the Hub](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space) · [Model weights](https://huggingface.co/HyperlinksSpace/TinyModel1) · [GitHub](https://github.com/HyperlinksSpace/TinyModel)
 
-The [TinyModel1Space](https://huggingface.co/spaces/HyperlinksSpace/TinyModel1Space) **Universal Brain** chat combines a **small generative instruct model**, the **TinyModel1** encoder, **FAQ-style RAG**, **SQLite memory**, and **natural-language routing**. Capabilities (all text-in / text-out unless you paste other content):
+Maintainer deployment policy: [`texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md`](texts/HUGGING_FACE_DEPLOYMENT_INTERNAL.md). Capability reference for the Space: [`texts/universal-brain-capabilities.md`](texts/universal-brain-capabilities.md).
+
+---
+
+## Universal Brain (Hugging Face Space)
+
+The live app is the primary **product-facing** surface. It combines a **small generative instruct model** (default **`HuggingFaceTB/SmolLM2-360M-Instruct`**, override **`HORIZON2_MODEL`**), the **TinyModel1** encoder, **FAQ RAG**, **memory**, and **routing** into one Gradio UI. Everything below is **text-in / text-out** unless you paste other content.
+
+### What it can do today
 
 | Layer | What you get |
 | --- | --- |
@@ -76,9 +87,25 @@ Some features may not work reliably from Russia—for example **live preview** o
 
 **Model card (README)** — On the Hub, the model card is the **`README.md`** file at the root of the model repo (same URL as the model). In this repository, the template is implemented by `write_model_card()` in [`scripts/train_tinymodel1_classifier.py`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py); training writes `README.md`, [`artifact.json`](https://github.com/HyperlinksSpace/TinyModel/blob/main/scripts/train_tinymodel1_classifier.py), and `eval_report.json` next to the weights. We do **not** run CI that downloads full model weights into the repo or runner caches for republish; update the card by retraining and publishing, or edit `README.md` on the Hub and keep weights unchanged.
 
+---
+
+## TinyModel1 encoder (train, evaluate, serve)
+
+The **encoder** is the trainable artifact this repo was built around. Use it standalone (classify / embed / route) or as the retrieval and routing backbone inside **Universal Brain**. The sections below walk through **local training**, **Phase 1–3** comparison and serving smoke, **routing policy**, **FAQ RAG** glue, and **Hub publish / Space deploy** workflows.
+
+Key entry points:
+
+| Goal | Start here |
+| --- | --- |
+| Train a classifier checkpoint | [`scripts/train_tinymodel1_classifier.py`](scripts/train_tinymodel1_classifier.py) (wrappers: [`train_tinymodel1_agnews.py`](scripts/train_tinymodel1_agnews.py), [`train_tinymodel1_emotion.py`](scripts/train_tinymodel1_emotion.py), [`train_tinymodel1_sst2.py`](scripts/train_tinymodel1_sst2.py)) |
+| Compare scratch vs pretrained runs | [`scripts/phase1_compare.py`](scripts/phase1_compare.py) |
+| Runtime classify / embed / retrieve | [`scripts/tinymodel_runtime.py`](scripts/tinymodel_runtime.py), [`scripts/rag_faq_smoke.py`](scripts/rag_faq_smoke.py) |
+| Run Universal Brain locally | [`scripts/universal_brain_chat.py`](scripts/universal_brain_chat.py) |
+| Build the Hugging Face Space bundle | [`scripts/build_space_artifact.py`](scripts/build_space_artifact.py) |
+
 ## 1) Local testing
 
-Train locally after cloning the repo:
+Train the **TinyModel1** encoder locally after cloning the repo:
 
 ```bash
 python scripts/train_tinymodel1_agnews.py --output-dir .tmp/TinyModel-local
