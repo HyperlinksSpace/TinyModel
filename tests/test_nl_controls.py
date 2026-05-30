@@ -1358,6 +1358,38 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("timeline_chron", t)
         self.assertNotIn("timeline_reverse", t)
 
+    def test_embedded_voice_second_trace(self) -> None:
+        msg = (
+            "I'm onboarding junior engineers to our Kubernetes platform next week. "
+            "Write a short guide on deploying our Helm chart for new hires—address the reader as you "
+            "and use second person throughout so it feels like a hands-on walkthrough."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("voice_second", t)
+        self.assertNotIn("voice_third", t)
+        self.assertTrue(any("second-person" in x.lower() for x in e))
+
+    def test_embedded_voice_third_trace(self) -> None:
+        msg = (
+            "We need an internal policy appendix for auditors about access reviews. "
+            "Describe the quarterly attestation workflow in third person with impersonal tone—"
+            "avoid second person and don't address the reader as you."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("voice_third", t)
+        self.assertNotIn("voice_second", t)
+        self.assertTrue(any("third-person" in x.lower() for x in e))
+
+    def test_embedded_writing_voice_conflict_skips(self) -> None:
+        msg = (
+            "Draft onboarding copy for our developer portal. Address the reader as you in second person, "
+            "but also use third person impersonal tone and avoid second person—pick one voice only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("voice_second", t)
+        self.assertNotIn("voice_third", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

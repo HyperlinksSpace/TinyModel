@@ -1956,6 +1956,57 @@ def _embedded_timeline_order(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_writing_voice(m: str) -> tuple[str, str] | None:
+    """``voice_second`` / ``voice_third`` — address reader as *you* vs impersonal third person."""
+    if len(m) < 48:
+        return None
+    third = bool(
+        re.search(
+            r"\b(third person|3rd person|impersonal tone|impersonal voice|"
+            r"don'?t address (?:the )?reader as you|avoid second person|"
+            r"no second person|don'?t use (?:you|your) (?:throughout|in the reply)|"
+            r"refer to (?:the )?user(?:s)? not you|neutral documentation voice|"
+            r"formal documentation style.{0,30}not you)\b",
+            m,
+        )
+    )
+    second = bool(
+        re.search(
+            r"\b(?:(?<!avoid )(?<!no )second person|2nd person|"
+            r"speak directly to (?:the )?reader|talk to me as the user|"
+            r"use you and your throughout|write to me using you|"
+            r"directly address me as you|use second[- ]person (?:you|voice))\b",
+            m,
+        )
+    )
+    if not second and re.search(r"\baddress (?:the )?reader as you\b", m):
+        if not re.search(r"\b(don'?t|do not) address (?:the )?reader as you\b", m):
+            second = True
+    if second and third:
+        return None
+    if not re.search(
+        r"\b(explain|describe|write|draft|guide|help|walk|tell|outline|"
+        r"document|instructions|how (?:do|can|should) i|tutorial|onboarding)\b",
+        m,
+    ):
+        return None
+    if second:
+        instr = (
+            "The user wants **second-person voice**: address the reader as **you/your** "
+            "(tutorial or coaching tone)—not impersonal third-person phrasing like "
+            "*the user should* unless quoting policy verbatim."
+        )
+        return instr, "voice_second"
+    if third:
+        instr = (
+            "The user wants **third-person / impersonal voice**: avoid addressing the reader "
+            "as **you**; prefer neutral phrasing (*the administrator*, *one*, *the team*) "
+            "suited to formal docs or policy text."
+        )
+        return instr, "voice_third"
+    return None
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2586,7 +2637,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
-        ``timeline_chron``, ``timeline_reverse``,
+        ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2710,6 +2761,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if tlo:
         extras.append(tlo[0])
         trace_tags.append(tlo[1])
+
+    wvc = _embedded_writing_voice(m)
+    if wvc:
+        extras.append(wvc[0])
+        trace_tags.append(wvc[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

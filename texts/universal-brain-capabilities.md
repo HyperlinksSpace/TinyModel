@@ -53,7 +53,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Decisions** | `ranked_options`, `options_n=3`, `checklist`, `no_checklist` |
 | **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac`, `timeline_chron`, `timeline_reverse` |
 | **Planning & editing** | `risks_first`, `benefits_first`, `revise_draft`, `revise_diff`, `topic_guard`, `topic_must`, `glossary` |
-| **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual` |
+| **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual`, `voice_second`, `voice_third` |
 | **Facts & sources** | `speculation=strict/creative`, `cite_sources`, `cite_minimal`, `faq_grounding=strict/relaxed`, `quote_style=quote/paraphrase` |
 | **Other** | `language`, `spelling_uk`, `spelling_us`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |
 
