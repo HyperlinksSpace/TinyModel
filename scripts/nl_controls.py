@@ -2007,6 +2007,46 @@ def _embedded_writing_voice(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_faq_qa_format(m: str) -> tuple[str, str] | None:
+    """``faq_qa`` — reply as explicit question-and-answer pairs (``Q:`` / ``A:`` layout)."""
+    if len(m) < 48:
+        return None
+    no_qa = bool(
+        re.search(
+            r"\b(no q&a format|not q&a format|without q&a|skip q&a format|"
+            r"don'?t use q&a|prose not q&a|not in q&a format|"
+            r"no question[- ]and[- ]answer pairs?|avoid q&a layout)\b",
+            m,
+        )
+    )
+    if no_qa:
+        return None
+    want = bool(
+        re.search(
+            r"\b(q&a format|question[- ]and[- ]answer format|questions? and answers? format|"
+            r"format as q&a|faq[- ]style q&a|faq q&a layout|"
+            r"each question (?:with|followed by) (?:an )?answer|"
+            r"question answer pairs?|q:\s*/\s*a: layout|"
+            r"use q:\s*and a:\s*headings|pair each question with an answer)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(explain|describe|write|draft|document|outline|prepare|"
+        r"faq|support|customer|policy|helpdesk|knowledge base|kb)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **FAQ Q&A layout**: structure the reply as clear **question → answer** "
+        "pairs using markdown labels **Q:** and **A:** (or **Question** / **Answer** headings); "
+        "keep each answer concise under its question—not one undifferentiated essay."
+    )
+    return instr, "faq_qa"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2637,7 +2677,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
-        ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``,
+        ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``, ``faq_qa``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2766,6 +2806,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if wvc:
         extras.append(wvc[0])
         trace_tags.append(wvc[1])
+
+    fqa = _embedded_faq_qa_format(m)
+    if fqa:
+        extras.append(fqa[0])
+        trace_tags.append(fqa[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

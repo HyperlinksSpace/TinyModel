@@ -1390,6 +1390,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         self.assertNotIn("voice_second", t)
         self.assertNotIn("voice_third", t)
 
+    def test_embedded_faq_qa_trace(self) -> None:
+        msg = (
+            "We're updating the self-serve billing FAQ for SMB customers who dispute proration charges. "
+            "Draft five common questions about mid-cycle upgrades in question-and-answer format—"
+            "use Q: and A: labels for each pair so support can paste into the knowledge base."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("faq_qa", t)
+        self.assertTrue(any("faq q&a layout" in x.lower() or "q:" in x.lower() for x in e))
+
+    def test_embedded_faq_qa_no_format_skips(self) -> None:
+        msg = (
+            "Help me write FAQ content about refund windows for enterprise contracts. "
+            "Use question and answer format for the first section, but prose not Q&A for the rest—"
+            "pick one layout only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("faq_qa", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

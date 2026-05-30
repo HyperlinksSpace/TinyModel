@@ -47,7 +47,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 
 | Group | Example tags in `prompt_signals:` |
 | --- | --- |
-| **Layout & comparison** | `comparison_frame=pros_cons`, `comparison_frame=narrative`, `table_style=prefer/avoid`, `reply_format=bullets/prose`, `step_style=numbered/continuous`, `section_headings=prefer/avoid` |
+| **Layout & comparison** | `comparison_frame=pros_cons`, `comparison_frame=narrative`, `table_style=prefer/avoid`, `reply_format=bullets/prose`, `step_style=numbered/continuous`, `section_headings=prefer/avoid`, `faq_qa` |
 | **Length & caps** | `verbosity=brief/detailed`, `len_cap=80w`, `len_cap=3s`, … |
 | **Code** | `code_only`, `code_explained`, `pseudocode`, `runnable_code`, `code_block_style=fenced/inline` |
 | **Decisions** | `ranked_options`, `options_n=3`, `checklist`, `no_checklist` |
