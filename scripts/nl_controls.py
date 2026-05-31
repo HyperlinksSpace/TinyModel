@@ -2047,6 +2047,98 @@ def _embedded_faq_qa_format(m: str) -> tuple[str, str] | None:
     return instr, "faq_qa"
 
 
+def _embedded_summary_last(m: str) -> tuple[str, str] | None:
+    """``summary_last`` — close the reply with a brief recap (complement to ``answer_lead=tldr_first``)."""
+    if len(m) < 44:
+        return None
+    no_end = bool(
+        re.search(
+            r"\b(no summary at the end|skip (?:the )?(?:closing|final) summary|"
+            r"don'?t (?:add|end with) a (?:tldr|summary) at the end|"
+            r"without a closing summary|no recap at the end)\b",
+            m,
+        )
+    )
+    if no_end:
+        return None
+    tldr_first = bool(
+        re.search(
+            r"\b(tl;?dr first|tldr first|summary first|executive summary first|"
+            r"bottom line up front|\bbluf\b|lead with (?:a\s+)?(?:one[- ]line\s+)?summary|"
+            r"(?:key\s+)?takeaway first|headline first)\b",
+            m,
+        )
+    )
+    end_sum = bool(
+        re.search(
+            r"\b(summary at the end|tldr at the (?:bottom|end)|executive summary at the end|"
+            r"wrap up with (?:a\s+)?(?:brief\s+)?summary|close with (?:a\s+)?(?:one[- ]line\s+)?summary|"
+            r"end with (?:a\s+)?(?:brief\s+)?(?:summary|tldr|recap|key takeaway)|"
+            r"recap at the (?:bottom|end)|closing summary|final summary (?:line|paragraph))\b",
+            m,
+        )
+    )
+    if not end_sum or tldr_first:
+        return None
+    if not re.search(
+        r"\b(explain|describe|write|draft|summarize|report|outline|brief|memo|answer|"
+        r"analysis|review|compare|recommend)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **closing summary**: after the main answer, end with a short "
+        "**Summary** or **TL;DR** line (1–3 sentences) that recaps the key takeaway—"
+        "do **not** open with that recap (unless they also asked for BLUF elsewhere)."
+    )
+    return instr, "summary_last"
+
+
+def _embedded_decision_matrix(m: str) -> tuple[str, str] | None:
+    """``decision_matrix`` — criteria × options markdown table for side-by-side evaluation."""
+    if len(m) < 48:
+        return None
+    no_matrix = bool(
+        re.search(
+            r"\b(no decision matrix|without a (?:decision|comparison|feature) matrix|"
+            r"not a (?:decision|comparison|feature) matrix|skip the matrix|"
+            r"don'?t use a (?:decision|comparison|feature) matrix|"
+            r"avoid a (?:decision|comparison|feature) matrix|"
+            r"no matrix (?:format|table))\b",
+            m,
+        )
+    )
+    if no_matrix:
+        return None
+    want = bool(
+        re.search(
+            r"\b(decision matrix|comparison matrix|feature matrix|"
+            r"evaluation matrix|criteria matrix|"
+            r"score each option (?:on|against|across)|"
+            r"matrix (?:comparing|of) (?:the )?(?:options|vendors|tools|alternatives|platforms)|"
+            r"options (?:as|in) columns?(?: and criteria as rows?)?|"
+            r"criteria (?:as|in) rows?(?: and options as columns?)?|"
+            r"side[- ]by[- ]side matrix|"
+            r"rate each option (?:on|against) (?:each|the) criteri(?:a|on))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(compare|choose|pick|select|evaluate|decide|recommend|rank|"
+        r"vendor|tool|option|alternative|approach|platform|solution)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **decision matrix**: include a markdown **table** with **options/alternatives "
+        "as columns** and **evaluation criteria as rows** (cells: short scores, ratings, or ✓/✗). "
+        "Add a one-line legend if you use symbols; keep supporting prose outside the table."
+    )
+    return instr, "decision_matrix"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2677,7 +2769,8 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
-        ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``, ``faq_qa``,
+        ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
+        ``summary_last``, ``decision_matrix``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2741,6 +2834,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ro:
         extras.append(ro[0])
         trace_tags.append(ro[1])
+
+    dmx = _embedded_decision_matrix(m)
+    if dmx:
+        extras.append(dmx[0])
+        trace_tags.append(dmx[1])
 
     cl = _embedded_checklist_reply(m)
     if cl:
@@ -2811,6 +2909,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if fqa:
         extras.append(fqa[0])
         trace_tags.append(fqa[1])
+
+    sml = _embedded_summary_last(m)
+    if sml:
+        extras.append(sml[0])
+        trace_tags.append(sml[1])
 
     if _embedded_simple_audience(m):
         overrides["audience"] = "simple"

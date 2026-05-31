@@ -1410,6 +1410,45 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("faq_qa", t)
 
+    def test_embedded_summary_last_trace(self) -> None:
+        msg = (
+            "I'm drafting an internal rollout plan for our new identity provider migration across three "
+            "business units. Describe the phased migration in detail, then wrap up with a brief summary "
+            "at the end so stakeholders can skim the takeaway without rereading the whole write-up."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("summary_last", t)
+        self.assertNotIn("answer_lead", str(o))
+        self.assertTrue(any("closing summary" in x.lower() for x in e))
+
+    def test_embedded_summary_last_bluf_conflict_skips(self) -> None:
+        msg = (
+            "Explain our multi-region failover design for the payments API. Use BLUF and summary first, "
+            "but also wrap up with a summary at the end—pick one summary placement only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("summary_last", t)
+
+    def test_embedded_decision_matrix_trace(self) -> None:
+        msg = (
+            "We need to pick a managed Kubernetes platform for three product teams. Evaluate EKS, GKE, "
+            "and AKS on cost, ops burden, and regional coverage, and show a decision matrix with criteria "
+            "as rows and each platform as a column so leadership can review side by side quickly."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("decision_matrix", t)
+        self.assertTrue(any("decision matrix" in x.lower() for x in e))
+
+    def test_embedded_decision_matrix_no_matrix_skips(self) -> None:
+        msg = (
+            "Help me evaluate four observability vendors for our SRE org. I want a decision matrix "
+            "style write-up, but not a matrix table—use flowing prose only and skip the matrix format."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("decision_matrix", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

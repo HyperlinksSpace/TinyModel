@@ -50,12 +50,12 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Layout & comparison** | `comparison_frame=pros_cons`, `comparison_frame=narrative`, `table_style=prefer/avoid`, `reply_format=bullets/prose`, `step_style=numbered/continuous`, `section_headings=prefer/avoid`, `faq_qa` |
 | **Length & caps** | `verbosity=brief/detailed`, `len_cap=80w`, `len_cap=3s`, … |
 | **Code** | `code_only`, `code_explained`, `pseudocode`, `runnable_code`, `code_block_style=fenced/inline` |
-| **Decisions** | `ranked_options`, `options_n=3`, `checklist`, `no_checklist` |
+| **Decisions** | `ranked_options`, `decision_matrix`, `options_n=3`, `checklist`, `no_checklist` |
 | **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac`, `timeline_chron`, `timeline_reverse` |
 | **Planning & editing** | `risks_first`, `benefits_first`, `revise_draft`, `revise_diff`, `topic_guard`, `topic_must`, `glossary` |
 | **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual`, `voice_second`, `voice_third` |
 | **Facts & sources** | `speculation=strict/creative`, `cite_sources`, `cite_minimal`, `faq_grounding=strict/relaxed`, `quote_style=quote/paraphrase` |
-| **Other** | `language`, `spelling_uk`, `spelling_us`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |
+| **Other** | `language`, `spelling_uk`, `spelling_us`, `summary_last`, `faq_qa`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |
 
 **Step-by-step examples:** scroll to **Testing embedded prompt signals** under the chat on the Space.
 
