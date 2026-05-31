@@ -1449,6 +1449,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("decision_matrix", t)
 
+    def test_embedded_swot_trace(self) -> None:
+        msg = (
+            "Our growth team is debating whether to expand our B2B analytics product into the EU market "
+            "next quarter. Write a strategy memo and include a SWOT analysis with strengths, weaknesses, "
+            "opportunities, and threats so leadership can review the market position clearly."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("swot", t)
+        self.assertTrue(any("SWOT" in x for x in e))
+
+    def test_embedded_swot_no_swot_skips(self) -> None:
+        msg = (
+            "Draft a competitive review of our mobile wallet launch for the board. I mentioned SWOT "
+            "earlier but skip the SWOT format here—use flowing prose only, not a SWOT section."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("swot", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

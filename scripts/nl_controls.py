@@ -2139,6 +2139,46 @@ def _embedded_decision_matrix(m: str) -> tuple[str, str] | None:
     return instr, "decision_matrix"
 
 
+def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
+    """``swot`` — Strengths / Weaknesses / Opportunities / Threats strategic layout."""
+    if len(m) < 48:
+        return None
+    no_swot = bool(
+        re.search(
+            r"\b(no swot|without (?:a\s+)?swot|not a swot|skip (?:the\s+)?swot|"
+            r"don'?t use swot|avoid swot|no swot (?:format|section|framework))\b",
+            m,
+        )
+    )
+    if no_swot:
+        return None
+    want = bool(
+        re.search(
+            r"\b(swot analysis|swot format|swot framework|swot breakdown|"
+            r"strengths[, ]+weaknesses[, ]+opportunities[, ]+(?:and )?threats|"
+            r"strengths weaknesses opportunities threats|"
+            r"s\.w\.o\.t\.|"
+            r"\bswot\b.{0,40}(?:strengths|weaknesses|opportunities|threats))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(analy(?:s|z)e|analysis|assess|evaluate|review|plan|strategy|launch|"
+        r"product|initiative|market|competitive|position|expansion|rollout|"
+        r"describe|write|outline|report|memo)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **SWOT analysis**: structure the answer with markdown headings "
+        "**Strengths**, **Weaknesses**, **Opportunities**, and **Threats** (bullets under each). "
+        "Focus on one subject (product, team, initiative, or market position)—not a generic essay."
+    )
+    return instr, "swot"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2770,7 +2810,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``,
+        ``summary_last``, ``decision_matrix``, ``swot``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2884,6 +2924,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if af:
         extras.append(af[0])
         trace_tags.append(af[1])
+
+    swot = _embedded_swot_analysis(m)
+    if swot:
+        extras.append(swot[0])
+        trace_tags.append(swot[1])
 
     gls = _embedded_glossary_section(m)
     if gls:
