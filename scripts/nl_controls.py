@@ -2179,6 +2179,51 @@ def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
     return instr, "swot"
 
 
+def _embedded_open_questions(m: str) -> tuple[str, str] | None:
+    """``open_questions`` — end section listing unresolved unknowns / TBD items (not user-facing closers)."""
+    if len(m) < 48:
+        return None
+    no_oq = bool(
+        re.search(
+            r"\b(no open questions?|without (?:an?\s+)?open questions? section|"
+            r"skip (?:the\s+)?open questions?|don'?t (?:include|list) open questions?|"
+            r"not an open questions? section|avoid (?:an?\s+)?open questions? section|"
+            r"no tbd section|skip (?:the\s+)?(?:tbd|unknowns?) section)\b",
+            m,
+        )
+    )
+    if no_oq:
+        return None
+    want = bool(
+        re.search(
+            r"\b(open questions? section|include (?:an?\s+)?open questions?|"
+            r"list (?:the\s+)?open questions?|outstanding questions?|unresolved questions?|"
+            r"questions? (?:we )?still need (?:to )?(?:answer|resolve)|"
+            r"what(?:'s| is) still (?:unknown|tbd|unclear)|"
+            r"(?:information|info) gaps?(?: to (?:flag|note))?|"
+            r"unknowns? (?:to|we still need to) (?:flag|resolve|clarify)|"
+            r"tbd items?(?: at the end)?|"
+            r"end with (?:an?\s+)?open questions? section)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(plan|proposal|memo|report|outline|draft|review|analysis|initiative|"
+        r"rollout|strategy|design|recommend|assess|evaluate|write|describe|explain)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants an **Open questions** section: after the main answer, add a heading "
+        "**Open questions** with 3–6 bullet points listing **unresolved unknowns**, missing data, "
+        "or decisions still TBD—do **not** use this section to ask the user rhetorical follow-ups "
+        "or stock closers like “let me know if you need more.”"
+    )
+    return instr, "open_questions"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2810,7 +2855,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``swot``,
+        ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2929,6 +2974,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if swot:
         extras.append(swot[0])
         trace_tags.append(swot[1])
+
+    oq = _embedded_open_questions(m)
+    if oq:
+        extras.append(oq[0])
+        trace_tags.append(oq[1])
 
     gls = _embedded_glossary_section(m)
     if gls:

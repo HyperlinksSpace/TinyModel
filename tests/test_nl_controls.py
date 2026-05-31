@@ -1468,6 +1468,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("swot", t)
 
+    def test_embedded_open_questions_trace(self) -> None:
+        msg = (
+            "I'm drafting a pre-read for our Q3 platform reliability initiative. Outline the rollout "
+            "plan and include an open questions section listing what's still unknown about vendor SLAs "
+            "and data residency so the steering group knows what to resolve before sign-off."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("open_questions", t)
+        self.assertTrue(any("Open questions" in x for x in e))
+
+    def test_embedded_open_questions_skip_skips(self) -> None:
+        msg = (
+            "Write a design review memo for the new billing microservice architecture. Mention open "
+            "questions in passing, but skip the open questions section—no TBD list at the end."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("open_questions", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
