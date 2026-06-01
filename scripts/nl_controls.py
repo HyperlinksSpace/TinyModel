@@ -2224,6 +2224,50 @@ def _embedded_open_questions(m: str) -> tuple[str, str] | None:
     return instr, "open_questions"
 
 
+def _embedded_scenario_cases(m: str) -> tuple[str, str] | None:
+    """``scenario_cases`` — Best / base / worst case (or similar) multi-scenario breakdown."""
+    if len(m) < 48:
+        return None
+    no_sc = bool(
+        re.search(
+            r"\b(no scenarios?|without (?:a\s+)?scenario analysis|skip (?:the\s+)?scenario(?:s)?|"
+            r"don'?t use scenarios?|avoid scenario analysis|not a scenario analysis|"
+            r"single scenario only|one scenario only|no best[- ]case section)\b",
+            m,
+        )
+    )
+    if no_sc:
+        return None
+    want = bool(
+        re.search(
+            r"\b(best[- ]case(?:\s*[/,&]\s*(?:base|worst)[- ]case)?|"
+            r"worst[- ]case(?:\s*[/,&]\s*(?:base|best)[- ]case)?|"
+            r"base[- ]case(?:\s*[/,&]\s*(?:best|worst)[- ]case)?|"
+            r"best,?\s+base,?\s+(?:and\s+)?worst[- ]case|"
+            r"optimistic,?\s+(?:realistic|base)[, ]+(?:and\s+)?pessimistic|"
+            r"scenario analysis|three scenarios?|3 scenarios?|"
+            r"multiple scenarios?|range of outcomes?|"
+            r"upside[- ]downside[- ]base|bull[- ]base[- ]bear case)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(plan|forecast|budget|revenue|growth|launch|initiative|rollout|strategy|"
+        r"project|invest|risk|outlook|memo|report|analysis|assess|evaluate|describe|write|explain)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **scenario analysis**: structure the answer with markdown headings "
+        "**Best case**, **Base case**, and **Worst case** (or clearly labeled optimistic / "
+        "realistic / pessimistic scenarios). Under each, give 2–4 bullet points on outcomes, "
+        "assumptions, and key triggers—keep it focused on one decision or initiative."
+    )
+    return instr, "scenario_cases"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2855,7 +2899,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``,
+        ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``, ``scenario_cases``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -2979,6 +3023,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if oq:
         extras.append(oq[0])
         trace_tags.append(oq[1])
+
+    scn = _embedded_scenario_cases(m)
+    if scn:
+        extras.append(scn[0])
+        trace_tags.append(scn[1])
 
     gls = _embedded_glossary_section(m)
     if gls:

@@ -1487,6 +1487,27 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("open_questions", t)
 
+    def test_embedded_scenario_cases_trace(self) -> None:
+        msg = (
+            "We are planning our FY26 enterprise sales forecast for the new analytics tier. "
+            "Write a strategy memo that walks through rollout assumptions and include a scenario "
+            "analysis with best case, base case, and worst case outcomes so finance can review "
+            "the plan before board approval."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("scenario_cases", t)
+        self.assertTrue(any("scenario analysis" in x.lower() for x in e))
+
+    def test_embedded_scenario_cases_skip_skips(self) -> None:
+        msg = (
+            "Draft a revenue outlook memo for our partner channel program. You could use best case "
+            "wording informally, but skip scenario analysis—single forecast narrative only, no "
+            "best/base/worst sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("scenario_cases", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
