@@ -2274,6 +2274,47 @@ def _embedded_decision_matrix(m: str) -> tuple[str, str] | None:
     return instr, "decision_matrix"
 
 
+def _embedded_raci_matrix(m: str) -> tuple[str, str] | None:
+    """``raci`` — Responsible / Accountable / Consulted / Informed role assignment table."""
+    if len(m) < 48:
+        return None
+    no_raci = bool(
+        re.search(
+            r"\b(no raci|without (?:a\s+)?raci|not a raci|skip (?:the\s+)?raci|"
+            r"don'?t use raci|avoid raci (?:matrix|chart|table)|"
+            r"no raci (?:matrix|chart|table|section))\b",
+            m,
+        )
+    )
+    if no_raci:
+        return None
+    want = bool(
+        re.search(
+            r"\b(raci matrix|raci chart|raci table|raci format|"
+            r"responsible[, ]+accountable[, ]+consulted[, ]+(?:and )?informed|"
+            r"\braci\b.{0,40}(?:responsible|accountable|consulted|informed)|"
+            r"r\s*\/\s*a\s*\/\s*c\s*\/\s*i (?:matrix|roles|chart)|"
+            r"who is (?:responsible|accountable) (?:vs\.?|and|versus) (?:consulted|informed)|"
+            r"assign (?:raci|r\s*\/\s*a\s*\/\s*c\s*\/\s*i) roles)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(project|rollout|migration|initiative|workstream|deliverable|team|"
+        r"launch|deployment|program|plan|outline|write|describe|assign|ownership)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **RACI matrix**: include a markdown **table** with rows for key "
+        "tasks/workstreams and columns **R** (Responsible), **A** (Accountable), **C** (Consulted), "
+        "**I** (Informed)—use role names or teams in cells; add a one-line legend if needed."
+    )
+    return instr, "raci"
+
+
 def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
     """``swot`` — Strengths / Weaknesses / Opportunities / Threats strategic layout."""
     if len(m) < 48:
@@ -3158,7 +3199,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``raci``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3230,6 +3271,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if dmx:
         extras.append(dmx[0])
         trace_tags.append(dmx[1])
+
+    rac = _embedded_raci_matrix(m)
+    if rac:
+        extras.append(rac[0])
+        trace_tags.append(rac[1])
 
     cl = _embedded_checklist_reply(m)
     if cl:

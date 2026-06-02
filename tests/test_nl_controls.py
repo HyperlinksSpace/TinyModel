@@ -1623,6 +1623,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("go_no_go", t)
 
+    def test_embedded_raci_trace(self) -> None:
+        msg = (
+            "We are kicking off a cross-team cloud migration program with platform, security, and "
+            "application owners. Draft the rollout plan and include a RACI matrix with responsible, "
+            "accountable, consulted, and informed roles for each major workstream."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("raci", t)
+        self.assertTrue(any("RACI" in x for x in e))
+
+    def test_embedded_raci_skip_skips(self) -> None:
+        msg = (
+            "Outline ownership for the data platform modernization initiative. Mention RACI in passing, "
+            "but no RACI matrix—skip the RACI table and describe roles in prose paragraphs only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("raci", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
