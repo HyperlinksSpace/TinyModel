@@ -1650,6 +1650,54 @@ def _embedded_answer_lead(m: str) -> str | None:
     return None
 
 
+def _embedded_recommendation_first(m: str) -> tuple[str, str] | None:
+    """``recommendation_first`` — open with an explicit recommendation before rationale (not generic BLUF)."""
+    if len(m) < 44:
+        return None
+    no_rec = bool(
+        re.search(
+            r"\b(no recommendation (?:upfront|first|at the top)|"
+            r"don'?t (?:lead with|start with|give) (?:your\s+)?recommendation|"
+            r"skip (?:the\s+)?(?:upfront\s+)?recommendation|"
+            r"without (?:an?\s+)?(?:upfront\s+)?recommendation|"
+            r"recommendation (?:only\s+)?at the end|"
+            r"conclude with (?:your\s+)?recommendation|"
+            r"end with (?:your\s+)?recommendation|"
+            r"hold (?:your\s+)?recommendation until (?:the\s+)?end)\b",
+            m,
+        )
+    )
+    if no_rec:
+        return None
+    want = bool(
+        re.search(
+            r"\b(lead with (?:your\s+)?recommendation|recommendation first|"
+            r"state your recommendation (?:upfront|first|at the top)|"
+            r"start with (?:your\s+)?(?:clear\s+)?recommendation|"
+            r"give (?:your\s+)?recommendation (?:upfront|first|at the top)|"
+            r"upfront recommendation (?:then|before)|"
+            r"recommendation before (?:the\s+)?(?:analysis|rationale|details)|"
+            r"open with (?:your\s+)?recommendation|"
+            r"lead with what you recommend)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(recommend|choose|pick|select|decide|advise|should we|which (?:option|approach|tool|vendor)|"
+        r"go with|prefer|adoption|migrate|switch|buy|build vs buy)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants **recommendation-first** structure: open with a short **Recommendation** line "
+        "that states clearly what you advise (one concrete choice or go/no-go), **then** provide "
+        "supporting rationale—do not bury the recommendation after long background."
+    )
+    return instr, "recommendation_first"
+
+
 def _embedded_actionability(m: str) -> str | None:
     """``commands`` vs ``conceptual`` actionability (not short *Make it actionable* / *Conceptual only* controls)."""
     if len(m) < 44:
@@ -2900,6 +2948,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``, ``scenario_cases``,
+        ``recommendation_first``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -3083,6 +3132,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     ald = _embedded_answer_lead(m)
     if ald:
         overrides["answer_lead"] = ald
+
+    rcf = _embedded_recommendation_first(m)
+    if rcf:
+        extras.append(rcf[0])
+        trace_tags.append(rcf[1])
 
     act = _embedded_actionability(m)
     if act:

@@ -1508,6 +1508,24 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("scenario_cases", t)
 
+    def test_embedded_recommendation_first_trace(self) -> None:
+        msg = (
+            "Our architecture review must decide the event bus for the payments platform within two weeks. "
+            "Lead with your recommendation on whether we should adopt Kafka or stay on RabbitMQ, then "
+            "explain the rationale for the platform engineering team."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertIn("recommendation_first", t)
+        self.assertTrue(any("recommendation-first" in x.lower() for x in e))
+
+    def test_embedded_recommendation_first_end_only_skips(self) -> None:
+        msg = (
+            "Help me choose between GraphQL and REST for our public partner API. Walk through the tradeoffs "
+            "in detail and conclude with your recommendation at the end—do not lead with the recommendation."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("recommendation_first", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
