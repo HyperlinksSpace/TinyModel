@@ -1546,6 +1546,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("risks_mitigations", t)
 
+    def test_embedded_postmortem_trace(self) -> None:
+        msg = (
+            "I'm drafting an internal blameless postmortem for the checkout API outage last Tuesday. "
+            "Structure the write-up in postmortem format with summary, impact, timeline, root cause, "
+            "lessons learned, and action items for the on-call SRE team."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("postmortem", t)
+        self.assertTrue(any("blameless postmortem" in x.lower() for x in e))
+
+    def test_embedded_postmortem_skip_skips(self) -> None:
+        msg = (
+            "Summarize what happened during the billing service outage for leadership. You can mention "
+            "postmortems in passing, but no postmortem format—skip postmortem sections and use prose only."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("postmortem", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

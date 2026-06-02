@@ -2358,6 +2358,47 @@ def _embedded_scenario_cases(m: str) -> tuple[str, str] | None:
     return instr, "scenario_cases"
 
 
+def _embedded_postmortem_format(m: str) -> tuple[str, str] | None:
+    """``postmortem`` — blameless incident postmortem scaffold (SRE-style sections)."""
+    if len(m) < 48:
+        return None
+    no_pm = bool(
+        re.search(
+            r"\b(no postmortem|without (?:a\s+)?postmortem|not a postmortem|"
+            r"skip (?:the\s+)?postmortem|don'?t use postmortem format|"
+            r"avoid postmortem (?:format|sections|template)|"
+            r"no post[- ]mortem (?:format|template|sections))\b",
+            m,
+        )
+    )
+    if no_pm:
+        return None
+    want = bool(
+        re.search(
+            r"\b(postmortem format|post[- ]mortem format|blameless postmortem|"
+            r"blameless post[- ]mortem|incident postmortem|postmortem template|"
+            r"post[- ]mortem template|postmortem outline|structure (?:as|in) a postmortem|"
+            r"write (?:it\s+)?(?:as|in) postmortem format|"
+            r"postmortem.{0,50}(?:lessons learned|root cause|action items))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(incident|outage|failure|on[- ]call|sre|deploy|rollback|downtime|"
+        r"sev[0-9]|production|service|system|write|draft|outline|describe|explain|report)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **blameless postmortem** layout: use markdown headings "
+        "**Summary**, **Impact**, **Timeline**, **Root cause**, **Lessons learned**, and "
+        "**Action items** (short bullets under each). Stay factual and avoid blaming individuals."
+    )
+    return instr, "postmortem"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -2990,6 +3031,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``, ``scenario_cases``,
+        ``postmortem``,
         ``recommendation_first``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
@@ -3124,6 +3166,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if scn:
         extras.append(scn[0])
         trace_tags.append(scn[1])
+
+    pm = _embedded_postmortem_format(m)
+    if pm:
+        extras.append(pm[0])
+        trace_tags.append(pm[1])
 
     gls = _embedded_glossary_section(m)
     if gls:
