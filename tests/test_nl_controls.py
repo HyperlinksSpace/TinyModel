@@ -1584,6 +1584,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("cost_benefit", t)
 
+    def test_embedded_five_whys_trace(self) -> None:
+        msg = (
+            "Our billing service returned duplicate invoices after last night's deploy. Walk through "
+            "a five whys root cause analysis so the on-call team can explain the failure chain to "
+            "leadership without blaming individuals."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("five_whys", t)
+        self.assertTrue(any("5 Whys" in x for x in e))
+
+    def test_embedded_five_whys_skip_skips(self) -> None:
+        msg = (
+            "Investigate why checkout latency spiked during peak traffic yesterday. Root cause matters, "
+            "but skip the five whys analysis—give a short narrative root cause paragraph instead."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("five_whys", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

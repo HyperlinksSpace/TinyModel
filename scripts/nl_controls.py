@@ -2442,6 +2442,46 @@ def _embedded_postmortem_format(m: str) -> tuple[str, str] | None:
     return instr, "postmortem"
 
 
+def _embedded_five_whys(m: str) -> tuple[str, str] | None:
+    """``five_whys`` — iterative Why chain for root-cause analysis (distinct from full postmortem)."""
+    if len(m) < 48:
+        return None
+    no_fw = bool(
+        re.search(
+            r"\b(no five whys|no 5 whys|without five whys|skip (?:the\s+)?(?:five|5) whys|"
+            r"don'?t use (?:the\s+)?(?:five|5) whys|avoid five whys|"
+            r"not a five whys|no why chain|skip (?:the\s+)?why chain)\b",
+            m,
+        )
+    )
+    if no_fw:
+        return None
+    want = bool(
+        re.search(
+            r"\b(five whys|5 whys|five[- ]whys analysis|5[- ]whys analysis|"
+            r"five whys (?:method|technique|root cause)|"
+            r"root cause (?:using|with|via) (?:the\s+)?(?:five|5) whys|"
+            r"ask why (?:five|5) times|why chain analysis|"
+            r"iterative whys?|successive whys?)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(incident|outage|failure|bug|defect|problem|issue|root cause|"
+        r"debug|diagnose|explain|investigate|analyze|analysis|why did|what caused)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **5 Whys** root-cause analysis: start with a one-line **Problem statement**, "
+        "then numbered **Why 1** … **Why 5** (each answer feeds the next why; stop early if the root "
+        "is clear), and end with a **Root cause** summary line—stay blameless and factual."
+    )
+    return instr, "five_whys"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -3074,7 +3114,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
-        ``postmortem``,
+        ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
@@ -3219,6 +3259,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if pm:
         extras.append(pm[0])
         trace_tags.append(pm[1])
+
+    fw = _embedded_five_whys(m)
+    if fw:
+        extras.append(fw[0])
+        trace_tags.append(fw[1])
 
     gls = _embedded_glossary_section(m)
     if gls:
