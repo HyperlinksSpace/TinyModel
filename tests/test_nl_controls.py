@@ -1565,6 +1565,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("postmortem", t)
 
+    def test_embedded_cost_benefit_trace(self) -> None:
+        msg = (
+            "Our platform team is building a business case to migrate billing workloads from self-hosted "
+            "PostgreSQL to a managed cloud database. Write the proposal and include a cost-benefit analysis "
+            "that weighs costs against benefits so finance can review the investment."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("cost_benefit", t)
+        self.assertTrue(any("cost-benefit" in x.lower() for x in e))
+
+    def test_embedded_cost_benefit_skip_skips(self) -> None:
+        msg = (
+            "Draft an executive summary for the data warehouse modernization initiative. Mention costs and "
+            "benefits in passing, but no cost-benefit analysis—skip the CBA section and use narrative prose."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("cost_benefit", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

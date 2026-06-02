@@ -2269,6 +2269,49 @@ def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
     return instr, "swot"
 
 
+def _embedded_cost_benefit(m: str) -> tuple[str, str] | None:
+    """``cost_benefit`` — structured costs vs benefits analysis for business cases."""
+    if len(m) < 48:
+        return None
+    no_cb = bool(
+        re.search(
+            r"\b(no cost[- ]benefit|without (?:a\s+)?cost[- ]benefit|"
+            r"skip (?:the\s+)?cost[- ]benefit|not a cost[- ]benefit|"
+            r"don'?t use cost[- ]benefit|avoid cost[- ]benefit (?:format|section)|"
+            r"no cba section|skip (?:the\s+)?cba)\b",
+            m,
+        )
+    )
+    if no_cb:
+        return None
+    want = bool(
+        re.search(
+            r"\b(cost[- ]benefit analysis|cost benefit analysis|"
+            r"costs? and benefits? (?:analysis|breakdown|section)|"
+            r"benefits? (?:and|vs\.?) costs? (?:analysis|breakdown)|"
+            r"\bcba\b (?:format|analysis|section)|"
+            r"weigh (?:the\s+)?costs? against (?:the\s+)?benefits?|"
+            r"weigh benefits? against costs?|"
+            r"costs? versus benefits? (?:analysis|comparison))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(project|proposal|invest|build|migrate|rollout|initiative|business case|"
+        r"strategy|plan|evaluate|assess|decide|recommend|write|describe|outline|report|memo)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **cost-benefit analysis**: structure the answer with markdown headings "
+        "**Costs** and **Benefits** (bullets under each), then a brief **Net assessment** line "
+        "comparing them—keep dollar/time estimates qualitative unless the user supplied numbers."
+    )
+    return instr, "cost_benefit"
+
+
 def _embedded_open_questions(m: str) -> tuple[str, str] | None:
     """``open_questions`` — end section listing unresolved unknowns / TBD items (not user-facing closers)."""
     if len(m) < 48:
@@ -3030,7 +3073,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``,
         ``recommendation_first``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
@@ -3156,6 +3199,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if swot:
         extras.append(swot[0])
         trace_tags.append(swot[1])
+
+    cba = _embedded_cost_benefit(m)
+    if cba:
+        extras.append(cba[0])
+        trace_tags.append(cba[1])
 
     oq = _embedded_open_questions(m)
     if oq:

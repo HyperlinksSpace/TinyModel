@@ -50,7 +50,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Layout & comparison** | `comparison_frame=pros_cons`, `comparison_frame=narrative`, `table_style=prefer/avoid`, `reply_format=bullets/prose`, `step_style=numbered/continuous`, `section_headings=prefer/avoid`, `faq_qa` |
 | **Length & caps** | `verbosity=brief/detailed`, `len_cap=80w`, `len_cap=3s`, … |
 | **Code** | `code_only`, `code_explained`, `pseudocode`, `runnable_code`, `code_block_style=fenced/inline` |
-| **Decisions** | `ranked_options`, `decision_matrix`, `options_n=3`, `checklist`, `no_checklist` |
+| **Decisions** | `ranked_options`, `decision_matrix`, `cost_benefit`, `options_n=3`, `checklist`, `no_checklist` |
 | **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac`, `swot`, `timeline_chron`, `timeline_reverse` |
 | **Planning & editing** | `risks_first`, `benefits_first`, `risks_mitigations`, `revise_draft`, `revise_diff`, `topic_guard`, `topic_must`, `glossary`, `open_questions`, `scenario_cases`, `postmortem` |
 | **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual`, `voice_second`, `voice_third` |
