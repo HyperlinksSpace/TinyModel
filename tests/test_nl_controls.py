@@ -1526,6 +1526,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("recommendation_first", t)
 
+    def test_embedded_risks_mitigations_trace(self) -> None:
+        msg = (
+            "We are preparing a security review for the zero-trust rollout to production. Draft the "
+            "plan and include a risks and mitigations section—list each key risk with a concrete "
+            "mitigation step our infrastructure team can execute before go-live."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("risks_mitigations", t)
+        self.assertTrue(any("risks + mitigations" in x.lower() for x in e))
+
+    def test_embedded_risks_mitigations_skip_skips(self) -> None:
+        msg = (
+            "Write a change-management outline for the database migration weekend. You could discuss "
+            "risks and mitigations in theory, but risks only please—skip the mitigation section and "
+            "do not pair mitigations with each risk."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("risks_mitigations", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

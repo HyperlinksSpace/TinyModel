@@ -1237,6 +1237,48 @@ def _embedded_risks_benefits_order(m: str) -> tuple[str, str] | None:
     return None
 
 
+def _embedded_risks_mitigations(m: str) -> tuple[str, str] | None:
+    """``risks_mitigations`` — paired risk + mitigation layout (not ``risks_first`` section order)."""
+    if len(m) < 48:
+        return None
+    no_rm = bool(
+        re.search(
+            r"\b(no mitigations?|without mitigations?|skip (?:the\s+)?mitigation(?:s| plan)?|"
+            r"don'?t (?:include|list) mitigations?|risks? only|"
+            r"no (?:paired\s+)?mitigation section|avoid (?:a\s+)?mitigation section|"
+            r"not a risk register|skip (?:the\s+)?risk register)\b",
+            m,
+        )
+    )
+    if no_rm:
+        return None
+    want = bool(
+        re.search(
+            r"\b(risks? and mitigations?|risks? with mitigations?|"
+            r"mitigation(?:s| plan) for each risk|risk register|"
+            r"list (?:the\s+)?(?:key\s+)?risks? (?:and|with) (?:corresponding\s+)?mitigations?|"
+            r"each risk (?:with|and) (?:a\s+)?mitigation|"
+            r"paired risk[- ]mitigation|mitigation steps? for (?:each|every) risk|"
+            r"include mitigations? (?:for|against) (?:each|the) risks?)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(plan|proposal|rollout|launch|migrate|design|strategy|security|"
+        r"compliance|initiative|project|deployment|change|review|assess|write|describe|outline|report)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **risks + mitigations** layout: include a **Risks and mitigations** section "
+        "where each key risk is paired with a **concrete mitigation** (bullets or a small table with "
+        "Risk / Mitigation columns)—do not list risks without actionable mitigations."
+    )
+    return instr, "risks_mitigations"
+
+
 def _embedded_revise_draft(m: str) -> tuple[str, str] | None:
     """``revise_draft`` — rewrite/polish user-supplied copy (not a greenfield explain-only ask)."""
     if len(m) < 48:
@@ -2945,7 +2987,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
-        ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``,
+        ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``swot``, ``open_questions``, ``scenario_cases``,
         ``recommendation_first``,
@@ -3037,6 +3079,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rbo:
         extras.append(rbo[0])
         trace_tags.append(rbo[1])
+
+    rskm = _embedded_risks_mitigations(m)
+    if rskm:
+        extras.append(rskm[0])
+        trace_tags.append(rskm[1])
 
     rd = _embedded_revise_draft(m)
     if rd:
