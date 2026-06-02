@@ -2274,6 +2274,48 @@ def _embedded_decision_matrix(m: str) -> tuple[str, str] | None:
     return instr, "decision_matrix"
 
 
+def _embedded_build_vs_buy(m: str) -> tuple[str, str] | None:
+    """``build_vs_buy`` — structured Build (in-house) vs Buy (vendor/SaaS) decision layout."""
+    if len(m) < 48:
+        return None
+    no_bvb = bool(
+        re.search(
+            r"\b(no build[- ]vs[- ]buy|without (?:a\s+)?build[- ]vs[- ]buy|"
+            r"skip (?:the\s+)?build[- ]vs[- ]buy|not a build[- ]vs[- ]buy|"
+            r"don'?t use build[- ]vs[- ]buy|avoid build[- ]vs[- ]buy (?:analysis|section)|"
+            r"no make[- ]vs[- ]buy section)\b",
+            m,
+        )
+    )
+    if no_bvb:
+        return None
+    want = bool(
+        re.search(
+            r"\b(build[- ]vs[- ]buy|build[- ]versus[- ]buy|make[- ]vs[- ]buy|make[- ]versus[- ]buy|"
+            r"build or buy|make or buy|"
+            r"in[- ]house vs (?:vendor|outsource|saas|third[- ]party)|"
+            r"build in[- ]house (?:vs\.?|versus|or) (?:buy|purchase|vendor)|"
+            r"custom build vs (?:commercial|off[- ]the[- ]shelf|saas|vendor)|"
+            r"diy vs (?:buy|purchase|vendor solution))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(build|buy|vendor|outsource|saas|platform|tool|service|solution|"
+        r"decide|evaluate|recommend|assess|choose|write|describe|outline|report|memo)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **build vs buy** analysis: structure the answer with markdown headings "
+        "**Build (in-house)** and **Buy (vendor/SaaS)** (bullets under each on cost, time, risk, "
+        "and fit), then a brief **Recommendation** line—do not bury the choice after long background."
+    )
+    return instr, "build_vs_buy"
+
+
 def _embedded_raci_matrix(m: str) -> tuple[str, str] | None:
     """``raci`` — Responsible / Accountable / Consulted / Informed role assignment table."""
     if len(m) < 48:
@@ -3239,7 +3281,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3311,6 +3353,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if dmx:
         extras.append(dmx[0])
         trace_tags.append(dmx[1])
+
+    bvb = _embedded_build_vs_buy(m)
+    if bvb:
+        extras.append(bvb[0])
+        trace_tags.append(bvb[1])
 
     rac = _embedded_raci_matrix(m)
     if rac:

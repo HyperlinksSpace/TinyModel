@@ -1661,6 +1661,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("pestle", t)
 
+    def test_embedded_build_vs_buy_trace(self) -> None:
+        msg = (
+            "Our platform team must decide whether to build a custom feature-flag service in-house "
+            "or buy a managed SaaS product. Write a build vs buy analysis with clear Build and Buy "
+            "sections so engineering leadership can choose the right path."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("build_vs_buy", t)
+        self.assertTrue(any("build vs buy" in x.lower() for x in e))
+
+    def test_embedded_build_vs_buy_skip_skips(self) -> None:
+        msg = (
+            "We are evaluating observability tooling for the payments stack. Build vs buy came up "
+            "in planning, but skip the build vs buy section—continuous narrative only, no separate "
+            "Build and Buy headings."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("build_vs_buy", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
