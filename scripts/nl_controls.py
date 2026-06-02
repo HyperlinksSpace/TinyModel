@@ -2316,6 +2316,66 @@ def _embedded_build_vs_buy(m: str) -> tuple[str, str] | None:
     return instr, "build_vs_buy"
 
 
+def _embedded_one_pager(m: str) -> tuple[str, str] | None:
+    """``one_pager`` — single-page executive brief with fixed scannable sections."""
+    if len(m) < 48:
+        return None
+    no_op = bool(
+        re.search(
+            r"\b(no one[- ]pager|without (?:a\s+)?one[- ]pager|not a one[- ]pager|"
+            r"skip (?:the\s+)?one[- ]pager|don'?t use one[- ]pager|"
+            r"avoid one[- ]pager (?:format|section|layout)|"
+            r"no single[- ]page (?:brief|memo format))\b",
+            m,
+        )
+    )
+    if no_op:
+        return None
+    bluf_first = bool(
+        re.search(
+            r"\b(tl;?dr first|tldr first|summary first|executive summary first|"
+            r"bottom line up front|\bbluf\b|lead with (?:a\s+)?(?:one[- ]line\s+)?summary)\b",
+            m,
+        )
+    )
+    end_sum = bool(
+        re.search(
+            r"\b(summary at the end|tldr at the (?:bottom|end)|executive summary at the end|"
+            r"wrap up with (?:a\s+)?(?:brief\s+)?summary|close with (?:a\s+)?(?:one[- ]line\s+)?summary)\b",
+            m,
+        )
+    )
+    if bluf_first or end_sum:
+        return None
+    want = bool(
+        re.search(
+            r"\b(one[- ]pager(?:\s+format|\s+memo|\s+brief|\s+summary)?|"
+            r"one page (?:memo|brief|summary|write[- ]up|document)|"
+            r"single[- ]page (?:brief|memo|summary|executive brief)|"
+            r"executive one[- ]pager|"
+            r"fit(?:s|ting)? on (?:a\s+)?single page|"
+            r"one[- ]page (?:executive\s+)?(?:brief|memo|summary))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(write|draft|prepare|outline|describe|brief|memo|report|"
+        r"leadership|executive|steering|board|stakeholder|committee|"
+        r"initiative|program|proposal|decision|update)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **one-pager** executive brief: use compact markdown headings "
+        "**Title / Purpose**, **Context**, **Problem / Opportunity**, **Recommendation** "
+        "(1–2 sentences), **Key points** (3–5 bullets), **Next steps**, and brief "
+        "**Risks / dependencies**—keep it scannable on one screen; avoid long background prose."
+    )
+    return instr, "one_pager"
+
+
 def _embedded_raci_matrix(m: str) -> tuple[str, str] | None:
     """``raci`` — Responsible / Accountable / Consulted / Informed role assignment table."""
     if len(m) < 48:
@@ -3281,7 +3341,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3358,6 +3418,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if bvb:
         extras.append(bvb[0])
         trace_tags.append(bvb[1])
+
+    opg = _embedded_one_pager(m)
+    if opg:
+        extras.append(opg[0])
+        trace_tags.append(opg[1])
 
     rac = _embedded_raci_matrix(m)
     if rac:

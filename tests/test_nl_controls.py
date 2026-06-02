@@ -1681,6 +1681,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("build_vs_buy", t)
 
+    def test_embedded_one_pager_trace(self) -> None:
+        msg = (
+            "Our platform director needs a concise briefing on the API gateway migration program "
+            "before next week's leadership review. Draft a one-pager format memo that fits on "
+            "a single page with Context, Recommendation, Key points, and Next steps for the team."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("one_pager", t)
+        self.assertTrue(any("one-pager" in x.lower() for x in e))
+
+    def test_embedded_one_pager_skip_skips(self) -> None:
+        msg = (
+            "The steering committee asked for background on the gateway migration. A one-pager was "
+            "mentioned in planning, but skip the one-pager format—continuous narrative only, no "
+            "separate one-pager sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("one_pager", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
