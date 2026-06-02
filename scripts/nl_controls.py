@@ -1740,6 +1740,51 @@ def _embedded_recommendation_first(m: str) -> tuple[str, str] | None:
     return instr, "recommendation_first"
 
 
+def _embedded_go_no_go(m: str) -> tuple[str, str] | None:
+    """``go_no_go`` — explicit Go / No-go / Conditional gate verdict for approval reviews."""
+    if len(m) < 48:
+        return None
+    no_gng = bool(
+        re.search(
+            r"\b(no go[- ]?/?no[- ]?go|without (?:a\s+)?go[- ]?/?no[- ]?go|"
+            r"skip (?:the\s+)?go[- ]?/?no[- ]?go|not a go[- ]?/?no[- ]?go|"
+            r"don'?t (?:include|use) go[- ]?/?no[- ]?go|"
+            r"avoid go[- ]?/?no[- ]?go (?:format|section|verdict)|"
+            r"no proceed[- ]or[- ]halt section)\b",
+            m,
+        )
+    )
+    if no_gng:
+        return None
+    want = bool(
+        re.search(
+            r"\b(go[- ]?/?no[- ]?go (?:decision|recommendation|verdict|call|assessment)|"
+            r"go or no[- ]go|no[- ]go or go|"
+            r"proceed or (?:halt|pause|stop)|halt or proceed|"
+            r"should we proceed (?:or|vs\.?) (?:pause|halt|stop|wait)|"
+            r"gate review (?:decision|memo|recommendation)|"
+            r"approval gate (?:decision|review)|"
+            r"launch gate (?:decision|review)|"
+            r"explicit (?:go|no[- ]go) (?:verdict|recommendation))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(rollout|launch|release|migrate|deploy|production|project|initiative|"
+        r"approve|approval|steering|committee|board|gate|proceed|write|memo|report|assess|decide)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **go/no-go gate** verdict: open with a bold **Go**, **No-go**, or "
+        "**Conditional go** line (pick one), then brief **Criteria met**, **Risks / blockers**, and "
+        "**Conditions** (if conditional)—keep it decision-ready for an approval meeting."
+    )
+    return instr, "go_no_go"
+
+
 def _embedded_actionability(m: str) -> str | None:
     """``commands`` vs ``conceptual`` actionability (not short *Make it actionable* / *Conceptual only* controls)."""
     if len(m) < 44:
@@ -3116,6 +3161,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``summary_last``, ``decision_matrix``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
+        ``go_no_go``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
         (e.g. ``confidence_tone=transparent``) appear as ``key=value`` tokens in the same line.
     """
@@ -3324,6 +3370,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rcf:
         extras.append(rcf[0])
         trace_tags.append(rcf[1])
+
+    gng = _embedded_go_no_go(m)
+    if gng:
+        extras.append(gng[0])
+        trace_tags.append(gng[1])
 
     act = _embedded_actionability(m)
     if act:

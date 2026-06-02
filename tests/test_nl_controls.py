@@ -1603,6 +1603,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("five_whys", t)
 
+    def test_embedded_go_no_go_trace(self) -> None:
+        msg = (
+            "The steering committee meets Friday to approve our multi-region production rollout. "
+            "Write a gate review memo with an explicit go/no-go decision on whether we should proceed, "
+            "including criteria met, blockers, and any conditions for a conditional go."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("go_no_go", t)
+        self.assertTrue(any("go/no-go" in x.lower() for x in e))
+
+    def test_embedded_go_no_go_skip_skips(self) -> None:
+        msg = (
+            "Prepare background notes for the database cutover approval meeting. You can mention "
+            "go/no-go informally, but skip the go/no-go section—narrative assessment only, no "
+            "proceed-or-halt verdict block."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("go_no_go", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "
