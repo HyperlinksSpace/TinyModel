@@ -1642,6 +1642,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("raci", t)
 
+    def test_embedded_pestle_trace(self) -> None:
+        msg = (
+            "Our strategy team is evaluating entry into the Southeast Asia payments market next year. "
+            "Write a market assessment and include a PESTLE analysis covering political, economic, "
+            "social, technological, legal, and environmental factors for the expansion memo."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("pestle", t)
+        self.assertTrue(any("PESTLE" in x for x in e))
+
+    def test_embedded_pestle_skip_skips(self) -> None:
+        msg = (
+            "Draft a regulatory outlook for our fintech product in Germany. You can reference PESTLE "
+            "ideas informally, but no PESTLE analysis—skip the PESTLE format and use continuous prose."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("pestle", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

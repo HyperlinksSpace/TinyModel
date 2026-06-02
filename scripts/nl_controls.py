@@ -2355,6 +2355,46 @@ def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
     return instr, "swot"
 
 
+def _embedded_pestle_analysis(m: str) -> tuple[str, str] | None:
+    """``pestle`` — Political / Economic / Social / Technological / Legal / Environmental macro scan."""
+    if len(m) < 48:
+        return None
+    no_pestle = bool(
+        re.search(
+            r"\b(no pestle|without (?:a\s+)?pestle|not a pestle|skip (?:the\s+)?pestle|"
+            r"don'?t use pestle|avoid pestle|no pestle (?:format|section|framework))\b",
+            m,
+        )
+    )
+    if no_pestle:
+        return None
+    want = bool(
+        re.search(
+            r"\b(pestle analysis|pestle format|pestle framework|pestle breakdown|"
+            r"political[, ]+economic[, ]+social[, ]+technological[, ]+legal[, ]+(?:and )?environmental|"
+            r"political economic social technological legal environmental|"
+            r"p\.e\.s\.t\.l\.e\.|"
+            r"\bpestle\b.{0,40}(?:political|economic|social|technological|legal|environmental))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(analy(?:s|z)e|analysis|assess|evaluate|review|plan|strategy|market|"
+        r"expansion|entry|regulatory|policy|macro|environment|industry|"
+        r"describe|write|outline|report|memo|initiative)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **PESTLE analysis**: structure the answer with markdown headings "
+        "**Political**, **Economic**, **Social**, **Technological**, **Legal**, and **Environmental** "
+        "(bullets under each). Focus on external macro factors affecting one market or initiative."
+    )
+    return instr, "pestle"
+
+
 def _embedded_cost_benefit(m: str) -> tuple[str, str] | None:
     """``cost_benefit`` — structured costs vs benefits analysis for business cases."""
     if len(m) < 48:
@@ -3199,7 +3239,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``raci``, ``swot``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3331,6 +3371,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if swot:
         extras.append(swot[0])
         trace_tags.append(swot[1])
+
+    pest = _embedded_pestle_analysis(m)
+    if pest:
+        extras.append(pest[0])
+        trace_tags.append(pest[1])
 
     cba = _embedded_cost_benefit(m)
     if cba:
