@@ -1701,6 +1701,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("one_pager", t)
 
+    def test_embedded_action_plan_trace(self) -> None:
+        msg = (
+            "We are kicking off the Q3 identity platform rollout across three regions. Write an "
+            "action plan format breakdown with clear owners and due dates for each workstream so "
+            "program management can track delivery milestones."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("action_plan", t)
+        self.assertTrue(any("action plan" in x.lower() for x in e))
+
+    def test_embedded_action_plan_skip_skips(self) -> None:
+        msg = (
+            "Program management discussed an action plan during standup for the identity rollout, "
+            "but skip the action plan format—narrative only, no owner-and-due-date table."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("action_plan", t)
+
     def test_embedded_followup_close_minimal(self) -> None:
         msg = (
             "I need a tight internal memo on why we are postponing the monolith split. "

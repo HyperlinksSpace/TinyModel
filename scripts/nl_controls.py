@@ -2376,6 +2376,57 @@ def _embedded_one_pager(m: str) -> tuple[str, str] | None:
     return instr, "one_pager"
 
 
+def _embedded_action_plan(m: str) -> tuple[str, str] | None:
+    """``action_plan`` — actionable items with owners and due dates (not ``- [ ]`` checklists)."""
+    if len(m) < 48:
+        return None
+    no_ap = bool(
+        re.search(
+            r"\b(no action plan|without (?:an\s+)?action plan|not an action plan|"
+            r"skip (?:the\s+)?action plan|don'?t use action plan|"
+            r"avoid action plan (?:format|section|table)|"
+            r"no implementation plan (?:table|format))\b",
+            m,
+        )
+    )
+    if no_ap:
+        return None
+    checklist_only = bool(
+        re.search(
+            r"\b((?:as a|use a|markdown) checklist|checklist (?:format|style)|"
+            r"tick[- ]box(?:es)?|checkbox(?:es)? (?:list|format))\b",
+            m,
+        )
+    )
+    if checklist_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(action plan(?:\s+format)?|implementation plan(?:\s+with)?(?:\s+)?owners|"
+            r"who does what(?:\s+by when)?|owners? and (?:due dates?|deadlines?|timelines?)|"
+            r"assign owners?(?:\s+and)?(?:\s+)?(?:due dates?|deadlines?)|"
+            r"delivery plan with owners|work plan with (?:owners|assignees)|"
+            r"table of actions? (?:with|and) (?:owners?|due dates?))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(rollout|deploy|launch|migrate|implement|project|program|initiative|"
+        r"sprint|workstream|deliverable|plan|outline|write|describe|track|execute)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants an **action plan**: list actionable items in a markdown **table** "
+        "(or clearly labeled rows) with **Action**, **Owner** (role/team), **Due / target date** "
+        "(or phase), and brief **Notes** if needed—group by phase when useful; "
+        "use **not** `- [ ]` checkbox checklists unless they also asked for tick-boxes."
+    )
+    return instr, "action_plan"
+
+
 def _embedded_raci_matrix(m: str) -> tuple[str, str] | None:
     """``raci`` — Responsible / Accountable / Consulted / Informed role assignment table."""
     if len(m) < 48:
@@ -3341,7 +3392,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3423,6 +3474,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if opg:
         extras.append(opg[0])
         trace_tags.append(opg[1])
+
+    apl = _embedded_action_plan(m)
+    if apl:
+        extras.append(apl[0])
+        trace_tags.append(apl[1])
 
     rac = _embedded_raci_matrix(m)
     if rac:
