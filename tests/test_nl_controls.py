@@ -1603,6 +1603,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("five_whys", t)
 
+    def test_embedded_fishbone_trace(self) -> None:
+        msg = (
+            "After the warehouse pick-rate regression last week, quality engineering wants a fishbone "
+            "diagram analysis that groups contributing causes by category so we can explain the defect "
+            "to operations leadership without blaming individuals."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("fishbone", t)
+        self.assertTrue(any("fishbone" in x.lower() for x in e))
+
+    def test_embedded_fishbone_skip_skips(self) -> None:
+        msg = (
+            "The pick-rate regression needs root-cause context for operations. Fishbone came up in the "
+            "review, but skip the fishbone diagram—short narrative causes only, no Ishikawa categories."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("fishbone", t)
+
     def test_embedded_go_no_go_trace(self) -> None:
         msg = (
             "The steering committee meets Friday to approve our multi-region production rollout. "

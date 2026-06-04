@@ -2761,6 +2761,52 @@ def _embedded_five_whys(m: str) -> tuple[str, str] | None:
     return instr, "five_whys"
 
 
+def _embedded_fishbone(m: str) -> tuple[str, str] | None:
+    """``fishbone`` — Ishikawa cause-and-effect diagram by category (complements ``five_whys``)."""
+    if len(m) < 48:
+        return None
+    no_fb = bool(
+        re.search(
+            r"\b(no fishbone|without (?:a\s+)?fishbone|not a fishbone|"
+            r"skip (?:the\s+)?fishbone|don'?t use fishbone|"
+            r"avoid fishbone (?:diagram|analysis|format)|"
+            r"no ishikawa (?:diagram|analysis)|"
+            r"no cause[- ]and[- ]effect diagram)\b",
+            m,
+        )
+    )
+    if no_fb:
+        return None
+    want = bool(
+        re.search(
+            r"\b(fishbone (?:diagram|analysis|chart|format)|"
+            r"ishikawa (?:diagram|analysis|chart|format)|"
+            r"cause[- ]and[- ]effect (?:diagram|analysis|chart)|"
+            r"fishbone.{0,40}(?:root cause|categories|6m|6 m)|"
+            r"6\s*m(?:s)? (?:fishbone|analysis|diagram)|"
+            r"diagram the causes? (?:by|into) categories)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(incident|outage|failure|defect|bug|problem|issue|quality|"
+        r"process|production|root cause|analyze|analysis|investigate|"
+        r"explain|describe|outline|diagnose|why did|what caused)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **fishbone (Ishikawa)** cause-and-effect analysis: start with "
+        "**Problem / Effect** (one line), then markdown headings for cause categories "
+        "(e.g. **People**, **Process**, **Technology**, **Environment**, **Materials/Data**, "
+        "**Management/Policy**) with 2–4 sub-cause bullets under each; end with a brief "
+        "**Likely root cause** line—stay blameless; optional compact ASCII spine is fine."
+    )
+    return instr, "fishbone"
+
+
 def _embedded_followup_close(m: str) -> str | None:
     """``minimal`` vs ``suggest`` from prose (not short *No follow-up questions* controls)."""
     if len(m) < 48:
@@ -3393,7 +3439,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
-        ``postmortem``, ``five_whys``,
+        ``postmortem``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
@@ -3569,6 +3615,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if fw:
         extras.append(fw[0])
         trace_tags.append(fw[1])
+
+    fb = _embedded_fishbone(m)
+    if fb:
+        extras.append(fb[0])
+        trace_tags.append(fb[1])
 
     gls = _embedded_glossary_section(m)
     if gls:
