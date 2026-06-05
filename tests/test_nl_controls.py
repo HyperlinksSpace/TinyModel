@@ -1641,6 +1641,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("email_format", t)
 
+    def test_embedded_meeting_agenda_trace(self) -> None:
+        msg = (
+            "We are hosting a 45-minute cross-functional kickoff for the data catalog rollout next "
+            "Tuesday. Prepare a meeting agenda format with a clear objective, timeboxed agenda items, "
+            "and any pre-reads attendees should skim beforehand."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("meeting_agenda", t)
+        self.assertTrue(any("meeting agenda" in x.lower() for x in e))
+
+    def test_embedded_meeting_agenda_skip_skips(self) -> None:
+        msg = (
+            "We discussed a meeting agenda during planning for the catalog kickoff, but skip the meeting "
+            "agenda format—continuous narrative only, no timeboxed agenda sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("meeting_agenda", t)
+
     def test_embedded_go_no_go_trace(self) -> None:
         msg = (
             "The steering committee meets Friday to approve our multi-region production rollout. "

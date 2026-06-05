@@ -1430,6 +1430,48 @@ def _embedded_email_format(m: str) -> tuple[str, str] | None:
     return instr, "email_format"
 
 
+def _embedded_meeting_agenda(m: str) -> tuple[str, str] | None:
+    """``meeting_agenda`` — timeboxed meeting run-of-show (distinct from ``action_plan`` owner tables)."""
+    if len(m) < 48:
+        return None
+    no_ma = bool(
+        re.search(
+            r"\b(no meeting agenda|without (?:a\s+)?meeting agenda|not a meeting agenda|"
+            r"skip (?:the\s+)?meeting agenda|don'?t use meeting agenda|"
+            r"avoid meeting agenda (?:format|section)|"
+            r"no agenda format|skip (?:the\s+)?agenda format)\b",
+            m,
+        )
+    )
+    if no_ma:
+        return None
+    want = bool(
+        re.search(
+            r"\b(meeting agenda(?:\s+format)?|agenda format|"
+            r"prepare (?:an?\s+)?agenda|draft (?:an?\s+)?agenda|"
+            r"run[- ]of[- ]show|meeting run[- ]of[- ]show|"
+            r"timeboxed agenda|agenda with time(?:\s+)?boxes?|"
+            r"agenda for (?:the |our |a )?(?:meeting|sync|workshop|kickoff|review))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(meeting|sync|workshop|kickoff|review|standup|retro|planning|"
+        r"session|facilitate|host|schedule|attendees|discuss|outline|write|prepare)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **meeting agenda**: use markdown headings **Meeting title**, "
+        "**Objective** (1–2 lines), optional **Attendees**, **Agenda** as timeboxed items "
+        "(e.g. `5 min — Topic`), **Pre-reads / prep** if relevant, and **Decisions needed**—"
+        "keep it scannable for a live facilitator; not a checkbox checklist or owner/due-date table."
+    )
+    return instr, "meeting_agenda"
+
+
 def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
     """``topic_guard`` — user asked to omit specific subjects from the reply."""
     if len(m) < 44:
@@ -3492,7 +3534,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -3617,6 +3659,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if emf:
         extras.append(emf[0])
         trace_tags.append(emf[1])
+
+    mag = _embedded_meeting_agenda(m)
+    if mag:
+        extras.append(mag[0])
+        trace_tags.append(mag[1])
 
     rd = _embedded_revise_draft(m)
     if rd:
