@@ -1622,6 +1622,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("fishbone", t)
 
+    def test_embedded_email_format_trace(self) -> None:
+        msg = (
+            "I need to notify our enterprise customer that the March maintenance window slipped by "
+            "two weeks. Write an email to the client success manager with a clear subject line, "
+            "professional greeting, brief explanation, and next steps they can forward."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("email_format", t)
+        self.assertTrue(any("formatted email" in x.lower() for x in e))
+
+    def test_embedded_email_format_skip_skips(self) -> None:
+        msg = (
+            "We should tell the client about the maintenance slip. Email wording is fine, but skip the "
+            "email format—continuous memo prose only, no Subject or Greeting blocks."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("email_format", t)
+
     def test_embedded_go_no_go_trace(self) -> None:
         msg = (
             "The steering committee meets Friday to approve our multi-region production rollout. "

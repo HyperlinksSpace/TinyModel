@@ -1373,6 +1373,63 @@ def _embedded_revise_diff(m: str) -> tuple[str, str] | None:
     return instr, "revise_diff"
 
 
+def _embedded_email_format(m: str) -> tuple[str, str] | None:
+    """``email_format`` — Subject / Greeting / Body / Sign-off layout (greenfield compose, not polish)."""
+    if len(m) < 48:
+        return None
+    no_ef = bool(
+        re.search(
+            r"\b(no email format|without (?:an?\s+)?email format|not an email format|"
+            r"skip (?:the\s+)?email format|don'?t use email format|"
+            r"avoid email format|not as an email|no subject line block)\b",
+            m,
+        )
+    )
+    if no_ef:
+        return None
+    revise_only = bool(
+        re.search(
+            r"\b(rewrite (?:my |this |the )?(?:draft )?|polish (?:my |this )?(?:draft )?|"
+            r"proofread (?:my |this )?|improve (?:my |this |the )?draft|copy[- ]?edit)\b",
+            m,
+        )
+    )
+    has_draft_artifact = bool(
+        re.search(
+            r"\b(?:my|this|the)\s+draft\b|draft:\s|here(?:'s| is)\s+(?:my|the)\s+draft\b",
+            m,
+        )
+    )
+    if revise_only and has_draft_artifact:
+        return None
+    want = bool(
+        re.search(
+            r"\b((?:write|draft|compose|prepare) (?:an?\s+)?email|"
+            r"email (?:to|for) (?:the |my |our |a )?|"
+            r"email format|as an email|in email format|"
+            r"follow[- ]up email|outreach email|"
+            r"reply (?:by|as|in) email|email (?:message|template))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(write|draft|compose|prepare|notify|inform|send|follow[- ]?up|"
+        r"apolog|request|update|client|customer|colleague|manager|team|"
+        r"recipient|message|explain|describe)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **formatted email**: use labels **Subject:** (one line), "
+        "a **Greeting** (Hi/Dear …), concise body paragraphs, and a **Sign-off** "
+        "(Thanks/Best regards + optional name/role)—ready to paste into an email client; "
+        "do not answer as a generic essay about how to write emails."
+    )
+    return instr, "email_format"
+
+
 def _embedded_topic_guard(m: str) -> tuple[str, str] | None:
     """``topic_guard`` — user asked to omit specific subjects from the reply."""
     if len(m) < 44:
@@ -3435,7 +3492,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -3555,6 +3612,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rskm:
         extras.append(rskm[0])
         trace_tags.append(rskm[1])
+
+    emf = _embedded_email_format(m)
+    if emf:
+        extras.append(emf[0])
+        trace_tags.append(emf[1])
 
     rd = _embedded_revise_draft(m)
     if rd:
