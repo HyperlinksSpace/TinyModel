@@ -1699,6 +1699,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("raci", t)
 
+    def test_embedded_stakeholder_map_trace(self) -> None:
+        msg = (
+            "Before we announce the ERP cutover to regional offices, outline a stakeholder map format "
+            "that lists each stakeholder group, their influence, primary concerns, and how we should "
+            "engage them during the rollout."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("stakeholder_map", t)
+        self.assertTrue(any("stakeholder map" in x.lower() for x in e))
+
+    def test_embedded_stakeholder_map_skip_skips(self) -> None:
+        msg = (
+            "Stakeholder mapping came up in planning for the ERP cutover, but skip the stakeholder map "
+            "format—continuous narrative only, no influence-interest grid."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("stakeholder_map", t)
+
     def test_embedded_pestle_trace(self) -> None:
         msg = (
             "Our strategy team is evaluating entry into the Southeast Asia payments market next year. "

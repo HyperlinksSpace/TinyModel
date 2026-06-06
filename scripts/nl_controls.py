@@ -2567,6 +2567,59 @@ def _embedded_raci_matrix(m: str) -> tuple[str, str] | None:
     return instr, "raci"
 
 
+def _embedded_stakeholder_map(m: str) -> tuple[str, str] | None:
+    """``stakeholder_map`` — influence/interest stakeholder table (distinct from ``raci`` task roles)."""
+    if len(m) < 48:
+        return None
+    no_sm = bool(
+        re.search(
+            r"\b(no stakeholder map|without (?:a\s+)?stakeholder map|not a stakeholder map|"
+            r"skip (?:the\s+)?stakeholder map|don'?t use stakeholder map|"
+            r"avoid stakeholder (?:map|matrix|analysis)|"
+            r"no stakeholder (?:map|matrix|analysis format))\b",
+            m,
+        )
+    )
+    if no_sm:
+        return None
+    raci_only = bool(
+        re.search(
+            r"\b(raci matrix|raci chart|raci table|"
+            r"responsible[, ]+accountable[, ]+consulted[, ]+(?:and )?informed|"
+            r"r\s*\/\s*a\s*\/\s*c\s*\/\s*i (?:matrix|roles|chart))\b",
+            m,
+        )
+    )
+    if raci_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(stakeholder map(?:\s+format)?|stakeholder matrix|stakeholder analysis|"
+            r"map (?:the\s+)?stakeholders?|stakeholder mapping|"
+            r"influence[- ](?:interest|impact) (?:matrix|grid|map)|"
+            r"power[- ]interest (?:matrix|grid|map)|"
+            r"interest[- ]influence (?:matrix|grid)|"
+            r"who (?:are|is) (?:the\s+)?stakeholders? (?:and|with) (?:their\s+)?(?:influence|interests))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(project|rollout|migration|initiative|program|change|launch|"
+        r"communicate|engage|adopt|implement|outline|write|describe|plan|announce)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **stakeholder map**: include a markdown **table** with columns "
+        "**Stakeholder / group**, **Interest**, **Influence** (High/Med/Low), **Key concerns**, "
+        "and **Engagement approach**—optionally add a one-line **Power–Interest** quadrant note; "
+        "this is **not** a RACI task-assignment matrix."
+    )
+    return instr, "stakeholder_map"
+
+
 def _embedded_swot_analysis(m: str) -> tuple[str, str] | None:
     """``swot`` — Strengths / Weaknesses / Opportunities / Threats strategic layout."""
     if len(m) < 48:
@@ -3537,7 +3590,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3629,6 +3682,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rac:
         extras.append(rac[0])
         trace_tags.append(rac[1])
+
+    stm = _embedded_stakeholder_map(m)
+    if stm:
+        extras.append(stm[0])
+        trace_tags.append(stm[1])
 
     cl = _embedded_checklist_reply(m)
     if cl:
