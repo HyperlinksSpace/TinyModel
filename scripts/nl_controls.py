@@ -66,21 +66,23 @@ def parse_control_action(message: str) -> ControlAction | None:
     ):
         return ControlAction("forget_scope")
 
-    # Session toggles (chat UX)
-    if re.search(r"\b(turn on|enable|show)\b.*\b(trace|brain trace|debug)\b", m):
-        return ControlAction("set_trace", "on")
-    if re.search(r"\b(turn off|disable|hide)\b.*\b(trace|brain trace|debug)\b", m):
-        return ControlAction("set_trace", "off")
+    # Session toggles (chat UX) — short lines only so long questions are not hijacked
+    # (e.g. "Show the brain trace. … outline a stakeholder map …" must stay normal chat).
+    if len(m) <= 120:
+        if re.search(r"\b(turn on|enable|show)\b.*\b(trace|brain trace|debug)\b", m):
+            return ControlAction("set_trace", "on")
+        if re.search(r"\b(turn off|disable|hide)\b.*\b(trace|brain trace|debug)\b", m):
+            return ControlAction("set_trace", "off")
 
-    if re.search(r"\b(turn on|enable)\b.*\b(smart routing|auto routing|router)\b", m):
-        return ControlAction("set_smart_route", "on")
-    if re.search(r"\b(turn off|disable)\b.*\b(smart routing|auto routing|router)\b", m):
-        return ControlAction("set_smart_route", "off")
+        if re.search(r"\b(turn on|enable)\b.*\b(smart routing|auto routing|router)\b", m):
+            return ControlAction("set_smart_route", "on")
+        if re.search(r"\b(turn off|disable)\b.*\b(smart routing|auto routing|router)\b", m):
+            return ControlAction("set_smart_route", "off")
 
-    if re.search(r"\b(turn on|enable)\b.*\b(faq|rag|retrieval)\b", m):
-        return ControlAction("set_rag", "on")
-    if re.search(r"\b(turn off|disable)\b.*\b(faq|rag|retrieval)\b", m):
-        return ControlAction("set_rag", "off")
+        if re.search(r"\b(turn on|enable)\b.*\b(faq|rag|retrieval)\b", m):
+            return ControlAction("set_rag", "on")
+        if re.search(r"\b(turn off|disable)\b.*\b(faq|rag|retrieval)\b", m):
+            return ControlAction("set_rag", "off")
 
     # Reply style for the generative model (short lines only to avoid hijacking real questions).
     # Require "reply"/"answer" before style|format|length so phrases like "default quote style" / "reset tables"

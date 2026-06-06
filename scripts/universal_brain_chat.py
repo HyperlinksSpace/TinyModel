@@ -200,7 +200,14 @@ GRADIO_INSTRUCTIONS_MARKDOWN = """### About this Space
 
 ### Testing embedded prompt signals (this Space)
 
-These behaviors apply when your line is handled as **normal chat** (not a short dedicated control like *Be brief*). The app scans your wording and adds **one-turn** system hints. Say **Show the brain trace** first, send a message, then scroll to the bottom of the assistant reply.
+These behaviors apply when your line is handled as **normal chat** (not a short dedicated control like *Be brief*). The app scans your wording and adds **one-turn** system hints.
+
+**How to test (two sends):**
+1. Send **Show the brain trace** as its **own short line** (do **not** combine it with your question in one message).
+2. Send your **long** test prompt as a **separate** message.
+3. Scroll to the bottom of the assistant reply and look for **`prompt_signals:`** in the *Brain trace* footer (e.g. **`prompt_signals:stakeholder_map`**).
+
+**If you only see** `classify:…` / `RAG:…` **without** `prompt_signals:…`, the live Space may be running an older build — redeploy via GitHub Actions **Deploy versioned space artifact to Hugging Face** after merging, then hard-refresh the Space.
 
 | Goal | What to type (examples) | What to look for |
 | --- | --- | --- |

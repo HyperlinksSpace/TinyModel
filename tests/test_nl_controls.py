@@ -57,6 +57,13 @@ class TestNlControls(unittest.TestCase):
         self.assertEqual(a.name, "set_trace")
         self.assertEqual(a.value, "on")
 
+    def test_set_trace_combined_with_long_question_skips(self) -> None:
+        msg = (
+            "Show the brain trace. Before we announce the ERP cutover to regional offices, "
+            "outline a stakeholder map format that lists each stakeholder group."
+        )
+        self.assertIsNone(parse_control_action(msg))
+
     def test_set_brief_verbosity(self) -> None:
         a = parse_control_action("Be brief")
         self.assertIsNotNone(a)
