@@ -2875,6 +2875,59 @@ def _embedded_postmortem_format(m: str) -> tuple[str, str] | None:
     return instr, "postmortem"
 
 
+def _embedded_sprint_retro(m: str) -> tuple[str, str] | None:
+    """``sprint_retro`` — agile sprint retrospective layout (distinct from incident ``postmortem``)."""
+    if len(m) < 48:
+        return None
+    no_sr = bool(
+        re.search(
+            r"\b(no sprint retro|without (?:a\s+)?sprint retro|not a sprint retro|"
+            r"skip (?:the\s+)?sprint retro|don'?t use sprint retro|"
+            r"avoid sprint retro(?:spective)? (?:format|sections)|"
+            r"no (?:sprint\s+)?retrospective format|"
+            r"skip (?:the\s+)?(?:sprint\s+)?retrospective format)\b",
+            m,
+        )
+    )
+    if no_sr:
+        return None
+    postmortem_only = bool(
+        re.search(
+            r"\b(postmortem format|blameless postmortem|incident postmortem|"
+            r"post[- ]mortem format|postmortem outline)\b",
+            m,
+        )
+    )
+    if postmortem_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(sprint retro(?:spective)?(?:\s+format)?|"
+            r"sprint retrospective(?:\s+format)?|"
+            r"agile retro(?:spective)?|scrum retro(?:spective)?|"
+            r"retro format|retrospective format|"
+            r"run (?:a\s+)?(?:sprint\s+)?retro(?:spective)?|"
+            r"facilitate (?:a\s+)?(?:sprint\s+)?retro(?:spective)?)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(sprint|iteration|scrum|agile|team|delivery|release|"
+        r"reflect|review|improve|outline|write|describe|facilitate|discuss)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **sprint retrospective** layout: use markdown headings "
+        "**Sprint / period** (one line), **What went well**, **What didn't go well**, "
+        "**Ideas / experiments**, and **Action items** (concrete next-sprint improvements)—"
+        "stay blameless and team-focused; this is **not** an incident postmortem."
+    )
+    return instr, "sprint_retro"
+
+
 def _embedded_five_whys(m: str) -> tuple[str, str] | None:
     """``five_whys`` — iterative Why chain for root-cause analysis (distinct from full postmortem)."""
     if len(m) < 48:
@@ -3593,7 +3646,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
-        ``postmortem``, ``five_whys``, ``fishbone``,
+        ``postmortem``, ``sprint_retro``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
@@ -3779,6 +3832,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if pm:
         extras.append(pm[0])
         trace_tags.append(pm[1])
+
+    srt = _embedded_sprint_retro(m)
+    if srt:
+        extras.append(srt[0])
+        trace_tags.append(srt[1])
 
     fw = _embedded_five_whys(m)
     if fw:

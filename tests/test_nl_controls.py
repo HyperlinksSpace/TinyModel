@@ -1572,6 +1572,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("postmortem", t)
 
+    def test_embedded_sprint_retro_trace(self) -> None:
+        msg = (
+            "Our mobile squad finished Sprint 14 with mixed delivery on the checkout redesign. "
+            "Facilitate a sprint retrospective format we can paste into Confluence covering what went well, "
+            "what did not, and concrete action items for the next iteration."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("sprint_retro", t)
+        self.assertTrue(any("sprint retrospective" in x.lower() for x in e))
+
+    def test_embedded_sprint_retro_skip_skips(self) -> None:
+        msg = (
+            "Sprint retro came up in planning for Sprint 14, but skip the sprint retrospective format—"
+            "narrative reflection only, no retro sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("sprint_retro", t)
+
     def test_embedded_cost_benefit_trace(self) -> None:
         msg = (
             "Our platform team is building a business case to migrate billing workloads from self-hosted "
