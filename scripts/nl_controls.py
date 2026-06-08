@@ -2979,6 +2979,59 @@ def _embedded_user_story(m: str) -> tuple[str, str] | None:
     return instr, "user_story"
 
 
+def _embedded_definition_of_done(m: str) -> tuple[str, str] | None:
+    """``definition_of_done`` — agile DoD checklist of verifiable completion criteria."""
+    if len(m) < 48:
+        return None
+    no_dod = bool(
+        re.search(
+            r"\b(no definition of done|without (?:a\s+)?definition of done|"
+            r"not a definition of done|skip (?:the\s+)?definition of done|"
+            r"don'?t use definition of done|avoid definition of done (?:format|section)|"
+            r"no dod format|skip (?:the\s+)?dod format|"
+            r"no done criteria section|skip (?:the\s+)?done criteria section)\b",
+            m,
+        )
+    )
+    if no_dod:
+        return None
+    checklist_only = bool(
+        re.search(
+            r"\b((?:as a|use a|markdown) checklist|checklist (?:format|style)|"
+            r"tick[- ]box(?:es)?|checkbox(?:es)? (?:list|format))\b",
+            m,
+        )
+    )
+    if checklist_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(definition of done(?:\s+format)?|definition[- ]of[- ]done|"
+            r"\bdod\b(?:\s+format|\s+checklist|\s+criteria)?|"
+            r"done criteria(?:\s+checklist)?|"
+            r"what counts as done|exit criteria (?:for|on) (?:the\s+)?(?:story|sprint|feature|epic|release)|"
+            r"completion criteria (?:for|before)|"
+            r"ready for (?:done|merge|release) criteria)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(sprint|story|epic|feature|backlog|agile|scrum|team|deliverable|"
+        r"ship|merge|release|implement|write|draft|describe|outline|align)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **Definition of Done**: use a **Definition of Done** heading with a "
+        "one-line **Scope** (story / sprint / release), then 5–10 **Done criteria** as "
+        "verifiable bullets (code review, tests, docs, deploy, sign-off, etc.)—concrete and "
+        "checkable; distinct from per-story **acceptance criteria** unless they asked for both."
+    )
+    return instr, "definition_of_done"
+
+
 def _embedded_five_whys(m: str) -> tuple[str, str] | None:
     """``five_whys`` — iterative Why chain for root-cause analysis (distinct from full postmortem)."""
     if len(m) < 48:
@@ -3697,7 +3750,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
-        ``postmortem``, ``sprint_retro``, ``user_story``, ``five_whys``, ``fishbone``,
+        ``postmortem``, ``sprint_retro``, ``user_story``, ``definition_of_done``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
@@ -3893,6 +3946,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ust:
         extras.append(ust[0])
         trace_tags.append(ust[1])
+
+    dod = _embedded_definition_of_done(m)
+    if dod:
+        extras.append(dod[0])
+        trace_tags.append(dod[1])
 
     fw = _embedded_five_whys(m)
     if fw:

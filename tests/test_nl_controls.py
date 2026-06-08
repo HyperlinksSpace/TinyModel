@@ -1610,6 +1610,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("user_story", t)
 
+    def test_embedded_definition_of_done_trace(self) -> None:
+        msg = (
+            "Our squad is aligning on the payment API epic before Sprint 16. Draft a definition of done "
+            "format listing concrete done criteria the team must meet before we mark stories complete "
+            "and merge to main."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("definition_of_done", t)
+        self.assertTrue(any("definition of done" in x.lower() for x in e))
+
+    def test_embedded_definition_of_done_skip_skips(self) -> None:
+        msg = (
+            "Done criteria came up in grooming for the payment API epic, but skip the definition of done "
+            "format—narrative requirements only, no DoD section."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("definition_of_done", t)
+
     def test_embedded_cost_benefit_trace(self) -> None:
         msg = (
             "Our platform team is building a business case to migrate billing workloads from self-hosted "
