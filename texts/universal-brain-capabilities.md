@@ -52,7 +52,7 @@ Detected from wording inside a **normal** message (not a dedicated control line)
 | **Code** | `code_only`, `code_explained`, `pseudocode`, `runnable_code`, `code_block_style=fenced/inline` |
 | **Decisions** | `ranked_options`, `decision_matrix`, `build_vs_buy`, `one_pager`, `raci`, `stakeholder_map`, `cost_benefit`, `recommendation_first`, `go_no_go`, `options_n=3`, `checklist`, `no_checklist` |
 | **Visual & structure** | `diagram`, `no_diagram`, `frame_star`, `frame_prep`, `frame_irac`, `swot`, `pestle`, `timeline_chron`, `timeline_reverse` |
-| **Planning & editing** | `action_plan`, `risks_first`, `benefits_first`, `risks_mitigations`, `revise_draft`, `revise_diff`, `email_format`, `meeting_agenda`, `topic_guard`, `topic_must`, `glossary`, `open_questions`, `scenario_cases`, `postmortem`, `sprint_retro`, `five_whys`, `fishbone` |
+| **Planning & editing** | `action_plan`, `risks_first`, `benefits_first`, `risks_mitigations`, `revise_draft`, `revise_diff`, `email_format`, `meeting_agenda`, `topic_guard`, `topic_must`, `glossary`, `open_questions`, `scenario_cases`, `postmortem`, `sprint_retro`, `user_story`, `five_whys`, `fishbone` |
 | **Learning & tone** | `guided`, `full_solution`, `counterpoint_tone=challenge/supportive`, `audience=simple/technical`, `register_tone=formal/casual`, `voice_second`, `voice_third` |
 | **Facts & sources** | `speculation=strict/creative`, `cite_sources`, `cite_minimal`, `faq_grounding=strict/relaxed`, `quote_style=quote/paraphrase` |
 | **Other** | `language`, `spelling_uk`, `spelling_us`, `summary_last`, `recommendation_first`, `faq_qa`, `ephemeral`, `a11y`, `answer_lead=tldr_first/direct`, `actionability=commands/conceptual`, `math_detail=show_work/final_only`, … |

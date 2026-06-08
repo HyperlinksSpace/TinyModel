@@ -2928,6 +2928,57 @@ def _embedded_sprint_retro(m: str) -> tuple[str, str] | None:
     return instr, "sprint_retro"
 
 
+def _embedded_user_story(m: str) -> tuple[str, str] | None:
+    """``user_story`` — agile As a / I want / So that stories with acceptance criteria."""
+    if len(m) < 48:
+        return None
+    no_us = bool(
+        re.search(
+            r"\b(no user stor(?:y|ies)|without user stor(?:y|ies)|not user stor(?:y|ies)|"
+            r"skip (?:the\s+)?user stor(?:y|ies)|don'?t use user stor(?:y|ies)|"
+            r"avoid user story (?:format|template)|"
+            r"no user story format|skip (?:the\s+)?user story format)\b",
+            m,
+        )
+    )
+    if no_us:
+        return None
+    star_only = bool(
+        re.search(
+            r"\b(star format|star method|situation[- ]task[- ]action[- ]result)\b",
+            m,
+        )
+    )
+    if star_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(user stor(?:y|ies)(?:\s+format)?|"
+            r"write (?:the\s+)?user stor(?:y|ies)|"
+            r"draft (?:the\s+)?user stor(?:y|ies)|"
+            r"backlog (?:user\s+)?stor(?:y|ies)|"
+            r"as an? .{0,48} i want .{0,72} so that|"
+            r"acceptance criteria (?:for|per) (?:each|the) (?:user\s+)?stor(?:y|ies)|"
+            r"in user story format|user story template)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(backlog|sprint|product|feature|agile|scrum|requirement|"
+        r"pm|develop|implement|write|draft|describe|outline|plan|sso|login|flow)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants **user stories**: for each story use a short **Title**, then "
+        "**As a** … **I want** … **So that** … on separate lines, and **Acceptance criteria** "
+        "(3–5 testable bullets or compact Given/When/Then)—INVEST-sized, not essay requirements."
+    )
+    return instr, "user_story"
+
+
 def _embedded_five_whys(m: str) -> tuple[str, str] | None:
     """``five_whys`` — iterative Why chain for root-cause analysis (distinct from full postmortem)."""
     if len(m) < 48:
@@ -3646,7 +3697,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
-        ``postmortem``, ``sprint_retro``, ``five_whys``, ``fishbone``,
+        ``postmortem``, ``sprint_retro``, ``user_story``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
         ``frame_star``, ``frame_prep``, ``frame_irac``). Session-style overrides
@@ -3837,6 +3888,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if srt:
         extras.append(srt[0])
         trace_tags.append(srt[1])
+
+    ust = _embedded_user_story(m)
+    if ust:
+        extras.append(ust[0])
+        trace_tags.append(ust[1])
 
     fw = _embedded_five_whys(m)
     if fw:

@@ -1591,6 +1591,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("sprint_retro", t)
 
+    def test_embedded_user_story_trace(self) -> None:
+        msg = (
+            "Our product owner needs backlog items for the new SSO login flow before Sprint 15 planning. "
+            "Write user story format entries with clear As a / I want / So that wording and acceptance "
+            "criteria for each story the squad can estimate."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("user_story", t)
+        self.assertTrue(any("user stor" in x.lower() for x in e))
+
+    def test_embedded_user_story_skip_skips(self) -> None:
+        msg = (
+            "SSO login came up in backlog grooming. User stories were mentioned, but skip the user story "
+            "format—requirements prose only, no As a / I want / So that template."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("user_story", t)
+
     def test_embedded_cost_benefit_trace(self) -> None:
         msg = (
             "Our platform team is building a business case to migrate billing workloads from self-hosted "
