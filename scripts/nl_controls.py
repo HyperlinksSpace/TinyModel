@@ -1432,6 +1432,71 @@ def _embedded_email_format(m: str) -> tuple[str, str] | None:
     return instr, "email_format"
 
 
+def _embedded_letter_format(m: str) -> tuple[str, str] | None:
+    """``letter_format`` — formal business letter layout (distinct from ``email_format``)."""
+    if len(m) < 48:
+        return None
+    no_lf = bool(
+        re.search(
+            r"\b(no letter format|without (?:a\s+)?letter format|not a letter format|"
+            r"skip (?:the\s+)?letter format|don'?t use letter format|"
+            r"avoid letter format|not as a letter|no formal letter (?:format|layout))\b",
+            m,
+        )
+    )
+    if no_lf:
+        return None
+    revise_only = bool(
+        re.search(
+            r"\b(rewrite (?:my |this |the )?(?:draft )?|polish (?:my |this )?(?:draft )?|"
+            r"proofread (?:my |this )?|improve (?:my |this |the )?draft|copy[- ]?edit)\b",
+            m,
+        )
+    )
+    has_draft_artifact = bool(
+        re.search(
+            r"\b(?:my|this|the)\s+draft\b|draft:\s|here(?:'s| is)\s+(?:my|the)\s+draft\b",
+            m,
+        )
+    )
+    if revise_only and has_draft_artifact:
+        return None
+    email_only = bool(
+        re.search(
+            r"\b((?:write|draft|compose|prepare) (?:an?\s+)?email|"
+            r"email format|as an email|in email format|follow[- ]up email)\b",
+            m,
+        )
+    )
+    if email_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b((?:write|draft|compose|prepare) (?:a\s+)?(?:formal\s+)?letter|"
+            r"letter (?:to|for) (?:the |my |our |a )?|"
+            r"letter format|formal letter(?:\s+format)?|business letter(?:\s+format)?|"
+            r"as a letter|in letter format|cover letter format|"
+            r"official letter|letter of (?:request|notice|complaint|support))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(write|draft|compose|prepare|notify|inform|send|request|apolog|"
+        r"client|customer|office|agency|regulator|recipient|legal|"
+        r"describe|explain|mail|correspondence)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **formal letter**: use labels **Date:**, **To:** (recipient name/address), "
+        "**Salutation** (Dear …), body paragraphs, **Closing** (Sincerely / Respectfully), and "
+        "**Signature** (name + title)—ready to print or mail; not an email with Subject/Greeting blocks."
+    )
+    return instr, "letter_format"
+
+
 def _embedded_meeting_agenda(m: str) -> tuple[str, str] | None:
     """``meeting_agenda`` — timeboxed meeting run-of-show (distinct from ``action_plan`` owner tables)."""
     if len(m) < 48:
@@ -3746,7 +3811,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``meeting_agenda``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -3876,6 +3941,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if emf:
         extras.append(emf[0])
         trace_tags.append(emf[1])
+
+    ltf = _embedded_letter_format(m)
+    if ltf:
+        extras.append(ltf[0])
+        trace_tags.append(ltf[1])
 
     mag = _embedded_meeting_agenda(m)
     if mag:

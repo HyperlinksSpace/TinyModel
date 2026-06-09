@@ -1705,6 +1705,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("email_format", t)
 
+    def test_embedded_letter_format_trace(self) -> None:
+        msg = (
+            "We need to notify the city procurement office about our delayed permit application. "
+            "Draft a formal business letter format with date, recipient block, salutation, body "
+            "paragraphs, and closing signature so legal can mail it."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("letter_format", t)
+        self.assertTrue(any("formal letter" in x.lower() for x in e))
+
+    def test_embedded_letter_format_skip_skips(self) -> None:
+        msg = (
+            "A formal letter was discussed for the permit delay notice, but skip the letter format—"
+            "continuous memo prose only, no date or salutation blocks."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("letter_format", t)
+
     def test_embedded_meeting_agenda_trace(self) -> None:
         msg = (
             "We are hosting a 45-minute cross-functional kickoff for the data catalog rollout next "
