@@ -1558,6 +1558,57 @@ def _embedded_runbook_format(m: str) -> tuple[str, str] | None:
     return instr, "runbook_format"
 
 
+def _embedded_status_report(m: str) -> tuple[str, str] | None:
+    """``status_report`` — periodic project/program status update (distinct from ``one_pager``)."""
+    if len(m) < 48:
+        return None
+    no_sr = bool(
+        re.search(
+            r"\b(no status report|without (?:a\s+)?status report|not a status report|"
+            r"skip (?:the\s+)?status report|don'?t use status report|"
+            r"avoid status report (?:format|sections)|"
+            r"no status report format|skip (?:the\s+)?status report format)\b",
+            m,
+        )
+    )
+    if no_sr:
+        return None
+    one_pager_only = bool(
+        re.search(
+            r"\b(one[- ]pager(?:\s+format|\s+memo|\s+brief)?|"
+            r"single[- ]page (?:brief|memo|summary)|executive one[- ]pager)\b",
+            m,
+        )
+    )
+    if one_pager_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(status report(?:\s+format)?|project status report|program status report|"
+            r"weekly status (?:report|update)|monthly status (?:report|update)|"
+            r"status update (?:format|for)|"
+            r"rag status (?:report|update)|red[- ]amber[- ]green status|"
+            r"write (?:a\s+)?status (?:report|update)|draft (?:a\s+)?status (?:report|update))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(project|program|initiative|migration|rollout|delivery|milestone|"
+        r"sprint|stakeholder|leadership|pmo|update|report|outline|write|draft|describe)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **status report**: use markdown headings **Reporting period**, "
+        "**Overall status** (Green/Amber/Red or On track/At risk/Blocked), **Highlights**, "
+        "**Blockers / lowlights**, optional **Key metrics**, **Next period focus**, and "
+        "**Risks / asks**—scannable for stakeholders; not a one-pager executive memo."
+    )
+    return instr, "status_report"
+
+
 def _embedded_meeting_agenda(m: str) -> tuple[str, str] | None:
     """``meeting_agenda`` — timeboxed meeting run-of-show (distinct from ``action_plan`` owner tables)."""
     if len(m) < 48:
@@ -3875,7 +3926,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``runbook_format``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
-        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
+        ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``status_report``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
         ``postmortem``, ``sprint_retro``, ``user_story``, ``definition_of_done``, ``five_whys``, ``fishbone``,
         ``recommendation_first``,
         ``go_no_go``,
@@ -3957,6 +4008,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if opg:
         extras.append(opg[0])
         trace_tags.append(opg[1])
+
+    strpt = _embedded_status_report(m)
+    if strpt:
+        extras.append(strpt[0])
+        trace_tags.append(strpt[1])
 
     apl = _embedded_action_plan(m)
     if apl:

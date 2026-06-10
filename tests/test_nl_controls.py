@@ -1879,6 +1879,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("one_pager", t)
 
+    def test_embedded_status_report_trace(self) -> None:
+        msg = (
+            "Our PMO needs a weekly status update for the cloud migration program before Friday's "
+            "steering call. Draft a status report format with RAG overall status, highlights, "
+            "blockers, key metrics, and next-week focus for leadership."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("status_report", t)
+        self.assertTrue(any("status report" in x.lower() for x in e))
+
+    def test_embedded_status_report_skip_skips(self) -> None:
+        msg = (
+            "Leadership asked for a program update on the cloud migration initiative. A status "
+            "report was discussed, but skip the status report format—narrative only, no RAG "
+            "sections or periodic status headings."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("status_report", t)
+
     def test_embedded_action_plan_trace(self) -> None:
         msg = (
             "We are kicking off the Q3 identity platform rollout across three regions. Write an "
