@@ -1724,6 +1724,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("letter_format", t)
 
+    def test_embedded_runbook_format_trace(self) -> None:
+        msg = (
+            "We are publishing an internal runbook for the on-call rotation after the last database "
+            "failover drill. Write it in runbook format with purpose, prerequisites, numbered "
+            "procedure steps, verification, rollback, and escalation contacts."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("runbook_format", t)
+        self.assertTrue(any("runbook" in x.lower() for x in e))
+
+    def test_embedded_runbook_format_skip_skips(self) -> None:
+        msg = (
+            "A runbook was discussed for on-call rotation after the failover drill, but skip the "
+            "runbook format—wiki prose only, no procedure or rollback sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("runbook_format", t)
+
     def test_embedded_meeting_agenda_trace(self) -> None:
         msg = (
             "We are hosting a 45-minute cross-functional kickoff for the data catalog rollout next "

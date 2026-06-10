@@ -1497,6 +1497,67 @@ def _embedded_letter_format(m: str) -> tuple[str, str] | None:
     return instr, "letter_format"
 
 
+def _embedded_runbook_format(m: str) -> tuple[str, str] | None:
+    """``runbook_format`` — ops/on-call runbook scaffold (distinct from ``postmortem`` and ``checklist``)."""
+    if len(m) < 48:
+        return None
+    no_rb = bool(
+        re.search(
+            r"\b(no runbook format|without (?:a\s+)?runbook format|not a runbook format|"
+            r"skip (?:the\s+)?runbook format|don'?t use runbook format|"
+            r"avoid runbook (?:format|template|sections)|"
+            r"no operational runbook (?:format|template))\b",
+            m,
+        )
+    )
+    if no_rb:
+        return None
+    checklist_only = bool(
+        re.search(
+            r"\b((?:as a|use a|markdown) checklist|checklist (?:format|style)|"
+            r"tick[- ]box(?:es)?|checkbox(?:es)? (?:list|format))\b",
+            m,
+        )
+    )
+    if checklist_only:
+        return None
+    postmortem_only = bool(
+        re.search(
+            r"\b(postmortem format|blameless postmortem|incident postmortem|"
+            r"post[- ]mortem format)\b",
+            m,
+        )
+    )
+    if postmortem_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(runbook(?:\s+format)?|operational runbook|on[- ]call runbook|"
+            r"incident runbook|ops runbook|"
+            r"write (?:an?\s+)?runbook|draft (?:an?\s+)?runbook|"
+            r"playbook format|operational playbook|"
+            r"runbook (?:for|to) (?:the\s+)?(?:on[- ]call|failover|rollback|restore|deploy))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(on[- ]call|incident|outage|failover|rollback|restore|deploy|"
+        r"sre|operations|ops|escalat|drill|procedure|write|draft|"
+        r"describe|outline|publish|document)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants an **operational runbook**: use markdown headings **Purpose**, "
+        "**Prerequisites**, **Procedure** (numbered steps), **Verification**, **Rollback**, "
+        "**Escalation**, and optional **References**—concrete operator actions, not a "
+        "postmortem narrative or `- [ ]` checkbox checklist."
+    )
+    return instr, "runbook_format"
+
+
 def _embedded_meeting_agenda(m: str) -> tuple[str, str] | None:
     """``meeting_agenda`` — timeboxed meeting run-of-show (distinct from ``action_plan`` owner tables)."""
     if len(m) < 48:
@@ -3811,7 +3872,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``meeting_agenda``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``runbook_format``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -3946,6 +4007,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ltf:
         extras.append(ltf[0])
         trace_tags.append(ltf[1])
+
+    rbf = _embedded_runbook_format(m)
+    if rbf:
+        extras.append(rbf[0])
+        trace_tags.append(rbf[1])
 
     mag = _embedded_meeting_agenda(m)
     if mag:
