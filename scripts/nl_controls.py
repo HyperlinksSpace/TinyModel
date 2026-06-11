@@ -1558,6 +1558,68 @@ def _embedded_runbook_format(m: str) -> tuple[str, str] | None:
     return instr, "runbook_format"
 
 
+def _embedded_job_aid(m: str) -> tuple[str, str] | None:
+    """``job_aid`` — quick-reference / performance-support card (distinct from ``runbook_format`` and ``checklist``)."""
+    if len(m) < 48:
+        return None
+    no_ja = bool(
+        re.search(
+            r"\b(no job aid|without (?:a\s+)?job aid|not a job aid|"
+            r"skip (?:the\s+)?job aid|don'?t use job aid|"
+            r"avoid job aid (?:format|template|sections)|"
+            r"no job aid format|skip (?:the\s+)?job aid format)\b",
+            m,
+        )
+    )
+    if no_ja:
+        return None
+    runbook_only = bool(
+        re.search(
+            r"\b(runbook(?:\s+format)?|operational runbook|on[- ]call runbook|"
+            r"incident runbook|ops runbook|operational playbook)\b",
+            m,
+        )
+    )
+    if runbook_only:
+        return None
+    checklist_only = bool(
+        re.search(
+            r"\b((?:as a|use a|markdown) checklist|checklist (?:format|style)|"
+            r"tick[- ]box(?:es)?|checkbox(?:es)? (?:list|format))\b",
+            m,
+        )
+    )
+    if checklist_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(job aid(?:\s+format)?|job[- ]aid (?:card|template|format)|"
+            r"quick reference(?:\s+card|\s+guide|\s+format)?|"
+            r"cheat sheet(?:\s+format)?|desk reference|"
+            r"performance support(?:\s+tool|\s+format)?|"
+            r"write (?:a\s+)?job aid|draft (?:a\s+)?job aid|"
+            r"quick[- ]reference (?:for|on))\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(training|onboarding|frontline|agent|staff|employee|team|"
+        r"task|workflow|process|procedure|support|help desk|"
+        r"write|draft|create|outline|document|describe|publish)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **job aid** (quick-reference card): use markdown headings **Task / purpose**, "
+        "**When to use**, **Quick steps** (numbered, scannable), **Tips & reminders**, "
+        "**Common mistakes**, and **Need help?**—compact performance support for someone doing "
+        "the task at work; not an ops runbook with rollback/escalation or a `- [ ]` checkbox checklist."
+    )
+    return instr, "job_aid"
+
+
 def _embedded_status_report(m: str) -> tuple[str, str] | None:
     """``status_report`` — periodic project/program status update (distinct from ``one_pager``)."""
     if len(m) < 48:
@@ -3923,7 +3985,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``runbook_format``, ``meeting_agenda``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``runbook_format``, ``job_aid``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``status_report``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -4068,6 +4130,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if rbf:
         extras.append(rbf[0])
         trace_tags.append(rbf[1])
+
+    jba = _embedded_job_aid(m)
+    if jba:
+        extras.append(jba[0])
+        trace_tags.append(jba[1])
 
     mag = _embedded_meeting_agenda(m)
     if mag:

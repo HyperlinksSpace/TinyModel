@@ -1743,6 +1743,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("runbook_format", t)
 
+    def test_embedded_job_aid_trace(self) -> None:
+        msg = (
+            "Our L&D team is onboarding new help-desk agents on the password-reset workflow. "
+            "Draft a job aid format quick reference card with when to use it, numbered quick steps, "
+            "tips, common mistakes, and where to escalate for the frontline staff."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("job_aid", t)
+        self.assertTrue(any("job aid" in x.lower() for x in e))
+
+    def test_embedded_job_aid_skip_skips(self) -> None:
+        msg = (
+            "Training discussed a job aid for the password-reset workflow during onboarding, but "
+            "skip the job aid format—narrative wiki prose only, no quick-reference sections."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("job_aid", t)
+
     def test_embedded_meeting_agenda_trace(self) -> None:
         msg = (
             "We are hosting a 45-minute cross-functional kickoff for the data catalog rollout next "
