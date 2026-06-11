@@ -1497,6 +1497,85 @@ def _embedded_letter_format(m: str) -> tuple[str, str] | None:
     return instr, "letter_format"
 
 
+def _embedded_press_release(m: str) -> tuple[str, str] | None:
+    """``press_release`` — media/PR announcement layout (distinct from ``email_format`` and ``letter_format``)."""
+    if len(m) < 48:
+        return None
+    no_pr = bool(
+        re.search(
+            r"\b(no press release|without (?:a\s+)?press release|not a press release|"
+            r"skip (?:the\s+)?press release|don'?t use press release|"
+            r"avoid press release (?:format|template|layout)|"
+            r"no press release format|skip (?:the\s+)?press release format|"
+            r"not as a press release)\b",
+            m,
+        )
+    )
+    if no_pr:
+        return None
+    revise_only = bool(
+        re.search(
+            r"\b(rewrite (?:my |this |the )?(?:draft )?|polish (?:my |this )?(?:draft )?|"
+            r"proofread (?:my |this )?|improve (?:my |this |the )?draft|copy[- ]?edit)\b",
+            m,
+        )
+    )
+    has_draft_artifact = bool(
+        re.search(
+            r"\b(?:my|this|the)\s+draft\b|draft:\s|here(?:'s| is)\s+(?:my|the)\s+draft\b",
+            m,
+        )
+    )
+    if revise_only and has_draft_artifact:
+        return None
+    email_only = bool(
+        re.search(
+            r"\b((?:write|draft|compose|prepare) (?:an?\s+)?email|"
+            r"email format|as an email|in email format|follow[- ]up email)\b",
+            m,
+        )
+    )
+    if email_only:
+        return None
+    letter_only = bool(
+        re.search(
+            r"\b(letter format|formal letter(?:\s+format)?|business letter(?:\s+format)?|"
+            r"(?:write|draft) (?:a\s+)?(?:formal\s+)?letter to)\b",
+            m,
+        )
+    )
+    if letter_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(press release(?:\s+format)?|media release(?:\s+format)?|"
+            r"news release(?:\s+format)?|pr announcement(?:\s+format)?|"
+            r"write (?:a\s+)?press release|draft (?:a\s+)?press release|"
+            r"compose (?:a\s+)?press release|prepare (?:a\s+)?press release|"
+            r"press release (?:for|about|announcing)|"
+            r"media announcement(?:\s+format)?)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(announce|launch|product|company|startup|partnership|milestone|"
+        r"media|journalist|reporter|pr\b|communications|comms|"
+        r"write|draft|compose|prepare|publish|describe|outline)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants a **press release**: use markdown headings **FOR IMMEDIATE RELEASE**, "
+        "**Headline**, optional **Subhead**, **Dateline** (City, Date —), a **Lead paragraph** "
+        "(who/what/when/where/why), **Body** (details + optional executive quote), "
+        "**About [Company]** boilerplate, and **Media contact**—journalist-ready copy; "
+        "not an email with Subject/Greeting or a formal business letter with To/Salutation blocks."
+    )
+    return instr, "press_release"
+
+
 def _embedded_runbook_format(m: str) -> tuple[str, str] | None:
     """``runbook_format`` — ops/on-call runbook scaffold (distinct from ``postmortem`` and ``checklist``)."""
     if len(m) < 48:
@@ -3985,7 +4064,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``runbook_format``, ``job_aid``, ``meeting_agenda``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``press_release``, ``runbook_format``, ``job_aid``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``status_report``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -4125,6 +4204,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if ltf:
         extras.append(ltf[0])
         trace_tags.append(ltf[1])
+
+    prf = _embedded_press_release(m)
+    if prf:
+        extras.append(prf[0])
+        trace_tags.append(prf[1])
 
     rbf = _embedded_runbook_format(m)
     if rbf:

@@ -1724,6 +1724,25 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("letter_format", t)
 
+    def test_embedded_press_release_trace(self) -> None:
+        msg = (
+            "Our comms team is announcing the Series B funding and new enterprise product launch "
+            "next Tuesday. Draft a press release format announcement for journalists with headline, "
+            "dateline, lead paragraph, executive quote, company boilerplate, and media contact details."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("press_release", t)
+        self.assertTrue(any("press release" in x.lower() for x in e))
+
+    def test_embedded_press_release_skip_skips(self) -> None:
+        msg = (
+            "Communications discussed a media announcement for the product launch next week, but "
+            "skip the press release format—blog post prose only, no headline or dateline blocks."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("press_release", t)
+
     def test_embedded_runbook_format_trace(self) -> None:
         msg = (
             "We are publishing an internal runbook for the on-call rotation after the last database "
