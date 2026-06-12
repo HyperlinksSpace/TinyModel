@@ -1576,6 +1576,71 @@ def _embedded_press_release(m: str) -> tuple[str, str] | None:
     return instr, "press_release"
 
 
+def _embedded_release_notes(m: str) -> tuple[str, str] | None:
+    """``release_notes`` — product/changelog release notes (distinct from ``press_release`` and ``status_report``)."""
+    if len(m) < 48:
+        return None
+    no_rn = bool(
+        re.search(
+            r"\b(no release notes|without (?:the\s+)?release notes|not release notes|"
+            r"skip (?:the\s+)?release notes|don'?t use release notes|"
+            r"avoid release notes (?:format|template|layout)|"
+            r"no release notes format|skip (?:the\s+)?release notes format|"
+            r"not as release notes)\b",
+            m,
+        )
+    )
+    if no_rn:
+        return None
+    press_release_only = bool(
+        re.search(
+            r"\b(press release(?:\s+format)?|media release(?:\s+format)?|"
+            r"news release(?:\s+format)?|write (?:a\s+)?press release)\b",
+            m,
+        )
+    )
+    if press_release_only:
+        return None
+    status_report_only = bool(
+        re.search(
+            r"\b(status report(?:\s+format)?|weekly status (?:report|update)|"
+            r"program status report|rag status (?:report|update))\b",
+            m,
+        )
+    )
+    if status_report_only:
+        return None
+    want = bool(
+        re.search(
+            r"\b(release notes(?:\s+format)?|changelog(?:\s+format)?|"
+            r"what'?s new(?:\s+section|\s+format)?|"
+            r"version release notes|product release notes|"
+            r"write (?:the\s+)?release notes|draft (?:the\s+)?release notes|"
+            r"prepare (?:the\s+)?release notes|"
+            r"release notes for (?:version|v)?\s*\d|"
+            r"changelog for (?:version|v)?\s*\d)\b",
+            m,
+        )
+    )
+    if not want:
+        return None
+    if not re.search(
+        r"\b(version|release|ship|deploy|launch|product|feature|bug|fix|"
+        r"upgrade|migration|customer|user|engineering|write|draft|"
+        r"prepare|publish|document|describe|outline)\b",
+        m,
+    ):
+        return None
+    instr = (
+        "The user wants **release notes** (changelog): use markdown headings **Version**, "
+        "**Release date**, **Summary**, **What's new**, **Improvements**, **Bug fixes**, "
+        "optional **Breaking changes**, **Known issues**, and **Upgrade / migration notes**—"
+        "user-facing product changelog for customers or internal teams; not a press release "
+        "for journalists or a periodic program status report."
+    )
+    return instr, "release_notes"
+
+
 def _embedded_runbook_format(m: str) -> tuple[str, str] | None:
     """``runbook_format`` — ops/on-call runbook scaffold (distinct from ``postmortem`` and ``checklist``)."""
     if len(m) < 48:
@@ -4064,7 +4129,7 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
         ``code_only``, ``code_explained``, ``len_cap=80w``, ``guided``, ``ephemeral``, ``a11y``,
         ``cite_sources``, ``cite_minimal``, ``ranked_options``, ``checklist``, ``no_checklist``,
         ``pseudocode``, ``runnable_code``, ``options_n=N``, ``diagram``, ``no_diagram``,
-        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``press_release``, ``runbook_format``, ``job_aid``, ``meeting_agenda``, ``topic_guard``,
+        ``risks_first``, ``benefits_first``, ``revise_draft``, ``revise_diff``, ``email_format``, ``letter_format``, ``press_release``, ``release_notes``, ``runbook_format``, ``job_aid``, ``meeting_agenda``, ``topic_guard``,
         ``topic_must``, ``glossary``, ``spelling_uk``, ``spelling_us``, ``risks_mitigations``,
         ``timeline_chron``, ``timeline_reverse``, ``voice_second``, ``voice_third``, ``faq_qa``,
         ``summary_last``, ``decision_matrix``, ``build_vs_buy``, ``one_pager``, ``status_report``, ``action_plan``, ``raci``, ``stakeholder_map``, ``swot``, ``pestle``, ``cost_benefit``, ``open_questions``, ``scenario_cases``,
@@ -4209,6 +4274,11 @@ def analyze_embedded_prompt_signals(message: str) -> tuple[dict[str, str], list[
     if prf:
         extras.append(prf[0])
         trace_tags.append(prf[1])
+
+    rnf = _embedded_release_notes(m)
+    if rnf:
+        extras.append(rnf[0])
+        trace_tags.append(rnf[1])
 
     rbf = _embedded_runbook_format(m)
     if rbf:

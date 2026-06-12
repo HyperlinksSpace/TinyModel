@@ -1743,6 +1743,26 @@ class TestEmbeddedPromptSignals(unittest.TestCase):
         o, _e, t = analyze_embedded_prompt_signals(msg)
         self.assertNotIn("press_release", t)
 
+    def test_embedded_release_notes_trace(self) -> None:
+        msg = (
+            "We are shipping version 2.4 of the analytics platform next Thursday. "
+            "Draft release notes format for engineering and customers covering what's new, "
+            "improvements, bug fixes, breaking changes, and upgrade migration steps."
+        )
+        o, e, t = analyze_embedded_prompt_signals(msg)
+        self.assertEqual(o, {})
+        self.assertIn("release_notes", t)
+        self.assertTrue(any("release notes" in x.lower() for x in e))
+
+    def test_embedded_release_notes_skip_skips(self) -> None:
+        msg = (
+            "Product discussed changelog copy for the v2.4 analytics release next week, but "
+            "skip the release notes format—blog announcement prose only, no version or "
+            "what's-new section headings."
+        )
+        o, _e, t = analyze_embedded_prompt_signals(msg)
+        self.assertNotIn("release_notes", t)
+
     def test_embedded_runbook_format_trace(self) -> None:
         msg = (
             "We are publishing an internal runbook for the on-call rotation after the last database "
