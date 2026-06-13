@@ -1,0 +1,13 @@
+{
+  "schema": "golden_prompts_manifest/1.0",
+  "counts": {
+    "nl_signals": 100,
+    "routing": 100,
+    "e2e": 100
+  },
+  "files": [
+    "nl_signals.jsonl",
+    "routing.jsonl",
+    "e2e.jsonl"
+  ]
+}

@@ -13,6 +13,21 @@ SMOKE_MODEL_ID = "sshleifer/tiny-gpt2"
 DEFAULT_INSTRUCTION_MODEL = "HuggingFaceTB/SmolLM2-360M-Instruct"
 
 
+def resolve_instruction_model(profile: str | None = None) -> str:
+    """Pick generative model id from HORIZON2_PROFILE / HORIZON2_MODEL* env vars."""
+    import os
+
+    prof = (profile or os.environ.get("HORIZON2_PROFILE", "balanced")).strip().lower()
+    if prof == "fast":
+        return os.environ.get("HORIZON2_MODEL_FAST", DEFAULT_INSTRUCTION_MODEL)
+    if prof == "quality":
+        return os.environ.get(
+            "HORIZON2_MODEL_QUALITY",
+            os.environ.get("HORIZON2_MODEL", DEFAULT_INSTRUCTION_MODEL),
+        )
+    return os.environ.get("HORIZON2_MODEL", DEFAULT_INSTRUCTION_MODEL)
+
+
 @dataclass
 class OneSample:
     id: int

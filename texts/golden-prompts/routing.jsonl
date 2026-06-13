@@ -1,0 +1,100 @@
+{"id": "route_001", "suite": "routing", "prompt": "Summarize this article for me: The central bank held rates steady but signaled cuts later in the year.", "expect_intent": "summarize"}
+{"id": "route_002", "suite": "routing", "prompt": "TL;DR please — long email thread about the vendor contract renewal and open legal questions.", "expect_intent": "summarize"}
+{"id": "route_003", "suite": "routing", "prompt": "Give me a short summary of the meeting notes pasted below about Q4 hiring plan.", "expect_intent": "summarize"}
+{"id": "route_004", "suite": "routing", "prompt": "Can you condense this policy document into a few bullet points for executives?", "expect_intent": "summarize"}
+{"id": "route_005", "suite": "routing", "prompt": "Rewrite this customer apology more professionally: Sorry we broke your export again.", "expect_intent": "reformulate"}
+{"id": "route_006", "suite": "routing", "prompt": "Rephrase the following paragraph for a formal board update without changing facts.", "expect_intent": "reformulate"}
+{"id": "route_007", "suite": "routing", "prompt": "Make this Slack message sound more diplomatic before I send it to the VP.", "expect_intent": "reformulate"}
+{"id": "route_008", "suite": "routing", "prompt": "Reformulate my rough notes into polished prose for the stakeholder newsletter.", "expect_intent": "reformulate"}
+{"id": "route_009", "suite": "routing", "prompt": "Search the FAQ for how refunds work when a subscription is cancelled mid-cycle.", "expect_intent": "retrieve"}
+{"id": "route_010", "suite": "routing", "prompt": "Look up our documentation — what is the policy on data export for enterprise tenants?", "expect_intent": "retrieve"}
+{"id": "route_011", "suite": "routing", "prompt": "Find the FAQ answer about resetting two-factor authentication for locked accounts.", "expect_intent": "retrieve"}
+{"id": "route_012", "suite": "routing", "prompt": "Retrieve from FAQ: how long do support tickets typically take to get a first response?", "expect_intent": "retrieve"}
+{"id": "route_013", "suite": "routing", "prompt": "Classify this headline: Tech stocks rally as chipmaker unveils new AI accelerator.", "expect_intent": "classify"}
+{"id": "route_014", "suite": "routing", "prompt": "What category is this news item? Central bank holds rates; markets mixed on inflation data.", "expect_intent": "classify"}
+{"id": "route_015", "suite": "routing", "prompt": "Label this text with your topic classifier: Team signs striker before weekend derby.", "expect_intent": "classify"}
+{"id": "route_016", "suite": "routing", "prompt": "Run classification on: Parliament debates new tax policy amid budget shortfall.", "expect_intent": "classify"}
+{"id": "route_017", "suite": "routing", "prompt": "How similar are these two sentences: Markets rose on cooling inflation ||| Stocks gained as prices slowed?", "expect_intent": "similarity"}
+{"id": "route_018", "suite": "routing", "prompt": "Compare semantic similarity between: API latency improved overnight ||| Response times dropped after the patch.", "expect_intent": "similarity"}
+{"id": "route_019", "suite": "routing", "prompt": "Similarity score for: We delayed the launch ||| The release date moved to next month.", "expect_intent": "similarity"}
+{"id": "route_020", "suite": "routing", "prompt": "Are these two support macros close in meaning? Compare them for similarity.", "expect_intent": "similarity"}
+{"id": "route_021", "suite": "routing", "prompt": "Embed this sentence for me: Hybrid retrieval combines keyword overlap with dense vectors.", "expect_intent": "embedding"}
+{"id": "route_022", "suite": "routing", "prompt": "Give me the embedding vector summary for this product description paragraph.", "expect_intent": "embedding"}
+{"id": "route_023", "suite": "routing", "prompt": "Encode this short passage into your embedding space for later search indexing.", "expect_intent": "embedding"}
+{"id": "route_024", "suite": "routing", "prompt": "Run embed on: Customer requested GDPR export within the 30-day SLA window.", "expect_intent": "embedding"}
+{"id": "route_025", "suite": "routing", "prompt": "Which option is closest to this query: outage during checkout ||| payment gateway down ||| CSS bug on homepage ||| slow search?", "expect_intent": "nearest"}
+{"id": "route_026", "suite": "routing", "prompt": "Find the nearest candidate to 'refund delay' among: billing error, shipping slip, password reset.", "expect_intent": "nearest"}
+{"id": "route_027", "suite": "routing", "prompt": "Nearest match for the query among these FAQ titles about exports, refunds, and SSO.", "expect_intent": "nearest"}
+{"id": "route_028", "suite": "routing", "prompt": "Pick the top nearest option to 'disk full alert' from the candidate list I provide.", "expect_intent": "nearest"}
+{"id": "route_029", "suite": "routing", "prompt": "Remember that our production scope key is team-platform-prod for future turns.", "expect_intent": "remember"}
+{"id": "route_030", "suite": "routing", "prompt": "Save a long-term note: legal requires 90-day retention on audit logs for EU tenants.", "expect_intent": "remember"}
+{"id": "route_031", "suite": "routing", "prompt": "Please remember my preference to always cite FAQ sources in strict mode for this project.", "expect_intent": "remember"}
+{"id": "route_032", "suite": "routing", "prompt": "Store this fact in memory: our change window is Sundays 02:00-06:00 UTC.", "expect_intent": "remember"}
+{"id": "route_033", "suite": "routing", "prompt": "Show me everything you have stored in memory for this scope.", "expect_intent": "list_memories"}
+{"id": "route_034", "suite": "routing", "prompt": "List my saved notes and long-term memories for this chat session.", "expect_intent": "list_memories"}
+{"id": "route_035", "suite": "routing", "prompt": "What memories do you have on file for me right now?", "expect_intent": "list_memories"}
+{"id": "route_036", "suite": "routing", "prompt": "Display all memory entries associated with my current scope.", "expect_intent": "list_memories"}
+{"id": "route_037", "suite": "routing", "prompt": "Clear my session notes but keep long-term memory intact please.", "expect_intent": "clear_session"}
+{"id": "route_038", "suite": "routing", "prompt": "Wipe the temporary session memory from this conversation.", "expect_intent": "clear_session"}
+{"id": "route_039", "suite": "routing", "prompt": "Delete session-scoped notes only — not the long-term entries.", "expect_intent": "clear_session"}
+{"id": "route_040", "suite": "routing", "prompt": "Clear session memory for this chat now.", "expect_intent": "clear_session"}
+{"id": "route_041", "suite": "routing", "prompt": "What slash commands and features can you help me with?", "expect_intent": "help"}
+{"id": "route_042", "suite": "routing", "prompt": "Show help for available tools and how to use this assistant.", "expect_intent": "help"}
+{"id": "route_043", "suite": "routing", "prompt": "List the commands I can use in this chat interface.", "expect_intent": "help"}
+{"id": "route_044", "suite": "routing", "prompt": "Help — what can this brain do?", "expect_intent": "help"}
+{"id": "route_045", "suite": "routing", "prompt": "What models and settings are loaded right now?", "expect_intent": "status"}
+{"id": "route_046", "suite": "routing", "prompt": "Show status: encoder, RAG, memory scope, and web search configuration.", "expect_intent": "status"}
+{"id": "route_047", "suite": "routing", "prompt": "Give me a status report on what is enabled in this deployment.", "expect_intent": "status"}
+{"id": "route_048", "suite": "routing", "prompt": "What's my current scope and which subsystems are active?", "expect_intent": "status"}
+{"id": "route_049", "suite": "routing", "prompt": "Search the web for today's Federal Reserve interest rate decision headlines.", "expect_intent": "web_search"}
+{"id": "route_050", "suite": "routing", "prompt": "Look up on the internet what changed in Python 3.13 release notes this week.", "expect_intent": "web_search"}
+{"id": "route_051", "suite": "routing", "prompt": "Web search: current EU AI Act compliance deadline for general-purpose models.", "expect_intent": "web_search"}
+{"id": "route_052", "suite": "routing", "prompt": "Find recent news on the web about Acme Corp earnings call guidance.", "expect_intent": "web_search"}
+{"id": "route_053", "suite": "routing", "prompt": "Using only these facts, answer: What is the refund window? Facts: Refunds within 30 days if unused.", "expect_intent": "grounded"}
+{"id": "route_054", "suite": "routing", "prompt": "Grounded Q&A — question: Is SSO included? Context: Enterprise tier includes SAML SSO; Starter does not.", "expect_intent": "grounded"}
+{"id": "route_055", "suite": "routing", "prompt": "Answer from context only: When is maintenance? Context: Maintenance Sundays 02:00-06:00 UTC.", "expect_intent": "grounded"}
+{"id": "route_056", "suite": "routing", "prompt": "Based on the provided context snippet, is export available on free tier? Context says no.", "expect_intent": "grounded"}
+{"id": "route_057", "suite": "routing", "prompt": "Add a session note: today's standup agreed to freeze dependencies until release RC1.", "expect_intent": "session_note"}
+{"id": "route_058", "suite": "routing", "prompt": "Save this as a session-scoped note only: QA found flaky test in checkout flow.", "expect_intent": "session_note"}
+{"id": "route_059", "suite": "routing", "prompt": "Session note for this chat: stakeholder demo moved to Thursday 15:00 UTC.", "expect_intent": "session_note"}
+{"id": "route_060", "suite": "routing", "prompt": "Put in session memory: we are testing golden prompt regression this sprint.", "expect_intent": "session_note"}
+{"id": "route_061", "suite": "routing", "prompt": "What are some good habits for writing clear technical documentation?", "expect_intent": "chat"}
+{"id": "route_062", "suite": "routing", "prompt": "Explain the difference between precision and recall in classification metrics.", "expect_intent": "chat"}
+{"id": "route_063", "suite": "routing", "prompt": "I'm feeling stuck prioritizing backlog items — any frameworks to choose?", "expect_intent": "chat"}
+{"id": "route_064", "suite": "routing", "prompt": "How would you explain APIs to a non-technical product manager in two minutes?", "expect_intent": "chat"}
+{"id": "route_065", "suite": "routing", "prompt": "What is the trade-off between latency and accuracy for small embedding models?", "expect_intent": "chat"}
+{"id": "route_066", "suite": "routing", "prompt": "When should a team prefer rules-based routing over LLM JSON routing?", "expect_intent": "chat"}
+{"id": "route_067", "suite": "routing", "prompt": "Short summary of the quarterly reliability review attached in my message please.", "expect_intent": "summarize"}
+{"id": "route_068", "suite": "routing", "prompt": "Condense the vendor comparison memo into executive bullets.", "expect_intent": "summarize"}
+{"id": "route_069", "suite": "routing", "prompt": "Tone down this escalation email before I send it to the customer success director.", "expect_intent": "reformulate"}
+{"id": "route_070", "suite": "routing", "prompt": "Make the incident timeline paragraph clearer for executives.", "expect_intent": "reformulate"}
+{"id": "route_071", "suite": "routing", "prompt": "FAQ lookup: what are the steps to rotate API keys for enterprise tenants?", "expect_intent": "retrieve"}
+{"id": "route_072", "suite": "routing", "prompt": "Find in FAQ how billing proration works when upgrading mid-cycle.", "expect_intent": "retrieve"}
+{"id": "route_073", "suite": "routing", "prompt": "Topic label for: Olympic sprinter breaks national record at regional meet.", "expect_intent": "classify"}
+{"id": "route_074", "suite": "routing", "prompt": "Classify: Startup raises Series B to expand inference chip production.", "expect_intent": "classify"}
+{"id": "route_075", "suite": "routing", "prompt": "Remember for later: staging environment URL is https://staging.example.com", "expect_intent": "remember"}
+{"id": "route_076", "suite": "routing", "prompt": "Save note: compliance requires PII redaction in all exported chat logs.", "expect_intent": "remember"}
+{"id": "route_077", "suite": "routing", "prompt": "Search the web for recent changes to OWASP Top 10 2025 draft list.", "expect_intent": "web_search"}
+{"id": "route_078", "suite": "routing", "prompt": "Web lookup: current status of the EU Digital Markets Act enforcement timeline.", "expect_intent": "web_search"}
+{"id": "route_079", "suite": "routing", "prompt": "Similarity check: 'latency dropped' vs 'response time improved after caching layer'.", "expect_intent": "similarity"}
+{"id": "route_080", "suite": "routing", "prompt": "How close in meaning: 'budget overrun' and 'cost exceeded forecast'?", "expect_intent": "similarity"}
+{"id": "route_081", "suite": "routing", "prompt": "Nearest to 'password reset loop' among: MFA lockout, SSO misconfig, expired token.", "expect_intent": "nearest"}
+{"id": "route_082", "suite": "routing", "prompt": "Which candidate is closest to 'slow dashboard load': DB index, CDN cache, auth timeout?", "expect_intent": "nearest"}
+{"id": "route_083", "suite": "routing", "prompt": "Embedding for: Monthly invoice PDFs are available in the billing portal.", "expect_intent": "embedding"}
+{"id": "route_084", "suite": "routing", "prompt": "Vector encode: Support SLA is 4 business hours for enterprise severity-2 tickets.", "expect_intent": "embedding"}
+{"id": "route_085", "suite": "routing", "prompt": "From context only — is phone support included? Context: Enterprise includes phone; Pro is chat only.", "expect_intent": "grounded"}
+{"id": "route_086", "suite": "routing", "prompt": "Grounded answer: refund window? Context: 30-day refund if service unused.", "expect_intent": "grounded"}
+{"id": "route_087", "suite": "routing", "prompt": "What tools and slash commands are available in Universal Brain?", "expect_intent": "help"}
+{"id": "route_088", "suite": "routing", "prompt": "How do I turn on the brain trace and strict FAQ mode?", "expect_intent": "help"}
+{"id": "route_089", "suite": "routing", "prompt": "Report current encoder model id and whether Google web search is configured.", "expect_intent": "status"}
+{"id": "route_090", "suite": "routing", "prompt": "Status check: is smart routing on and how many RAG chunks are loaded?", "expect_intent": "status"}
+{"id": "route_091", "suite": "routing", "prompt": "List all notes saved under my current scope key.", "expect_intent": "list_memories"}
+{"id": "route_092", "suite": "routing", "prompt": "Show memory entries including long-term ones for this tenant.", "expect_intent": "list_memories"}
+{"id": "route_093", "suite": "routing", "prompt": "Session-only note: load test capped at 500 RPS for tonight's drill.", "expect_intent": "session_note"}
+{"id": "route_094", "suite": "routing", "prompt": "Temporary session note: disable auto-web for this debugging thread.", "expect_intent": "session_note"}
+{"id": "route_095", "suite": "routing", "prompt": "Clear session notes for this thread only, not long-term storage.", "expect_intent": "clear_session"}
+{"id": "route_096", "suite": "routing", "prompt": "Remove ephemeral session memories from this conversation.", "expect_intent": "clear_session"}
+{"id": "route_097", "suite": "routing", "prompt": "What is retrieval-augmented generation in plain language?", "expect_intent": "chat"}
+{"id": "route_098", "suite": "routing", "prompt": "How do calibration histograms help when tuning routing thresholds?", "expect_intent": "chat"}
+{"id": "route_099", "suite": "routing", "prompt": "Explain embedding normalization for cosine similarity search.", "expect_intent": "chat"}
+{"id": "route_100", "suite": "routing", "prompt": "When is a small encoder enough instead of a frontier LLM?", "expect_intent": "chat"}

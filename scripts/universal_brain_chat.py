@@ -91,6 +91,7 @@ from horizon2_core import (  # noqa: E402
     generate_completion,
     load_causal_lm,
     pick_device,
+    resolve_instruction_model,
 )
 from horizon3_store import (  # noqa: E402
     clear_session,
@@ -1943,7 +1944,7 @@ def main() -> None:
     elif args.model:
         mid = args.model
     else:
-        mid = os.environ.get("HORIZON2_MODEL", DEFAULT_INSTRUCTION_MODEL)
+        mid = resolve_instruction_model()
     dev = pick_device(args.device)
     system_text = (args.system_prompt or "").strip() or DEFAULT_CHAT_SYSTEM
 

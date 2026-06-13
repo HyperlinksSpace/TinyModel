@@ -307,12 +307,12 @@ Before claiming “more universal,” require evidence:
 
 ## 9. Immediate next actions (this month)
 
-1. **Create `texts/golden-prompts/`** (or private dataset) with first **300** prompts: 100 routing, 100 NL signals, 100 E2E tasks.
-2. **Add `scripts/ub_eval_runner.py`** (new) — batch local Universal Brain; output JSON like `horizon2` runs.
-3. **Log tokens per turn** in Space (stderr or optional JSONL export).
-4. **Define model profiles** — document env vars: `HORIZON2_MODEL_FAST`, `HORIZON2_MODEL_QUALITY`.
-5. **Wire thumbs up/down** to Horizon 11 JSONL schema (behind consent banner).
-6. **Schedule weekly** manual golden run until CI job exists.
+1. **Create `texts/golden-prompts/`** — **done** (300 prompts + manifest; regenerate via `scripts/seed_golden_prompts.py`).
+2. **Add `scripts/ub_eval_runner.py`** — **done** (`--verify` for stdlib NL regression; optional `--with-router`).
+3. **Log tokens per turn** — *next* (Space JSONL export).
+4. **Define model profiles** — **done** (`HORIZON2_MODEL_FAST` / `HORIZON2_MODEL_QUALITY` / `HORIZON2_PROFILE`; see [`model-profiles.md`](model-profiles.md)).
+5. **Wire thumbs up/down** — *next* (Horizon 11 JSONL + consent banner).
+6. **Schedule weekly golden run** — run locally: `python scripts/ub_eval_runner.py --verify`; wire into CI as follow-up.
 
 ---
 
