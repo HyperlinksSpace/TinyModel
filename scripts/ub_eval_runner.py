@@ -60,11 +60,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--golden-dir",
         type=str,
         default=str(_GOLDEN_DIR),
-        help="Directory with nl_signals.jsonl, routing.jsonl, e2e.jsonl (default: texts/golden-prompts).",
+        help="Directory with nl_signals.jsonl, routing.jsonl, e2e.jsonl, hsp_intents.jsonl (default: texts/golden-prompts).",
     )
     p.add_argument(
         "--suite",
-        choices=("all", "nl_signals", "routing", "e2e"),
+        choices=("all", "nl_signals", "routing", "e2e", "hsp_intents"),
         default="all",
         help="Which suite to run (default: all).",
     )
@@ -72,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--verify",
         action="store_true",
-        help="Stdlib nl_signals + manifest check; exit 0 if pass rate >= --min-pass-rate.",
+        help="Stdlib nl_signals + hsp_intents + manifest check; exit 0 if pass rate >= --min-pass-rate.",
     )
     p.add_argument(
         "--min-pass-rate",
@@ -215,6 +215,31 @@ def score_routing(
     return out
 
 
+def score_hsp_intents(rows: list[dict[str, Any]], limit: int) -> list[CaseResult]:
+    from hsp_intent_router import score_hsp_intent_row
+
+    out: list[CaseResult] = []
+    for row in rows[: limit or len(rows)]:
+        cid = str(row.get("id", "?"))
+        expect = row.get("expect_route")
+        expect_str = None if expect is None else str(expect)
+        t0 = time.perf_counter()
+        ok, detail, detected = score_hsp_intent_row(row)
+        ms = (time.perf_counter() - t0) * 1000.0
+        out.append(
+            CaseResult(
+                id=cid,
+                suite="hsp_intents",
+                ok=ok,
+                detail=detail,
+                detected=detected,
+                expected=expect_str,
+                latency_ms=round(ms, 2),
+            )
+        )
+    return out
+
+
 def skip_suite(name: str, reason: str, rows: list[dict[str, Any]], limit: int) -> list[CaseResult]:
     out: list[CaseResult] = []
     for row in rows[: limit or len(rows)]:
@@ -259,9 +284,9 @@ def run_eval(args: argparse.Namespace) -> tuple[dict[str, Any], bool]:
 
     suites_to_run: set[str]
     if args.verify:
-        suites_to_run = {"nl_signals"}
+        suites_to_run = {"nl_signals", "hsp_intents"}
     elif args.suite == "all":
-        suites_to_run = {"nl_signals", "routing", "e2e"}
+        suites_to_run = {"nl_signals", "routing", "e2e", "hsp_intents"}
     else:
         suites_to_run = {args.suite}
 
@@ -270,6 +295,10 @@ def run_eval(args: argparse.Namespace) -> tuple[dict[str, Any], bool]:
     if "nl_signals" in suites_to_run:
         nl_rows = load_jsonl(golden_dir / "nl_signals.jsonl")
         results.extend(score_nl_signals(nl_rows, args.limit))
+
+    if "hsp_intents" in suites_to_run:
+        hsp_rows = load_jsonl(golden_dir / "hsp_intents.jsonl")
+        results.extend(score_hsp_intents(hsp_rows, args.limit))
 
     if "routing" in suites_to_run:
         route_rows = load_jsonl(golden_dir / "routing.jsonl")

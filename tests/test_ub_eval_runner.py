@@ -30,7 +30,9 @@ class TestUbEvalRunnerHelp(unittest.TestCase):
 class TestUbEvalRunnerVerify(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        if not (_GOLDEN / "nl_signals.jsonl").is_file():
+        if not (_GOLDEN / "nl_signals.jsonl").is_file() or not (
+            _GOLDEN / "hsp_intents.jsonl"
+        ).is_file():
             subprocess.run(
                 [sys.executable, str(_SCRIPTS / "seed_golden_prompts.py")],
                 cwd=_REPO,
@@ -66,6 +68,7 @@ class TestGoldenPromptManifest(unittest.TestCase):
         self.assertEqual(manifest["counts"]["nl_signals"], 100)
         self.assertEqual(manifest["counts"]["routing"], 100)
         self.assertEqual(manifest["counts"]["e2e"], 100)
+        self.assertEqual(manifest["counts"]["hsp_intents"], 100)
 
 
 if __name__ == "__main__":

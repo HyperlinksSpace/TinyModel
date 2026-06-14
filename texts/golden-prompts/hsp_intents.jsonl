@@ -1,0 +1,100 @@
+{"id": "hsp_001", "suite": "hsp_intents", "prompt": "open swap page", "expect_route": "navigate:/swap"}
+{"id": "hsp_002", "suite": "hsp_intents", "prompt": "go to swap", "expect_route": "navigate:/swap"}
+{"id": "hsp_003", "suite": "hsp_intents", "prompt": "show swap screen", "expect_route": "navigate:/swap"}
+{"id": "hsp_004", "suite": "hsp_intents", "prompt": "navigate to swap tokens", "expect_route": "navigate:/swap"}
+{"id": "hsp_005", "suite": "hsp_intents", "prompt": "Open the Swap page please", "expect_route": "navigate:/swap"}
+{"id": "hsp_006", "suite": "hsp_intents", "prompt": "Can you show me the swap screen?", "expect_route": "navigate:/swap"}
+{"id": "hsp_007", "suite": "hsp_intents", "prompt": "Go to swap — I need to exchange TON", "expect_route": "navigate:/swap"}
+{"id": "hsp_008", "suite": "hsp_intents", "prompt": "Navigate to swap tokens on TON", "expect_route": "navigate:/swap"}
+{"id": "hsp_009", "suite": "hsp_intents", "prompt": "open swap", "expect_route": "navigate:/swap"}
+{"id": "hsp_010", "suite": "hsp_intents", "prompt": "show swap page", "expect_route": "navigate:/swap"}
+{"id": "hsp_011", "suite": "hsp_intents", "prompt": "go to the swap page", "expect_route": "navigate:/swap"}
+{"id": "hsp_012", "suite": "hsp_intents", "prompt": "navigate to swap", "expect_route": "navigate:/swap"}
+{"id": "hsp_013", "suite": "hsp_intents", "prompt": "Open swap for me", "expect_route": "navigate:/swap"}
+{"id": "hsp_014", "suite": "hsp_intents", "prompt": "Show swap tokens screen", "expect_route": "navigate:/swap"}
+{"id": "hsp_015", "suite": "hsp_intents", "prompt": "Please go to swap page", "expect_route": "navigate:/swap"}
+{"id": "hsp_016", "suite": "hsp_intents", "prompt": "Navigate me to swap", "expect_route": "navigate:/swap"}
+{"id": "hsp_017", "suite": "hsp_intents", "prompt": "open the swap page now", "expect_route": "navigate:/swap"}
+{"id": "hsp_018", "suite": "hsp_intents", "prompt": "show the swap route", "expect_route": "navigate:/swap"}
+{"id": "hsp_019", "suite": "hsp_intents", "prompt": "go to swap page thanks", "expect_route": "navigate:/swap"}
+{"id": "hsp_020", "suite": "hsp_intents", "prompt": "navigate to the swap screen", "expect_route": "navigate:/swap"}
+{"id": "hsp_021", "suite": "hsp_intents", "prompt": "send TON from my wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_022", "suite": "hsp_intents", "prompt": "transfer jetton to a friend", "expect_route": "navigate:/send"}
+{"id": "hsp_023", "suite": "hsp_intents", "prompt": "I need to send tokens from wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_024", "suite": "hsp_intents", "prompt": "transfer TON to another wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_025", "suite": "hsp_intents", "prompt": "send jetton from wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_026", "suite": "hsp_intents", "prompt": "transfer token from my wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_027", "suite": "hsp_intents", "prompt": "Send TON to this address from wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_028", "suite": "hsp_intents", "prompt": "Transfer tokens from wallet please", "expect_route": "navigate:/send"}
+{"id": "hsp_029", "suite": "hsp_intents", "prompt": "send token to my contact", "expect_route": "navigate:/send"}
+{"id": "hsp_030", "suite": "hsp_intents", "prompt": "transfer TON jetton from wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_031", "suite": "hsp_intents", "prompt": "Send from wallet — TON transfer", "expect_route": "navigate:/send"}
+{"id": "hsp_032", "suite": "hsp_intents", "prompt": "Transfer jetton tokens from wallet", "expect_route": "navigate:/send"}
+{"id": "hsp_033", "suite": "hsp_intents", "prompt": "send wallet TON to user", "expect_route": "navigate:/send"}
+{"id": "hsp_034", "suite": "hsp_intents", "prompt": "transfer wallet token amount", "expect_route": "navigate:/send"}
+{"id": "hsp_035", "suite": "hsp_intents", "prompt": "Send TON token from wallet now", "expect_route": "navigate:/send"}
+{"id": "hsp_036", "suite": "hsp_intents", "prompt": "show my wallet address", "expect_route": "navigate:/get"}
+{"id": "hsp_037", "suite": "hsp_intents", "prompt": "get wallet receive details", "expect_route": "navigate:/get"}
+{"id": "hsp_038", "suite": "hsp_intents", "prompt": "where is my receive wallet address", "expect_route": "navigate:/get"}
+{"id": "hsp_039", "suite": "hsp_intents", "prompt": "show wallet address to receive TON", "expect_route": "navigate:/get"}
+{"id": "hsp_040", "suite": "hsp_intents", "prompt": "get wallet QR for receiving", "expect_route": "navigate:/get"}
+{"id": "hsp_041", "suite": "hsp_intents", "prompt": "receive TON — show wallet address", "expect_route": "navigate:/get"}
+{"id": "hsp_042", "suite": "hsp_intents", "prompt": "wallet address for receive please", "expect_route": "navigate:/get"}
+{"id": "hsp_043", "suite": "hsp_intents", "prompt": "get wallet receive screen", "expect_route": "navigate:/get"}
+{"id": "hsp_044", "suite": "hsp_intents", "prompt": "show receive wallet address", "expect_route": "navigate:/get"}
+{"id": "hsp_045", "suite": "hsp_intents", "prompt": "I need my wallet address to receive", "expect_route": "navigate:/get"}
+{"id": "hsp_046", "suite": "hsp_intents", "prompt": "get wallet address for incoming payments", "expect_route": "navigate:/get"}
+{"id": "hsp_047", "suite": "hsp_intents", "prompt": "show wallet address on Get screen", "expect_route": "navigate:/get"}
+{"id": "hsp_048", "suite": "hsp_intents", "prompt": "receive funds — wallet address?", "expect_route": "navigate:/get"}
+{"id": "hsp_049", "suite": "hsp_intents", "prompt": "get wallet page for receiving", "expect_route": "navigate:/get"}
+{"id": "hsp_050", "suite": "hsp_intents", "prompt": "show my receive wallet address", "expect_route": "navigate:/get"}
+{"id": "hsp_051", "suite": "hsp_intents", "prompt": "connect telegram messages", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_052", "suite": "hsp_intents", "prompt": "how do I connect telegram messages", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_053", "suite": "hsp_intents", "prompt": "Connect Telegram to read chats", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_054", "suite": "hsp_intents", "prompt": "link connect telegram messages in app", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_055", "suite": "hsp_intents", "prompt": "Connect telegram messages from home footer", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_056", "suite": "hsp_intents", "prompt": "I want connect telegram messages access", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_057", "suite": "hsp_intents", "prompt": "Connect Telegram messages feature please", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_058", "suite": "hsp_intents", "prompt": "help me connect telegram messages", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_059", "suite": "hsp_intents", "prompt": "Connect telegram messages for feed", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_060", "suite": "hsp_intents", "prompt": "steps to connect telegram messages", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_061", "suite": "hsp_intents", "prompt": "Connect Telegram messages gateway", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_062", "suite": "hsp_intents", "prompt": "connect telegram messages on this device", "expect_route": "feature:connect_telegram"}
+{"id": "hsp_063", "suite": "hsp_intents", "prompt": "open shield security settings", "expect_route": "feature:shield"}
+{"id": "hsp_064", "suite": "hsp_intents", "prompt": "what is shield in this app", "expect_route": "feature:shield"}
+{"id": "hsp_065", "suite": "hsp_intents", "prompt": "Shield protection settings please", "expect_route": "feature:shield"}
+{"id": "hsp_066", "suite": "hsp_intents", "prompt": "explain shield security settings", "expect_route": "feature:shield"}
+{"id": "hsp_067", "suite": "hsp_intents", "prompt": "go to shield settings", "expect_route": "feature:shield"}
+{"id": "hsp_068", "suite": "hsp_intents", "prompt": "Shield — security settings overview", "expect_route": "feature:shield"}
+{"id": "hsp_069", "suite": "hsp_intents", "prompt": "Tell me about Shield protection", "expect_route": "feature:shield"}
+{"id": "hsp_070", "suite": "hsp_intents", "prompt": "where are shield security settings", "expect_route": "feature:shield"}
+{"id": "hsp_071", "suite": "hsp_intents", "prompt": "Shield feature security settings help", "expect_route": "feature:shield"}
+{"id": "hsp_072", "suite": "hsp_intents", "prompt": "show shield security settings", "expect_route": "feature:shield"}
+{"id": "hsp_073", "suite": "hsp_intents", "prompt": "What does Shield do for security settings?", "expect_route": "feature:shield"}
+{"id": "hsp_074", "suite": "hsp_intents", "prompt": "Shield security settings on home screen", "expect_route": "feature:shield"}
+{"id": "hsp_075", "suite": "hsp_intents", "prompt": "Explain gas fees on TON in plain language", "expect_route": null}
+{"id": "hsp_076", "suite": "hsp_intents", "prompt": "What is slippage when I swap tokens?", "expect_route": null}
+{"id": "hsp_077", "suite": "hsp_intents", "prompt": "Compare TON and ETH for small payments", "expect_route": null}
+{"id": "hsp_078", "suite": "hsp_intents", "prompt": "How do I back up my wallet safely?", "expect_route": null}
+{"id": "hsp_079", "suite": "hsp_intents", "prompt": "USDT price and holders on TON", "expect_route": null}
+{"id": "hsp_080", "suite": "hsp_intents", "prompt": "Summarize the home feed item types", "expect_route": null}
+{"id": "hsp_081", "suite": "hsp_intents", "prompt": "What can this program do?", "expect_route": null}
+{"id": "hsp_082", "suite": "hsp_intents", "prompt": "Explain smart layout on wide screens", "expect_route": null}
+{"id": "hsp_083", "suite": "hsp_intents", "prompt": "Is my swap rate fair right now?", "expect_route": null}
+{"id": "hsp_084", "suite": "hsp_intents", "prompt": "Help me understand jetton decimals", "expect_route": null}
+{"id": "hsp_085", "suite": "hsp_intents", "prompt": "What languages does the UI support?", "expect_route": null}
+{"id": "hsp_086", "suite": "hsp_intents", "prompt": "Tell me about Swap.Coffee integration", "expect_route": null}
+{"id": "hsp_087", "suite": "hsp_intents", "prompt": "How does sign in with Google work?", "expect_route": null}
+{"id": "hsp_088", "suite": "hsp_intents", "prompt": "Explain the trade screen vs swap", "expect_route": null}
+{"id": "hsp_089", "suite": "hsp_intents", "prompt": "What is a recovery phrase?", "expect_route": null}
+{"id": "hsp_090", "suite": "hsp_intents", "prompt": "Compare rates before I swap 10 TON", "expect_route": null}
+{"id": "hsp_091", "suite": "hsp_intents", "prompt": "General question about TON staking", "expect_route": null}
+{"id": "hsp_092", "suite": "hsp_intents", "prompt": "How do premade prompts in the bar work?", "expect_route": null}
+{"id": "hsp_093", "suite": "hsp_intents", "prompt": "Explain NFT feed cards", "expect_route": null}
+{"id": "hsp_094", "suite": "hsp_intents", "prompt": "What is EXPO_PUBLIC_API_BASE_URL for?", "expect_route": null}
+{"id": "hsp_095", "suite": "hsp_intents", "prompt": "Describe Telegram Mini App theme colors", "expect_route": null}
+{"id": "hsp_096", "suite": "hsp_intents", "prompt": "When should I confirm a send transaction?", "expect_route": null}
+{"id": "hsp_097", "suite": "hsp_intents", "prompt": "Explain verification badges on tokens", "expect_route": null}
+{"id": "hsp_098", "suite": "hsp_intents", "prompt": "How does the AI bar differ from bot chat?", "expect_route": null}
+{"id": "hsp_099", "suite": "hsp_intents", "prompt": "What is token_info mode?", "expect_route": null}
+{"id": "hsp_100", "suite": "hsp_intents", "prompt": "Draft a polite message to support", "expect_route": null}

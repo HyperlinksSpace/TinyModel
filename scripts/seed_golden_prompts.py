@@ -311,23 +311,196 @@ def _e2e_rows() -> list[dict]:
     return rows
 
 
+def _hsp_intent_rows() -> list[dict]:
+    """100 HSP shell intent cases (stdlib route-hint router; scored in --verify)."""
+    cases: list[tuple[str | None, list[str]]] = [
+        (
+            "navigate:/swap",
+            [
+                "open swap page",
+                "go to swap",
+                "show swap screen",
+                "navigate to swap tokens",
+                "Open the Swap page please",
+                "Can you show me the swap screen?",
+                "Go to swap — I need to exchange TON",
+                "Navigate to swap tokens on TON",
+                "open swap",
+                "show swap page",
+                "go to the swap page",
+                "navigate to swap",
+                "Open swap for me",
+                "Show swap tokens screen",
+                "Please go to swap page",
+                "Navigate me to swap",
+                "open the swap page now",
+                "show the swap route",
+                "go to swap page thanks",
+                "navigate to the swap screen",
+            ],
+        ),
+        (
+            "navigate:/send",
+            [
+                "send TON from my wallet",
+                "transfer jetton to a friend",
+                "I need to send tokens from wallet",
+                "transfer TON to another wallet",
+                "send jetton from wallet",
+                "transfer token from my wallet",
+                "Send TON to this address from wallet",
+                "Transfer tokens from wallet please",
+                "send token to my contact",
+                "transfer TON jetton from wallet",
+                "Send from wallet — TON transfer",
+                "Transfer jetton tokens from wallet",
+                "send wallet TON to user",
+                "transfer wallet token amount",
+                "Send TON token from wallet now",
+            ],
+        ),
+        (
+            "navigate:/get",
+            [
+                "show my wallet address",
+                "get wallet receive details",
+                "where is my receive wallet address",
+                "show wallet address to receive TON",
+                "get wallet QR for receiving",
+                "receive TON — show wallet address",
+                "wallet address for receive please",
+                "get wallet receive screen",
+                "show receive wallet address",
+                "I need my wallet address to receive",
+                "get wallet address for incoming payments",
+                "show wallet address on Get screen",
+                "receive funds — wallet address?",
+                "get wallet page for receiving",
+                "show my receive wallet address",
+            ],
+        ),
+        (
+            "feature:connect_telegram",
+            [
+                "connect telegram messages",
+                "how do I connect telegram messages",
+                "Connect Telegram to read chats",
+                "link connect telegram messages in app",
+                "Connect telegram messages from home footer",
+                "I want connect telegram messages access",
+                "Connect Telegram messages feature please",
+                "help me connect telegram messages",
+                "Connect telegram messages for feed",
+                "steps to connect telegram messages",
+                "Connect Telegram messages gateway",
+                "connect telegram messages on this device",
+            ],
+        ),
+        (
+            "feature:shield",
+            [
+                "open shield security settings",
+                "what is shield in this app",
+                "Shield protection settings please",
+                "explain shield security settings",
+                "go to shield settings",
+                "Shield — security settings overview",
+                "Tell me about Shield protection",
+                "where are shield security settings",
+                "Shield feature security settings help",
+                "show shield security settings",
+                "What does Shield do for security settings?",
+                "Shield security settings on home screen",
+            ],
+        ),
+        (
+            None,
+            [
+                "Explain gas fees on TON in plain language",
+                "What is slippage when I swap tokens?",
+                "Compare TON and ETH for small payments",
+                "How do I back up my wallet safely?",
+                "USDT price and holders on TON",
+                "Summarize the home feed item types",
+                "What can this program do?",
+                "Explain smart layout on wide screens",
+                "Is my swap rate fair right now?",
+                "Help me understand jetton decimals",
+                "What languages does the UI support?",
+                "Tell me about Swap.Coffee integration",
+                "How does sign in with Google work?",
+                "Explain the trade screen vs swap",
+                "What is a recovery phrase?",
+                "Compare rates before I swap 10 TON",
+                "General question about TON staking",
+                "How do premade prompts in the bar work?",
+                "Explain NFT feed cards",
+                "What is EXPO_PUBLIC_API_BASE_URL for?",
+                "Describe Telegram Mini App theme colors",
+                "When should I confirm a send transaction?",
+                "Explain verification badges on tokens",
+                "How does the AI bar differ from bot chat?",
+                "What is token_info mode?",
+                "Draft a polite message to support",
+            ],
+        ),
+    ]
+    rows: list[dict] = []
+    n = 0
+    for expect_route, prompts in cases:
+        for prompt in prompts:
+            n += 1
+            rows.append(
+                {
+                    "id": f"hsp_{n:03d}",
+                    "suite": "hsp_intents",
+                    "prompt": prompt,
+                    "expect_route": expect_route,
+                }
+            )
+    if len(rows) != 100:
+        raise RuntimeError(f"expected 100 hsp_intents rows, got {len(rows)}")
+    from hsp_intent_router import score_hsp_intent_row
+
+    for row in rows:
+        ok, detail, _ = score_hsp_intent_row(row)
+        if not ok:
+            raise RuntimeError(f"hsp seed self-check failed for {row['id']}: {detail}")
+    return rows
+
+
 def main() -> None:
     nl = _nl_rows()
     routing = _routing_rows()
     e2e = _e2e_rows()
+    hsp = _hsp_intent_rows()
     assert len(nl) == 100, len(nl)
     assert len(routing) == 100, len(routing)
     assert len(e2e) == 100, len(e2e)
+    assert len(hsp) == 100, len(hsp)
     _write_jsonl(_OUT / "nl_signals.jsonl", nl)
     _write_jsonl(_OUT / "routing.jsonl", routing)
     _write_jsonl(_OUT / "e2e.jsonl", e2e)
+    _write_jsonl(_OUT / "hsp_intents.jsonl", hsp)
     manifest = {
         "schema": "golden_prompts_manifest/1.0",
-        "counts": {"nl_signals": len(nl), "routing": len(routing), "e2e": len(e2e)},
-        "files": ["nl_signals.jsonl", "routing.jsonl", "e2e.jsonl"],
+        "counts": {
+            "nl_signals": len(nl),
+            "routing": len(routing),
+            "e2e": len(e2e),
+            "hsp_intents": len(hsp),
+        },
+        "files": [
+            "nl_signals.jsonl",
+            "routing.jsonl",
+            "e2e.jsonl",
+            "hsp_intents.jsonl",
+        ],
     }
     (_OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {len(nl) + len(routing) + len(e2e)} prompts under {_OUT}")
+    print(
+        f"Wrote {len(nl) + len(routing) + len(e2e) + len(hsp)} prompts under {_OUT}"
+    )
 
 
 if __name__ == "__main__":

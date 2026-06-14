@@ -172,9 +172,9 @@ App executor: navigate | stream text | token_info | swap prefill
 
 **TinyModel repo**
 
-1. Add [`texts/hsp_program_corpus.md`](hsp_program_corpus.md) — chunk from HSP `README.md`, wallet/swap/send flows, Shield, auth, backlog FAQs.
-2. Extend golden prompts: `texts/golden-prompts/hsp_intents.jsonl` (navigate, token_info, explain_screen, …).
-3. Run `python scripts/ub_eval_runner.py --verify` after adding HSP NL cases.
+1. Add [`texts/hsp_program_corpus.md`](hsp_program_corpus.md) — chunk from HSP `README.md`, wallet/swap/send flows, Shield, auth, backlog FAQs. **Done** (`scripts/hsp_corpus_smoke.py --verify`).
+2. Extend golden prompts: `texts/golden-prompts/hsp_intents.jsonl` (navigate, token_info, explain_screen, …). **Done** (100 rows; scored in `ub_eval_runner --verify`).
+3. Run `python scripts/ub_eval_runner.py --verify` after adding HSP NL cases. **Done** (nl_signals + hsp_intents).
 
 **HSP repo**
 

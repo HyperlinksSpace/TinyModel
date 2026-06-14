@@ -3,11 +3,13 @@
   "counts": {
     "nl_signals": 100,
     "routing": 100,
-    "e2e": 100
+    "e2e": 100,
+    "hsp_intents": 100
   },
   "files": [
     "nl_signals.jsonl",
     "routing.jsonl",
-    "e2e.jsonl"
+    "e2e.jsonl",
+    "hsp_intents.jsonl"
   ]
 }
