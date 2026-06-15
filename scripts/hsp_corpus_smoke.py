@@ -5,30 +5,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
 _scripts = Path(__file__).resolve().parent
+if str(_scripts) not in sys.path:
+    sys.path.insert(0, str(_scripts))
+
+from hsp_corpus_lib import load_chunks
+
 _REPO = _scripts.parent
 _CORPUS = _REPO / "texts" / "hsp_program_corpus.md"
 _OUT = _REPO / ".tmp" / "hsp-corpus-smoke" / "run.json"
 _SCHEMA = "hsp_corpus_smoke_run/1.0"
 _MIN_CHUNKS = 8
-
-
-def load_chunks(corpus: Path) -> list[str]:
-    text = corpus.read_text(encoding="utf-8")
-    parts = re.split(r"(?m)^##\s+(.+)$", text)
-    chunks: list[str] = []
-    for idx in range(1, len(parts), 2):
-        if idx + 1 >= len(parts):
-            break
-        title = parts[idx].strip()
-        body = parts[idx + 1].strip()
-        if body:
-            chunks.append(f"{title}\n{body}")
-    return chunks if chunks else [text.strip()]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -51,10 +41,17 @@ def main() -> None:
 
     demo_hits: list[dict[str, object]] = []
     if args.query.strip():
-        q = args.query.lower()
-        for i, ch in enumerate(chunks):
-            if any(w in ch.lower() for w in q.split() if len(w) > 2):
-                demo_hits.append({"index": i, "title": titles[i], "preview": ch[:120]})
+        from hsp_corpus_lib import lexical_rank
+
+        q = args.query.strip()
+        for score, i, ch in lexical_rank(q, chunks, top_k=len(chunks)):
+            if score <= 0:
+                continue
+            demo_hits.append(
+                {"index": i, "title": titles[i], "score": round(score, 4), "preview": ch[:120]}
+            )
+            if len(demo_hits) >= 5:
+                break
 
     artifact = {
         "schema": _SCHEMA,
