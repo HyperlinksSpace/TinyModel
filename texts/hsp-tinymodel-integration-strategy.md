@@ -54,7 +54,7 @@ HSP’s moat is **crypto + social + product**, not generic trivia.
 | B3 | **Feed / social** summarization and triage (messages, tasks, NFT events) | Matches backlog: “Analyse messages”, feed types |
 | B4 | **Trade/swap assist**: explain rate, slippage, steps—not financial advice | High-frequency on swap/send/get routes |
 
-**TinyModel role:** hybrid retrieval (`rag_faq_smoke` pattern) over a new corpus `texts/hsp_program_corpus.md`; encoder for similarity and routing. Stdlib gate: `python scripts/hsp_rag_smoke.py --verify` (12 golden queries).
+**TinyModel role:** hybrid retrieval (`rag_faq_smoke` pattern) over a new corpus `texts/hsp_program_corpus.md`; encoder for similarity and routing. Stdlib gate: `python scripts/hsp_rag_smoke.py --verify` (12 golden queries). Encoder hybrid gate: `python scripts/hsp_rag_hybrid_smoke.py --verify` (torch + local checkpoint or Hub model).
 
 ---
 

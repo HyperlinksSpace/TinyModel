@@ -3,12 +3,32 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 _STOP = frozenset(
     "a an the to of and or for in on at is are was be as it with from by not"
     .split()
 )
+
+# Golden query → expected top-1 chunk title substring (shared by lexical + hybrid smokes).
+HSP_RAG_VERIFY_CASES: list[tuple[str, str]] = [
+    ("how does the bottom AI search bar work", "AI and Search"),
+    ("compare swap slippage on TON", "Swap tokens"),
+    ("send wallet recovery phrase backup", "Send and Get wallet"),
+    ("sign in with Google or GitHub", "Sign in and accounts"),
+    ("what is Shield protection settings", "Shield"),
+    ("connect Telegram messages TDLib gateway", "Connect Telegram messages"),
+    ("explain home feed NFT items", "Feed"),
+    ("smart layout wide viewport panel", "Smart layout"),
+    ("USDT token price and holders", "Token info mode"),
+    ("switch UI to Russian language", "Languages"),
+    ("Windows Electron Telegram Mini App", "Windows and Telegram Mini App"),
+    ("never share seed phrase in AI chat", "Getting help safely"),
+]
+
+HSP_RAG_MIN_PASS = 10
 
 
 def load_chunks(corpus: Path) -> list[str]:
@@ -70,3 +90,33 @@ def lexical_rank(
         ranked.append((score, i, ch))
     ranked.sort(key=lambda x: (-x[0], x[1]))
     return ranked[: min(top_k, len(ranked))]
+
+
+def evaluate_rag_verify_cases(
+    chunks: list[str],
+    rank_fn: Callable[[str, list[str], int], list[tuple[float, int, str]]],
+    *,
+    cases: list[tuple[str, str]] = HSP_RAG_VERIFY_CASES,
+    min_pass: int = HSP_RAG_MIN_PASS,
+) -> tuple[bool, list[dict[str, Any]], int]:
+    """Score golden queries; rank_fn(query, chunks, top_k) returns (score, index, text) hits."""
+    rows: list[dict[str, Any]] = []
+    passed = 0
+    for query, expect_title in cases:
+        hits = rank_fn(query, chunks, 1)
+        top_title = chunk_title(hits[0][2]) if hits else ""
+        top_score = round(hits[0][0], 4) if hits else 0.0
+        ok = expect_title.lower() in top_title.lower()
+        if ok:
+            passed += 1
+        rows.append(
+            {
+                "query": query,
+                "expect_title": expect_title,
+                "top_title": top_title,
+                "top_score": top_score,
+                "ok": ok,
+            }
+        )
+    ok_all = passed >= min_pass and passed == len(cases)
+    return ok_all, rows, passed
