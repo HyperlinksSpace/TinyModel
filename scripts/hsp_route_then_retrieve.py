@@ -36,12 +36,9 @@ from hsp_corpus_lib import (  # noqa: E402
     evaluate_rag_verify_cases,
     load_chunks,
 )
-from hsp_intent_router import (  # noqa: E402
-    actions_from_route_hint,
-    infer_hsp_route_hint,
-    score_hsp_intent_row,
-)
-from rag_faq_smoke import _pick_model, hybrid_retrieve, overlap_faithfulness  # noqa: E402
+from hsp_intent_router import score_hsp_intent_row  # noqa: E402
+from hsp_plan_lib import plan_hsp_request  # noqa: E402
+from rag_faq_smoke import _pick_model, hybrid_retrieve  # noqa: E402
 from routing_policy import RoutingDecision, route_from_probs  # noqa: E402
 from tinymodel_runtime import TinyModelRuntime  # noqa: E402
 
@@ -98,50 +95,6 @@ def _load_intent_rows() -> list[dict[str, Any]]:
         if line:
             rows.append(json.loads(line))
     return rows
-
-
-def plan_hsp_request(
-    text: str,
-    rt: TinyModelRuntime,
-    chunks: list[str],
-    *,
-    min_confidence: float,
-    min_margin: float,
-    top_k: int,
-) -> dict[str, Any]:
-    """Return HSP-shaped plan: route hint, actions, classify probs, routing, optional retrieval."""
-    route_hint = infer_hsp_route_hint(text)
-    actions = actions_from_route_hint(route_hint)
-    probs = rt.classify([text])[0]
-    routing = route_from_probs(probs, min_confidence=min_confidence, min_margin=min_margin)
-
-    retrieval: dict[str, Any] | None = None
-    if not route_hint and routing.fallback:
-        hr = hybrid_retrieve(rt, text, chunks, top_k=top_k)
-        if hr:
-            score, idx, ch = hr[0]
-            retrieval = {
-                "top_idx": idx,
-                "top_title": chunk_title(ch),
-                "hybrid_score": score,
-                "keyword_overlap": overlap_faithfulness(text, ch),
-                "chunk_preview": ch[:400],
-            }
-
-    return {
-        "text": text,
-        "route_hint": route_hint,
-        "actions": actions,
-        "probs": probs,
-        "routing": {
-            "fallback": routing.fallback,
-            "label": routing.label,
-            "confidence": routing.confidence,
-            "margin": routing.margin,
-            "reason": routing.reason,
-        },
-        "retrieval": retrieval,
-    }
 
 
 def _print_human(plan: dict[str, Any]) -> None:

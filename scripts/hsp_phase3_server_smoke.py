@@ -27,6 +27,7 @@ from hsp_corpus_lib import chunk_title, load_chunks
 from hsp_phase3_contract_smoke import (
     validate_classify_response,
     validate_healthz,
+    validate_plan_response,
     validate_retrieve_response,
 )
 from rag_faq_smoke import _pick_model
@@ -126,6 +127,38 @@ def run_verify(model_arg: str | None, port: int) -> tuple[bool, dict[str, Any]]:
         )
         validate_classify_response(classify_body)
         checks.append({"name": "classify", "ok": True})
+
+        _, plan_nav_body = _http_json(
+            f"{base}/v1/plan",
+            method="POST",
+            payload={"text": "open swap page"},
+            timeout=90.0,
+        )
+        validate_plan_response(plan_nav_body)
+        nav_ok = (
+            plan_nav_body.get("route_hint") == "navigate:/swap"
+            and plan_nav_body.get("actions") == [{"type": "navigate", "path": "/swap"}]
+        )
+        checks.append({"name": "plan:navigate", "ok": nav_ok})
+
+        _, plan_rag_body = _http_json(
+            f"{base}/v1/plan",
+            method="POST",
+            payload={
+                "text": "explain home feed NFT items",
+                "min_confidence": 1.0,
+                "min_margin": 1.0,
+            },
+            timeout=90.0,
+        )
+        validate_plan_response(plan_rag_body)
+        rag_title = (
+            plan_rag_body.get("retrieval", {}).get("top_title", "")
+            if plan_rag_body.get("retrieval")
+            else ""
+        )
+        rag_ok = "feed" in rag_title.lower()
+        checks.append({"name": "plan:retrieve", "ok": rag_ok, "detail": rag_title})
 
         for query, expect_title in _SPOT_CHECKS:
             _, retrieve_body = _http_json(

@@ -11,10 +11,12 @@ import sys
 from pathlib import Path
 
 _scripts = Path(__file__).resolve().parent
+_REPO = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
 _PROG = "phase3_reference_server"
+_DEFAULT_HSP_CORPUS = _REPO / "texts" / "hsp_program_corpus.md"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -40,6 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("TINYMODEL_PATH", "HyperlinksSpace/TinyModel1"),
         help="Checkpoint path or Hub id (or set TINYMODEL_PATH).",
     )
+    p.add_argument(
+        "--hsp-corpus",
+        type=str,
+        default=os.environ.get("TINYMODEL_HSP_CORPUS", str(_DEFAULT_HSP_CORPUS)),
+        help="Markdown corpus for POST /v1/plan when clients omit candidates.",
+    )
     p.add_argument("--host", type=str, default="127.0.0.1")
     p.add_argument("--port", type=int, default=8765)
     return p
@@ -49,10 +57,10 @@ def parse_args() -> argparse.Namespace:
     return build_parser().parse_args()
 
 
-def create_reference_app(rt, model_name: str):
+def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = None):
     """Build FastAPI app for Uvicorn or in-process probes."""
     try:
-        from fastapi import Body, FastAPI
+        from fastapi import Body, FastAPI, HTTPException
     except ImportError as e:
         raise ImportError(
             "Install optional deps: pip install fastapi uvicorn pydantic"
@@ -62,10 +70,16 @@ def create_reference_app(rt, model_name: str):
         ClassifyIn,
         ClassifyItem,
         ClassifyOut,
+        PlanIn,
+        PlanOut,
+        PlanRetrieval,
+        PlanRouting,
         RetrieveHit,
         RetrieveIn,
         RetrieveOut,
     )
+
+    bundled_chunks = list(hsp_chunks or [])
 
     app = FastAPI(
         title="TinyModel reference API",
@@ -83,6 +97,7 @@ def create_reference_app(rt, model_name: str):
             "health": "/healthz",
             "classify": "POST /v1/classify (JSON: texts[])",
             "retrieve": "POST /v1/retrieve (JSON: query, candidates[], top_k)",
+            "plan": "POST /v1/plan (JSON: text; HSP control-plane glue)",
         }
 
     @app.get("/healthz")
@@ -104,10 +119,41 @@ def create_reference_app(rt, model_name: str):
             ],
         )
 
+    @app.post("/v1/plan", response_model=PlanOut)
+    def v1_plan(payload: PlanIn = Body()) -> PlanOut:
+        from hsp_plan_lib import plan_hsp_request
+
+        chunks = payload.candidates if payload.candidates else bundled_chunks
+        if not chunks:
+            raise HTTPException(
+                status_code=400,
+                detail="no candidates and no bundled HSP corpus loaded",
+            )
+        plan = plan_hsp_request(
+            payload.text,
+            rt,
+            chunks,
+            min_confidence=payload.min_confidence,
+            min_margin=payload.min_margin,
+            top_k=payload.top_k,
+        )
+        retrieval = None
+        if plan["retrieval"] is not None:
+            retrieval = PlanRetrieval(**plan["retrieval"])
+        return PlanOut(
+            text=plan["text"],
+            route_hint=plan["route_hint"],
+            actions=plan["actions"],
+            probs=plan["probs"],
+            routing=PlanRouting(**plan["routing"]),
+            retrieval=retrieval,
+        )
+
     return app
 
 
 def main() -> None:
+    from hsp_corpus_lib import load_chunks
     from phase3_common import resolve_checkpoint_or_hub
     from tinymodel_runtime import TinyModelRuntime
 
@@ -123,8 +169,16 @@ def main() -> None:
         )
         raise SystemExit(1) from e
 
+    hsp_corpus = Path(args.hsp_corpus)
+    hsp_chunks: list[str] = []
+    if hsp_corpus.is_file():
+        hsp_chunks = load_chunks(hsp_corpus)
+        print(f"Loaded HSP corpus {hsp_corpus} ({len(hsp_chunks)} chunks)", file=sys.stderr)
+    else:
+        print(f"Warning: HSP corpus not found at {hsp_corpus}; /v1/plan needs candidates", file=sys.stderr)
+
     rt = TinyModelRuntime(args.model, device="cpu", max_length=128)
-    app = create_reference_app(rt, args.model)
+    app = create_reference_app(rt, args.model, hsp_chunks)
     print(f"Starting reference server on http://{args.host}:{args.port} model={args.model!r}")
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 

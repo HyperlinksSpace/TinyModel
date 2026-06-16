@@ -49,6 +49,31 @@ python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1 --h
 | ------ | ---- | ----------- |
 | `hits` | list | Each: `index` (into `candidates`), `text`, `score` (cosine similarity, higher is closer). |
 
+### `POST /v1/plan` (HSP control-plane)
+
+Single-call glue for Hyperlinks Space Program sidecar integration: deterministic route hints, encoder classify gates, and hybrid corpus retrieval when routing abstains. Corpus defaults to `texts/hsp_program_corpus.md` (override with `--hsp-corpus` or `TINYMODEL_HSP_CORPUS`). Export JSON for HSP build sync: `python scripts/hsp_corpus_export.py --verify`.
+
+**Request (JSON):**
+
+| Field | Type | Default | Description |
+| ----- | ---- | ------- | ----------- |
+| `text` | string | — | User message. |
+| `candidates` | `list[string]` | `[]` | Optional corpus; server uses bundled HSP markdown when empty. |
+| `top_k` | int | `2` | 1–100 for hybrid retrieval. |
+| `min_confidence` | float | `0.55` | Routing gate (0–1). |
+| `min_margin` | float | `0.10` | Routing margin gate (0–1). |
+
+**Response (JSON):**
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `text` | string | Echo of input. |
+| `route_hint` | string \| null | e.g. `navigate:/swap`, `feature:shield`. |
+| `actions` | list | Structured actions (`navigate`, `feature`). |
+| `probs` | object | Classifier label scores. |
+| `routing` | object | `fallback`, `label`, `confidence`, `margin`, `reason`. |
+| `retrieval` | object \| null | When hybrid RAG runs: `top_idx`, `top_title`, `hybrid_score`, `keyword_overlap`, `chunk_preview`. |
+
 ## Production vs reference
 
 - **ONNX** (`classifier.onnx` / `encoder.onnx` from `phase3_export_onnx.py`) is intended for **low-latency** inference with [ONNX Runtime](https://onnxruntime.ai/); the reference server still uses **PyTorch** for fewer moving parts. Swap the model execution layer behind the same API shape when you need ORT.

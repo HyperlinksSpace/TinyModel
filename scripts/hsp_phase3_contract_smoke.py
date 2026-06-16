@@ -100,6 +100,70 @@ def validate_retrieve_response(body: Any, *, num_candidates: int) -> None:
             _fail("retrieve hit.score must be number")
 
 
+def validate_plan_request(body: Any) -> None:
+    if not isinstance(body, dict):
+        _fail("plan request must be object")
+    text = body.get("text")
+    if not isinstance(text, str) or not text.strip():
+        _fail("plan request.text must be non-empty string")
+    candidates = body.get("candidates", [])
+    if candidates is not None and not isinstance(candidates, list):
+        _fail("plan request.candidates must be list when present")
+    if isinstance(candidates, list) and not all(isinstance(c, str) for c in candidates):
+        _fail("plan request.candidates must be list[string]")
+    top_k = body.get("top_k", 2)
+    if not isinstance(top_k, int) or top_k < 1 or top_k > 100:
+        _fail("plan request.top_k must be int in 1..100")
+    mc = body.get("min_confidence", 0.55)
+    mm = body.get("min_margin", 0.10)
+    if not isinstance(mc, (int, float)) or not 0.0 <= float(mc) <= 1.0:
+        _fail("plan request.min_confidence must be number in 0..1")
+    if not isinstance(mm, (int, float)) or not 0.0 <= float(mm) <= 1.0:
+        _fail("plan request.min_margin must be number in 0..1")
+
+
+def validate_plan_response(body: Any) -> None:
+    if not isinstance(body, dict):
+        _fail("plan response must be object")
+    text = body.get("text")
+    if not isinstance(text, str) or not text.strip():
+        _fail("plan response.text must be non-empty string")
+    route_hint = body.get("route_hint")
+    if route_hint is not None and not isinstance(route_hint, str):
+        _fail("plan response.route_hint must be string or null")
+    actions = body.get("actions")
+    if not isinstance(actions, list):
+        _fail("plan response.actions must be list")
+    for action in actions:
+        if not isinstance(action, dict) or not isinstance(action.get("type"), str):
+            _fail("plan action must be object with string type")
+    probs = body.get("probs")
+    if not isinstance(probs, dict) or not probs:
+        _fail("plan response.probs must be non-empty object")
+    routing = body.get("routing")
+    if not isinstance(routing, dict):
+        _fail("plan response.routing must be object")
+    if not isinstance(routing.get("fallback"), bool):
+        _fail("plan routing.fallback must be bool")
+    if routing.get("label") is not None and not isinstance(routing.get("label"), str):
+        _fail("plan routing.label must be string or null")
+    for key in ("confidence", "margin"):
+        if not isinstance(routing.get(key), (int, float)):
+            _fail(f"plan routing.{key} must be number")
+    if not isinstance(routing.get("reason"), str):
+        _fail("plan routing.reason must be string")
+    retrieval = body.get("retrieval")
+    if retrieval is not None:
+        if not isinstance(retrieval, dict):
+            _fail("plan response.retrieval must be object or null")
+        for key in ("top_idx", "hybrid_score", "keyword_overlap"):
+            if not isinstance(retrieval.get(key), (int, float)):
+                _fail(f"plan retrieval.{key} must be number")
+        for key in ("top_title", "chunk_preview"):
+            if not isinstance(retrieval.get(key), str):
+                _fail(f"plan retrieval.{key} must be string")
+
+
 def build_hsp_sample_requests(chunks: list[str]) -> dict[str, Any]:
     """Payloads matching Hyperlinks Space Program ai/tinymodel.ts client calls."""
     return {
@@ -121,6 +185,21 @@ def build_hsp_sample_requests(chunks: list[str]) -> dict[str, Any]:
                     "score": 0.87,
                 }
             ]
+        },
+        "plan_request": {"text": "open swap page"},
+        "plan_response_sample": {
+            "text": "open swap page",
+            "route_hint": "navigate:/swap",
+            "actions": [{"type": "navigate", "path": "/swap"}],
+            "probs": {"World": 0.12, "Business": 0.55, "Sports": 0.08, "Sci/Tech": 0.25},
+            "routing": {
+                "fallback": False,
+                "label": "Business",
+                "confidence": 0.55,
+                "margin": 0.2,
+                "reason": "accepted",
+            },
+            "retrieval": None,
         },
     }
 
@@ -162,13 +241,20 @@ def run_verify() -> tuple[bool, dict[str, Any]]:
             samples["retrieve_response_sample"], num_candidates=len(chunks)
         ),
     )
+    _check("plan_request", lambda: validate_plan_request(samples["plan_request"]))
+    _check(
+        "plan_response",
+        lambda: validate_plan_response(samples["plan_response_sample"]),
+    )
 
     # Round-trip JSON (HSP fetch + JSON.parse)
-    for key in ("classify_request", "retrieve_request"):
+    for key in ("classify_request", "retrieve_request", "plan_request"):
         raw = json.dumps(samples[key])
         parsed = json.loads(raw)
         if key == "classify_request":
             validate_classify_request(parsed)
+        elif key == "plan_request":
+            validate_plan_request(parsed)
         else:
             validate_retrieve_request(parsed, min_candidates=_MIN_CHUNKS)
 
