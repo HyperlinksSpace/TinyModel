@@ -1,0 +1,67 @@
+{
+  "schema": "hsp_program_corpus/1.0",
+  "source": "C:\\1\\1\\1\\1\\1\\TinyModel\\texts\\hsp_program_corpus.md",
+  "chunk_count": 12,
+  "chunks": [
+    {
+      "index": 0,
+      "title": "AI and Search (GlobalBottomBar)",
+      "text": "AI and Search (GlobalBottomBar)\nThe bottom bar on the signed-in home screen is labeled **AI & Search** (web) or **AI & Search** on native. Type a question or tap a premade prompt. Sending opens the AI flow with your text. The bar supports multiline input and appears in the screen footer on narrow layouts or in the far-right column on wide layouts. Premade examples include trending tokens, artist launches, and swap-style requests."
+    },
+    {
+      "index": 1,
+      "title": "Swap tokens",
+      "text": "Swap tokens\nOpen **Swap** from the main navigation to exchange tokens on TON. The swap screen shows charts, currency selection, and rate information powered by Swap.Coffee. Use the bottom bar to ask for help comparing rates, slippage, or which token to pick\u2014always confirm amounts on screen before submitting a swap."
+    },
+    {
+      "index": 2,
+      "title": "Send and Get wallet",
+      "text": "Send and Get wallet\n**Send** moves assets from your wallet; **Get** shows receive / wallet details. Wallet creation and key backup flows are security-sensitive. The program may prompt you to save a recovery phrase. Use AI to explain steps, not to paste private keys or mnemonics into chat."
+    },
+    {
+      "index": 3,
+      "title": "Sign in and accounts",
+      "text": "Sign in and accounts\nWelcome supports sign-in providers such as **Google**, **GitHub**, and **Telegram** (availability may vary by platform). Link accounts from settings when offered. After sign-in you reach the authenticated home with feed, swap, and the AI bar. If login fails, check network, API base URL (`EXPO_PUBLIC_API_BASE_URL`), and server OAuth env configuration."
+    },
+    {
+      "index": 4,
+      "title": "Shield",
+      "text": "Shield\n**Shield** is the program\u2019s protection / settings entry (floating control and related screens). Use it for security-oriented options. Ask the assistant to explain Shield on your current screen; it should not ask for secrets."
+    },
+    {
+      "index": 5,
+      "title": "Connect Telegram messages",
+      "text": "Connect Telegram messages\nFrom the home footer you can **Connect Telegram** to link real Telegram message access via the TDLib gateway (server-side `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and `TDLIB_GATEWAY_URL`). Local dev runs `npm run tdlib:gateway` and points the API at your tunnel or localhost. Disconnect clears the linked session when available."
+    },
+    {
+      "index": 6,
+      "title": "Feed",
+      "text": "Feed\nThe home **feed** shows activity-style items (tasks, tokens, NFTs, wallet events\u2014placeholders and live items may mix). Time and translations follow UI locale settings. AI can summarize feed wording or explain item types; it does not execute trades from feed cards alone."
+    },
+    {
+      "index": 7,
+      "title": "Smart layout",
+      "text": "Smart layout\nOn wide viewports, **Smart** content may open in a right panel; on narrow screens use the Smart route. Layout breakpoints are defined in the UI theme (`authenticatedHome.firstBreakpoint`). The AI column can show search empty-state prompts when the draft is empty."
+    },
+    {
+      "index": 8,
+      "title": "Token info mode",
+      "text": "Token info mode\nWhen you ask about a **token symbol** (e.g. USDT, TON, NOT), the backend may run **token_info** mode: live facts from Swap.Coffee (price, holders, verification) plus a concise analyst-style answer. Prefer symbols like `USDT` or `$USDT` for detection. If a token is not found on TON, you will get a clear not-found message."
+    },
+    {
+      "index": 9,
+      "title": "Languages",
+      "text": "Languages\nThe UI supports **English** and **Russian** via in-app locale toggles. AI replies can follow your phrasing; ask for answers in a specific language in the same message. Feed welcome translation may follow UI language when the manual toggle is enabled."
+    },
+    {
+      "index": 10,
+      "title": "Windows and Telegram Mini App",
+      "text": "Windows and Telegram Mini App\nThe same codebase ships as **Expo web**, **Telegram Mini App**, and **Windows Electron**. Telegram Mini App uses theme colors from the WebApp API. Windows builds use Electron Forge; in-app updates are documented under windows installer notes. API calls go to your deployed `/api/*` routes (e.g. Vercel) or local `npm run dev:vercel`."
+    },
+    {
+      "index": 11,
+      "title": "Getting help safely",
+      "text": "Getting help safely\nDo not share seed phrases, private keys, or full payment card numbers in AI chat. For billing on third-party services (OpenAI, Neon, Vercel), use official dashboards. Report bugs via the project GitHub repository. AI augments the UI\u2014it does not replace on-screen confirmation for sends and swaps."
+    }
+  ]
+}
