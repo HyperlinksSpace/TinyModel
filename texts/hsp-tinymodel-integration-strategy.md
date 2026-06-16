@@ -214,6 +214,8 @@ python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1 --p
 
 Use retrieve to rank **help snippets** from a static JSON corpus shipped with the API (or sync from TinyModel `hsp_program_corpus.md` at build time).
 
+**TinyModel contract gate:** `python scripts/hsp_phase3_contract_smoke.py --verify` (stdlib JSON shapes). **Hybrid RAG gate:** `python scripts/hsp_rag_hybrid_smoke.py --verify` (wired in `phase3-smoke.yml` after train).
+
 **No UI change yet**—log classify + retrieve in `/api/ai` responses under `meta.tinymodel` for debugging.
 
 ---

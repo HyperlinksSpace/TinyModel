@@ -49,6 +49,10 @@ jobs:
         run: |
           python scripts/routing_policy.py --from-checkpoint .tmp/phase3-smoke
 
+      - name: HSP program corpus hybrid RAG (verify)
+        run: |
+          python scripts/hsp_rag_hybrid_smoke.py --verify --model .tmp/phase3-smoke
+
       - name: Export ONNX
         run: |
           python scripts/phase3_export_onnx.py --model .tmp/phase3-smoke
