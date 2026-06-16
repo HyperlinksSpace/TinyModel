@@ -195,7 +195,7 @@ AI_PROVIDER=hybrid
 
 ---
 
-### Phase 1 — Encoder sidecar (2–3 weeks)
+### Phase 1 — Encoder sidecar (2–3 weeks) — **TinyModel gates complete**
 
 Run TinyModel **reference API** next to HSP API (local, Fly, Railway, or GCP—same patterns as TDLib gateway).
 
@@ -214,7 +214,7 @@ python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1 --p
 
 Use retrieve to rank **help snippets** from a static JSON corpus shipped with the API (or sync from TinyModel `hsp_program_corpus.md` at build time via `python scripts/hsp_corpus_export.py --verify` → `artifacts/hsp/hsp_program_corpus.json`).
 
-**TinyModel contract gate:** `python scripts/hsp_phase3_contract_smoke.py --verify` (stdlib JSON shapes). **Hybrid RAG gate:** `python scripts/hsp_rag_hybrid_smoke.py --verify` (wired in `phase3-smoke.yml` after train). **Route-then-retrieve gate:** `python scripts/hsp_route_then_retrieve.py --verify` (intent router + classify + hybrid corpus). **Live API gate:** `python scripts/hsp_phase3_server_smoke.py --verify` (subprocess Uvicorn + stdlib HTTP; includes `POST /v1/plan`). **Corpus export:** `python scripts/hsp_corpus_export.py --verify`.
+**TinyModel contract gate:** `python scripts/hsp_phase3_contract_smoke.py --verify` (stdlib JSON shapes). **Hybrid RAG gate:** `python scripts/hsp_rag_hybrid_smoke.py --verify` (wired in `phase3-smoke.yml` after train). **Route-then-retrieve gate:** `python scripts/hsp_route_then_retrieve.py --verify` (intent router + classify + hybrid corpus). **Live API gate:** `python scripts/hsp_phase3_server_smoke.py --verify` (subprocess Uvicorn + stdlib HTTP; includes `POST /v1/plan`). **Corpus export:** `python scripts/hsp_corpus_export.py --verify`. **Meta contract:** `python scripts/hsp_meta_contract_smoke.py --verify` ([`texts/hsp-sidecar-meta.md`](hsp-sidecar-meta.md)). **All gates:** `python scripts/hsp_integration_smoke.py --verify` (stdlib) or `--verify --full` (torch + HTTP).
 
 **No UI change yet**—log classify + retrieve in `/api/ai` responses under `meta.tinymodel` for debugging.
 
