@@ -53,6 +53,10 @@ jobs:
         run: |
           python scripts/hsp_rag_hybrid_smoke.py --verify --model .tmp/phase3-smoke
 
+      - name: HSP route-then-retrieve glue (verify)
+        run: |
+          python scripts/hsp_route_then_retrieve.py --verify --model .tmp/phase3-smoke
+
       - name: HSP Phase 3 reference server (live HTTP verify)
         run: |
           python scripts/hsp_phase3_server_smoke.py --verify --model .tmp/phase3-smoke
