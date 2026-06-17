@@ -120,6 +120,12 @@ def validate_plan_request(body: Any) -> None:
         _fail("plan request.min_confidence must be number in 0..1")
     if not isinstance(mm, (int, float)) or not 0.0 <= float(mm) <= 1.0:
         _fail("plan request.min_margin must be number in 0..1")
+    ctx = body.get("context")
+    if ctx is not None:
+        if not isinstance(ctx, dict):
+            _fail("plan request.context must be object or null")
+        if ctx.get("route") is not None and not isinstance(ctx.get("route"), str):
+            _fail("plan request.context.route must be string or null")
 
 
 def validate_plan_response(body: Any) -> None:
@@ -128,6 +134,12 @@ def validate_plan_response(body: Any) -> None:
     text = body.get("text")
     if not isinstance(text, str) or not text.strip():
         _fail("plan response.text must be non-empty string")
+    intent = body.get("intent")
+    if not isinstance(intent, str) or not intent.strip():
+        _fail("plan response.intent must be non-empty string")
+    ctx = body.get("context")
+    if ctx is not None and not isinstance(ctx, dict):
+        _fail("plan response.context must be object or null")
     route_hint = body.get("route_hint")
     if route_hint is not None and not isinstance(route_hint, str):
         _fail("plan response.route_hint must be string or null")
@@ -187,8 +199,14 @@ def build_hsp_sample_requests(chunks: list[str]) -> dict[str, Any]:
             ]
         },
         "plan_request": {"text": "open swap page"},
+        "plan_request_with_context": {
+            "text": "what is this",
+            "context": {"route": "/shield", "locale": "en"},
+        },
         "plan_response_sample": {
             "text": "open swap page",
+            "intent": "navigate",
+            "context": None,
             "route_hint": "navigate:/swap",
             "actions": [{"type": "navigate", "path": "/swap"}],
             "probs": {"World": 0.12, "Business": 0.55, "Sports": 0.08, "Sci/Tech": 0.25},
@@ -243,17 +261,21 @@ def run_verify() -> tuple[bool, dict[str, Any]]:
     )
     _check("plan_request", lambda: validate_plan_request(samples["plan_request"]))
     _check(
+        "plan_request_context",
+        lambda: validate_plan_request(samples["plan_request_with_context"]),
+    )
+    _check(
         "plan_response",
         lambda: validate_plan_response(samples["plan_response_sample"]),
     )
 
     # Round-trip JSON (HSP fetch + JSON.parse)
-    for key in ("classify_request", "retrieve_request", "plan_request"):
+    for key in ("classify_request", "retrieve_request", "plan_request", "plan_request_with_context"):
         raw = json.dumps(samples[key])
         parsed = json.loads(raw)
         if key == "classify_request":
             validate_classify_request(parsed)
-        elif key == "plan_request":
+        elif key in ("plan_request", "plan_request_with_context"):
             validate_plan_request(parsed)
         else:
             validate_retrieve_request(parsed, min_candidates=_MIN_CHUNKS)

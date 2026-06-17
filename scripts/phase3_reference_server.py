@@ -70,6 +70,7 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
         ClassifyIn,
         ClassifyItem,
         ClassifyOut,
+        PlanContext,
         PlanIn,
         PlanOut,
         PlanRetrieval,
@@ -129,6 +130,9 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
                 status_code=400,
                 detail="no candidates and no bundled HSP corpus loaded",
             )
+        ctx_dict: dict | None = None
+        if payload.context is not None:
+            ctx_dict = payload.context.model_dump(exclude_none=True)
         plan = plan_hsp_request(
             payload.text,
             rt,
@@ -136,12 +140,18 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
             min_confidence=payload.min_confidence,
             min_margin=payload.min_margin,
             top_k=payload.top_k,
+            context=ctx_dict,
         )
         retrieval = None
         if plan["retrieval"] is not None:
             retrieval = PlanRetrieval(**plan["retrieval"])
+        out_ctx = None
+        if plan.get("context"):
+            out_ctx = PlanContext(**plan["context"])
         return PlanOut(
             text=plan["text"],
+            intent=plan["intent"],
+            context=out_ctx,
             route_hint=plan["route_hint"],
             actions=plan["actions"],
             probs=plan["probs"],

@@ -82,6 +82,8 @@ def run_verify(model: str | None, full: bool) -> tuple[bool, dict[str, Any]]:
         ("phase3_contract", ["hsp_phase3_contract_smoke.py", "--verify"]),
         ("corpus_export", ["hsp_corpus_export.py", "--verify"]),
         ("meta_contract", ["hsp_meta_contract_smoke.py", "--verify"]),
+        ("screen_context", ["hsp_screen_context_smoke.py", "--verify"]),
+        ("reference_client", ["hsp_reference_client_smoke.py", "--verify"]),
         ("ub_eval", ["ub_eval_runner.py", "--verify"]),
     ]
 

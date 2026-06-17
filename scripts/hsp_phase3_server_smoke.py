@@ -141,6 +141,27 @@ def run_verify(model_arg: str | None, port: int) -> tuple[bool, dict[str, Any]]:
         )
         checks.append({"name": "plan:navigate", "ok": nav_ok})
 
+        _, plan_screen_body = _http_json(
+            f"{base}/v1/plan",
+            method="POST",
+            payload={"text": "what is this", "context": {"route": "/shield", "locale": "en"}},
+            timeout=90.0,
+        )
+        validate_plan_response(plan_screen_body)
+        screen_ok = (
+            plan_screen_body.get("intent") == "explain_screen"
+            and plan_screen_body.get("retrieval")
+            and "shield" in plan_screen_body["retrieval"]["top_title"].lower()
+        )
+        screen_title = (
+            plan_screen_body.get("retrieval", {}).get("top_title", "")
+            if plan_screen_body.get("retrieval")
+            else ""
+        )
+        checks.append(
+            {"name": "plan:explain_screen", "ok": screen_ok, "detail": screen_title}
+        )
+
         _, plan_rag_body = _http_json(
             f"{base}/v1/plan",
             method="POST",

@@ -58,6 +58,7 @@ Single-call glue for Hyperlinks Space Program sidecar integration: deterministic
 | Field | Type | Default | Description |
 | ----- | ---- | ------- | ----------- |
 | `text` | string | — | User message. |
+| `context` | object | null | Optional screen context: `route`, `locale`, `wallet_connected`. |
 | `candidates` | `list[string]` | `[]` | Optional corpus; server uses bundled HSP markdown when empty. |
 | `top_k` | int | `2` | 1–100 for hybrid retrieval. |
 | `min_confidence` | float | `0.55` | Routing gate (0–1). |
@@ -68,6 +69,8 @@ Single-call glue for Hyperlinks Space Program sidecar integration: deterministic
 | Field | Type | Description |
 | ----- | ---- | ----------- |
 | `text` | string | Echo of input. |
+| `intent` | string | `navigate`, `explain_screen`, or `chat`. |
+| `context` | object \| null | Echo of request context when provided. |
 | `route_hint` | string \| null | e.g. `navigate:/swap`, `feature:shield`. |
 | `actions` | list | Structured actions (`navigate`, `feature`). |
 | `probs` | object | Classifier label scores. |

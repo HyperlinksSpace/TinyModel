@@ -100,6 +100,9 @@ def _load_intent_rows() -> list[dict[str, Any]]:
 def _print_human(plan: dict[str, Any]) -> None:
     text = plan["text"]
     print(f"text: {text[:120]!r}{'...' if len(text) > 120 else ''}")
+    print(f"  intent: {plan.get('intent')!r}")
+    if plan.get("context"):
+        print(f"  context: {plan['context']}")
     if plan["route_hint"]:
         print(f"  route_hint: {plan['route_hint']!r}")
         print(f"  actions: {plan['actions']}")
@@ -236,14 +239,14 @@ def main() -> None:
 
     if args.demo:
         maybe_print_routing_section(model_id, enabled=args.show_train_routing, prog=_PROG)
-        samples = [
-            "open swap page",
-            "what is Shield protection settings",
-            "connect Telegram messages TDLib gateway",
-            "Explain gas fees on TON",
+        samples: list[tuple[str, dict[str, Any] | None]] = [
+            ("open swap page", None),
+            ("what is this", {"route": "/shield", "locale": "en"}),
+            ("connect Telegram messages TDLib gateway", None),
+            ("Explain gas fees on TON", None),
         ]
-        print("=== HSP route hint -> classify -> (retrieve if fallback) ===\n")
-        for q in samples:
+        print("=== HSP route hint / screen context -> classify -> retrieve ===\n")
+        for q, ctx in samples:
             plan = plan_hsp_request(
                 q,
                 rt,
@@ -251,6 +254,7 @@ def main() -> None:
                 min_confidence=args.min_confidence,
                 min_margin=args.min_margin,
                 top_k=args.top_k,
+                context=ctx,
             )
             _print_human(plan)
             print()

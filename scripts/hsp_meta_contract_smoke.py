@@ -38,6 +38,8 @@ def build_parser() -> argparse.ArgumentParser:
 def sample_plan_navigate() -> dict[str, Any]:
     return {
         "text": "open swap page",
+        "intent": "navigate",
+        "context": None,
         "route_hint": "navigate:/swap",
         "actions": [{"type": "navigate", "path": "/swap"}],
         "probs": {"World": 0.12, "Business": 0.55, "Sports": 0.08, "Sci/Tech": 0.25},
@@ -55,6 +57,8 @@ def sample_plan_navigate() -> dict[str, Any]:
 def sample_plan_retrieve() -> dict[str, Any]:
     return {
         "text": "explain home feed NFT items",
+        "intent": "chat",
+        "context": None,
         "route_hint": None,
         "actions": [],
         "probs": {"World": 0.2, "Sports": 0.15, "Business": 0.25, "Sci/Tech": 0.3},
@@ -75,6 +79,32 @@ def sample_plan_retrieve() -> dict[str, Any]:
     }
 
 
+def sample_plan_explain_screen() -> dict[str, Any]:
+    return {
+        "text": "what is this",
+        "intent": "explain_screen",
+        "context": {"route": "/shield", "locale": "en"},
+        "route_hint": None,
+        "actions": [],
+        "probs": {"World": 0.2, "Sports": 0.15, "Business": 0.25, "Sci/Tech": 0.3},
+        "routing": {
+            "fallback": True,
+            "label": None,
+            "confidence": 0.3,
+            "margin": 0.05,
+            "reason": "below_min_confidence",
+        },
+        "retrieval": {
+            "top_idx": 4,
+            "top_title": "Shield",
+            "hybrid_score": 0.9,
+            "keyword_overlap": 0.5,
+            "chunk_preview": "Shield\nProtection settings...",
+            "query_used": "Shield what is this",
+        },
+    }
+
+
 def run_verify() -> tuple[bool, dict[str, Any]]:
     checks: list[dict[str, Any]] = []
     model = "HyperlinksSpace/TinyModel1"
@@ -82,6 +112,7 @@ def run_verify() -> tuple[bool, dict[str, Any]]:
     for name, plan in (
         ("navigate_plan", sample_plan_navigate()),
         ("retrieve_plan", sample_plan_retrieve()),
+        ("explain_screen_plan", sample_plan_explain_screen()),
     ):
         meta = build_meta_tinymodel(plan, model)
         validate_meta_tinymodel(meta)

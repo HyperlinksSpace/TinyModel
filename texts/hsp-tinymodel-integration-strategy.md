@@ -222,6 +222,8 @@ Use retrieve to rank **help snippets** from a static JSON corpus shipped with th
 
 ### Phase 2 — Provider abstraction in `ai/transmitter.ts` (2–4 weeks)
 
+**TinyModel prep (done):** TypeScript reference client at [`integrations/hsp/reference/`](../integrations/hsp/reference/) · `python scripts/hsp_reference_client_smoke.py --verify`. Screen context on `/v1/plan` (`context.route` → `explain_screen` intent). Meta contract: [`texts/hsp-sidecar-meta.md`](hsp-sidecar-meta.md).
+
 Refactor toward:
 
 ```typescript

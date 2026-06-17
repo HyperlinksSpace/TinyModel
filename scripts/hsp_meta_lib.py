@@ -18,14 +18,19 @@ def build_meta_tinymodel(plan: dict[str, Any], model: str) -> dict[str, Any]:
     probs = plan.get("probs") or {}
     if not label and isinstance(probs, dict):
         label = classify_top_label(probs)
-    return {
+    meta: dict[str, Any] = {
         "model": model,
+        "intent": plan.get("intent"),
         "route_hint": plan.get("route_hint"),
         "actions": list(plan.get("actions") or []),
         "routing": routing,
         "retrieval": plan.get("retrieval"),
         "classify_top_label": label,
     }
+    ctx = plan.get("context")
+    if ctx:
+        meta["context"] = ctx
+    return meta
 
 
 def validate_meta_tinymodel(meta: Any) -> None:
@@ -35,6 +40,9 @@ def validate_meta_tinymodel(meta: Any) -> None:
     model = meta.get("model")
     if not isinstance(model, str) or not model.strip():
         raise ValueError("meta.tinymodel.model must be non-empty string")
+    intent = meta.get("intent")
+    if intent is not None and not isinstance(intent, str):
+        raise ValueError("meta.tinymodel.intent must be string or null")
     route_hint = meta.get("route_hint")
     if route_hint is not None and not isinstance(route_hint, str):
         raise ValueError("meta.tinymodel.route_hint must be string or null")
@@ -59,6 +67,9 @@ def validate_meta_tinymodel(meta: Any) -> None:
     top_label = meta.get("classify_top_label")
     if top_label is not None and not isinstance(top_label, str):
         raise ValueError("meta.tinymodel.classify_top_label must be string or null")
+    ctx = meta.get("context")
+    if ctx is not None and not isinstance(ctx, dict):
+        raise ValueError("meta.tinymodel.context must be object or null")
     retrieval = meta.get("retrieval")
     if retrieval is not None:
         if not isinstance(retrieval, dict):

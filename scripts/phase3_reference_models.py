@@ -33,6 +33,12 @@ class RetrieveOut(BaseModel):
     hits: list[RetrieveHit]
 
 
+class PlanContext(BaseModel):
+    route: str | None = Field(None, description="Current app route, e.g. /swap.")
+    locale: str | None = Field(None, description="UI locale, e.g. en or ru.")
+    wallet_connected: bool | None = Field(None, description="Whether wallet is linked.")
+
+
 class PlanIn(BaseModel):
     text: str = Field(..., min_length=1, description="User message to plan.")
     candidates: list[str] = Field(
@@ -42,6 +48,7 @@ class PlanIn(BaseModel):
     top_k: int = Field(2, ge=1, le=100)
     min_confidence: float = Field(0.55, ge=0.0, le=1.0)
     min_margin: float = Field(0.10, ge=0.0, le=1.0)
+    context: PlanContext | None = None
 
 
 class PlanRouting(BaseModel):
@@ -58,10 +65,13 @@ class PlanRetrieval(BaseModel):
     hybrid_score: float
     keyword_overlap: float
     chunk_preview: str
+    query_used: str | None = None
 
 
 class PlanOut(BaseModel):
     text: str
+    intent: str
+    context: PlanContext | None = None
     route_hint: str | None = None
     actions: list[dict[str, str]]
     probs: dict[str, float]
