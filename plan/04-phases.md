@@ -50,7 +50,7 @@ python scripts/hsp_integration_smoke.py --verify --full
 
 | Owner | Work | Status |
 | ----- | ---- | ------ |
-| HSP | Refactor `ai/transmitter.ts`: `AI_PROVIDER=hybrid` | Todo |
+| HSP | Refactor `ai/transmitter.ts`: `AI_PROVIDER=hybrid` per [07-ai-transmitter.md](07-ai-transmitter.md) | Todo |
 | HSP | `buildContext()`: thread + RAG + screen context + NL overlays | Todo |
 | HSP | Return `actions[]` + `output_text` + `meta` | Todo |
 | HSP | `/api/ai/stream` (mirror bot `transmitStream`) | Todo |

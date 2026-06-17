@@ -30,6 +30,7 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 | [04-phases.md](04-phases.md) | Phased delivery, owners, exit criteria |
 | [05-deployment.md](05-deployment.md) | Railway, Vercel, HF Space—what runs where |
 | [06-verify-gates.md](06-verify-gates.md) | Commands that must pass before each phase ships |
+| [07-ai-transmitter.md](07-ai-transmitter.md) | **AI Transmitter** — per-prompt routing, availability fallbacks, generators |
 
 ---
 
@@ -39,7 +40,7 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 | ----- | --------- | --- |
 | **0** Corpus & contracts | Done | Pending docs/env |
 | **1** Encoder sidecar (`/v1/plan`) | Done | Not wired |
-| **2** Hybrid `transmitter` + meta | Prep done (TS reference, screen context) | Not started |
+| **2** Hybrid `transmitter` + meta | Prep done (TS reference, screen context); spec [`plan/07-ai-transmitter.md`](../plan/07-ai-transmitter.md) | Not started |
 | **3** Full UB chat service | Artifact exists; deploy optional | Not started |
 | **4** Chat UI + action executor | N/A | Not started |
 
