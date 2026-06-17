@@ -39,21 +39,23 @@ Optional later:
 
 ## Service 1: TinyModel encoder sidecar (P0)
 
+**Production:** https://tinymodel.hyperlinks.space (Railway project **HSP**, service **TinyModel**).
+
+**Deploy guide:** [`deploy/railway/README.md`](../deploy/railway/README.md).
+
 **What:** `scripts/phase3_reference_server.py`
 
 **Railway setup (outline)**
 
-1. New service from this repo (or Docker image).
-2. Start command:
-   ```bash
-   pip install -r optional-requirements-phase3.txt torch transformers
-   python scripts/phase3_reference_server.py --host 0.0.0.0 --port $PORT
-   ```
+1. Service linked to this repo; domain `tinymodel.hyperlinks.space` configured.
+2. Deploy: `railway up --detach` (uses root `Dockerfile` + `railway.toml`).
 3. Env:
    - `TINYMODEL_PATH=HyperlinksSpace/TinyModel1`
-   - `TINYMODEL_HSP_CORPUS=/app/texts/hsp_program_corpus.md` (or bake corpus in image)
-4. Health check: `GET /healthz`
-5. Copy public URL → HSP `TINYMODEL_API_URL`
+   - `TINYMODEL_HSP_CORPUS=/app/texts/hsp_program_corpus.md`
+   - optional `HF_TOKEN`
+4. Health check: `GET /healthz` (timeout 300s on first boot).
+5. Verify: `python scripts/hsp_railway_deploy_smoke.py --verify`
+6. HSP: `TINYMODEL_API_URL=https://tinymodel.hyperlinks.space`
 
 **Resource hint:** CPU 1–2 vCPU, 2–4 GB RAM; first request loads HF weights (~tens of seconds).
 
@@ -66,7 +68,7 @@ Optional later:
 **Vercel** — no change to hosting; add env vars and longer timeout for AI routes if needed.
 
 ```bash
-TINYMODEL_API_URL=https://<tinymodel-service>.up.railway.app
+TINYMODEL_API_URL=https://tinymodel.hyperlinks.space
 AI_PROVIDER=hybrid
 OPENAI_API_KEY=sk-...
 # optional

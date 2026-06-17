@@ -1,0 +1,15 @@
+.git
+.github
+.tmp
+.venv
+__pycache__
+*.pyc
+artifacts/
+.tmp/
+node_modules
+*.md
+!texts/hsp_program_corpus.md
+!texts/phase3-serving-profile.md
+plan/
+tests/
+.cursor

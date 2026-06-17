@@ -28,6 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
         "  python scripts/phase3_reference_server.py --model artifacts/phase1/runs/smoke/ag_news/scratch "
         "--host 127.0.0.1 --port 8765\n"
         "Environment: TINYMODEL_PATH overrides the default Hub id for --model. "
+        "HOST and PORT env vars override --host/--port (Railway sets PORT). "
         "Swagger: http://127.0.0.1:8765/docs with default host/port."
     )
     p = argparse.ArgumentParser(
@@ -48,8 +49,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("TINYMODEL_HSP_CORPUS", str(_DEFAULT_HSP_CORPUS)),
         help="Markdown corpus for POST /v1/plan when clients omit candidates.",
     )
-    p.add_argument("--host", type=str, default="127.0.0.1")
-    p.add_argument("--port", type=int, default=8765)
+    p.add_argument("--host", type=str, default=os.environ.get("HOST", "127.0.0.1"))
+    p.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
     return p
 
 

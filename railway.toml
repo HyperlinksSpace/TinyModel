@@ -1,0 +1,12 @@
+# Railway config for TinyModel HSP sidecar.
+# Docs: deploy/railway/README.md
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/healthz"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+numReplicas = 1

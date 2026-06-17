@@ -28,7 +28,7 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 | [02-architecture.md](02-architecture.md) | Hybrid control plane, services, request/response shape |
 | [03-interface-control.md](03-interface-control.md) | Intents, `actions[]`, screen context, safety rules |
 | [04-phases.md](04-phases.md) | Phased delivery, owners, exit criteria |
-| [05-deployment.md](05-deployment.md) | Railway, Vercel, HF Space—what runs where |
+| [05-deployment.md](05-deployment.md) | Railway (`tinymodel.hyperlinks.space`), Vercel, HF Space |
 | [06-verify-gates.md](06-verify-gates.md) | Commands that must pass before each phase ships |
 | [07-ai-transmitter.md](07-ai-transmitter.md) | **AI Transmitter** — per-prompt routing, availability fallbacks, generators |
 
