@@ -7,7 +7,7 @@ This note ties together **Hyperlinks Space Program** ([`HyperlinksSpaceProgram`]
 3. How to make the model **manage the HSP interface itself** (the bottom bar, navigation, and in-app actions).
 4. **How to integrate** TinyModel into HSP in practice.
 
-Related TinyModel docs: [`universal-brain-concept-vs-tinymodel-today.md`](universal-brain-concept-vs-tinymodel-today.md), [`universal-brain-forward-plan-self-development.md`](universal-brain-forward-plan-self-development.md), [`golden-prompts/README.md`](golden-prompts/README.md).
+Related TinyModel docs: [`plan/README.md`](../plan/README.md) (master plan), [`universal-brain-concept-vs-tinymodel-today.md`](universal-brain-concept-vs-tinymodel-today.md), [`universal-brain-forward-plan-self-development.md`](universal-brain-forward-plan-self-development.md), [`golden-prompts/README.md`](golden-prompts/README.md).
 
 ---
 
