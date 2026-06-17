@@ -22,6 +22,7 @@ RUN pip install --upgrade pip \
 
 COPY scripts/ /app/scripts/
 COPY texts/hsp_program_corpus.md /app/texts/hsp_program_corpus.md
+RUN test -s /app/texts/hsp_program_corpus.md
 
 EXPOSE 8765
 

@@ -108,6 +108,10 @@ def main() -> None:
     except (ValueError, urllib.error.URLError, TimeoutError) as e:
         print(f"{_PROG}: FAIL {e}", file=sys.stderr)
         raise SystemExit(1) from e
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")[:500]
+        print(f"{_PROG}: FAIL HTTP {e.code} {e.reason}: {body}", file=sys.stderr)
+        raise SystemExit(1) from e
 
     out = Path(args.output_json) if args.output_json else _OUT
     if args.verify or args.output_json:

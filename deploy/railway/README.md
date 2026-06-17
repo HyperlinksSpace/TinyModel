@@ -87,7 +87,7 @@ Copy client from [`integrations/hsp/reference/`](../../integrations/hsp/referenc
 | ------- | --- |
 | 502 / deploy crash | Check logs: `railway logs`; increase RAM; set `HF_TOKEN` |
 | Slow first request | Normal — Hub model download on cold start; keep 1 replica warm |
-| `/v1/plan` 400 no corpus | Ensure `texts/hsp_program_corpus.md` is in image (Dockerfile COPY) |
+| `/v1/plan` 400 no corpus | Redeploy latest Docker image (`railway up`); logs must show `Loaded HSP corpus` |
 | Health check fails | Increase timeout to 300s; first boot can take 2–3 min |
 
 ```bash

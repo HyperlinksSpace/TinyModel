@@ -19,6 +19,32 @@ _PROG = "phase3_reference_server"
 _DEFAULT_HSP_CORPUS = _REPO / "texts" / "hsp_program_corpus.md"
 
 
+def resolve_hsp_corpus_path(explicit: str | None = None) -> Path:
+    """Resolve HSP markdown corpus (env, repo default, Docker path)."""
+    candidates: list[Path] = []
+    if explicit:
+        candidates.append(Path(explicit))
+    env_path = os.environ.get("TINYMODEL_HSP_CORPUS")
+    if env_path:
+        candidates.append(Path(env_path))
+    candidates.extend(
+        [
+            _DEFAULT_HSP_CORPUS,
+            Path("/app/texts/hsp_program_corpus.md"),
+        ]
+    )
+    seen: set[str] = set()
+    for path in candidates:
+        key = str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        if path.is_file():
+            return path.resolve()
+    tried = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(f"HSP corpus not found; tried: {tried}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     epilog = (
         "Install: pip install -r optional-requirements-phase3.txt "
@@ -180,13 +206,11 @@ def main() -> None:
         )
         raise SystemExit(1) from e
 
-    hsp_corpus = Path(args.hsp_corpus)
-    hsp_chunks: list[str] = []
-    if hsp_corpus.is_file():
-        hsp_chunks = load_chunks(hsp_corpus)
-        print(f"Loaded HSP corpus {hsp_corpus} ({len(hsp_chunks)} chunks)", file=sys.stderr)
-    else:
-        print(f"Warning: HSP corpus not found at {hsp_corpus}; /v1/plan needs candidates", file=sys.stderr)
+    hsp_corpus = resolve_hsp_corpus_path(args.hsp_corpus)
+    hsp_chunks = load_chunks(hsp_corpus)
+    print(f"Loaded HSP corpus {hsp_corpus} ({len(hsp_chunks)} chunks)", file=sys.stderr)
+    if len(hsp_chunks) < 8:
+        print(f"Warning: expected >= 8 corpus chunks, got {len(hsp_chunks)}", file=sys.stderr)
 
     rt = TinyModelRuntime(args.model, device="cpu", max_length=128)
     app = create_reference_app(rt, args.model, hsp_chunks)
