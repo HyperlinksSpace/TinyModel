@@ -22,6 +22,7 @@ _REQUIRED = (
 )
 
 _EXPORTS = (
+    "getServiceMeta",
     "planRequest",
     "classifyTexts",
     "retrieveCandidates",
@@ -32,6 +33,7 @@ _EXPORTS = (
 _TYPES = (
     "PlanResponse",
     "MetaTinyModel",
+    "ServiceMeta",
     "PlanContext",
     "PlanIntent",
 )

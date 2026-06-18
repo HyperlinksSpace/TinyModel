@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -29,6 +30,20 @@ HSP_RAG_VERIFY_CASES: list[tuple[str, str]] = [
 ]
 
 HSP_RAG_MIN_PASS = 10
+
+
+def corpus_fingerprint(corpus: Path) -> str:
+    """SHA-256 hex digest of corpus file bytes (for drift detection across repos)."""
+    return hashlib.sha256(corpus.read_bytes()).hexdigest()
+
+
+def corpus_meta(corpus: Path) -> dict[str, Any]:
+    chunks = load_chunks(corpus)
+    return {
+        "source": str(corpus.resolve()),
+        "version": corpus_fingerprint(corpus),
+        "chunk_count": len(chunks),
+    }
 
 
 def load_chunks(corpus: Path) -> list[str]:

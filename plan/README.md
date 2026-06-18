@@ -39,7 +39,7 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 | Phase | TinyModel | HSP |
 | ----- | --------- | --- |
 | **0** Corpus & contracts | Done | Pending docs/env |
-| **1** Encoder sidecar (`/v1/plan`) | Done | Not wired |
+| **1** Encoder sidecar (`/v1/plan`) | **Done** (Railway live) | Not wired |
 | **2** Hybrid `transmitter` + meta | Prep done (TS reference, screen context); spec [`plan/07-ai-transmitter.md`](../plan/07-ai-transmitter.md) | Not started |
 | **3** Full UB chat service | Artifact exists; deploy optional | Not started |
 | **4** Chat UI + action executor | N/A | Not started |

@@ -40,6 +40,20 @@ export interface PlanResponse {
   retrieval: PlanRetrieval | null;
 }
 
+export interface ServiceCorpusMeta {
+  source: string;
+  version: string;
+  chunk_count: number;
+}
+
+export interface ServiceMeta {
+  service: string;
+  api_version: string;
+  model: string;
+  corpus: ServiceCorpusMeta;
+  endpoints: Record<string, string>;
+}
+
 export interface MetaTinyModel {
   model: string;
   intent?: PlanIntent | null;

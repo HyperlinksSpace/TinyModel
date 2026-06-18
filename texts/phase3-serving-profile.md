@@ -17,6 +17,7 @@ python scripts/phase3_reference_server.py --model HyperlinksSpace/TinyModel1 --h
 
 - **Root:** `GET /` → small JSON map (`service`, `model`, `docs`, `openapi_json`, `health`, `classify`, `retrieve`) so opening the base URL in a browser is not a bare 404 (same idea as `horizon2_server.py` `GET /`).
 - **Health:** `GET /healthz` → `{"status":"ok"}`.
+- **Meta:** `GET /v1/meta` → service id, model, corpus `version` (SHA-256 of bundled markdown), `chunk_count`, and endpoint map. HSP can pin `tinymodelCorpusVersion` against `corpus.version` for drift detection.
 
 ### `POST /v1/classify`
 

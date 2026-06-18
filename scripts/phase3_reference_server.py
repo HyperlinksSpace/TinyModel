@@ -84,7 +84,13 @@ def parse_args() -> argparse.Namespace:
     return build_parser().parse_args()
 
 
-def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = None):
+def create_reference_app(
+    rt,
+    model_name: str,
+    hsp_chunks: list[str] | None = None,
+    *,
+    corpus_meta: dict | None = None,
+):
     """Build FastAPI app for Uvicorn or in-process probes."""
     try:
         from fastapi import Body, FastAPI, HTTPException
@@ -108,6 +114,19 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
     )
 
     bundled_chunks = list(hsp_chunks or [])
+    service_meta = {
+        "service": "tinymodel-phase3",
+        "api_version": "0.1.0",
+        "model": model_name,
+        "corpus": corpus_meta,
+        "endpoints": {
+            "health": "/healthz",
+            "meta": "/v1/meta",
+            "classify": "POST /v1/classify",
+            "retrieve": "POST /v1/retrieve",
+            "plan": "POST /v1/plan",
+        },
+    }
 
     app = FastAPI(
         title="TinyModel reference API",
@@ -126,11 +145,16 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
             "classify": "POST /v1/classify (JSON: texts[])",
             "retrieve": "POST /v1/retrieve (JSON: query, candidates[], top_k)",
             "plan": "POST /v1/plan (JSON: text; HSP control-plane glue)",
+            "meta": "GET /v1/meta (service + corpus version)",
         }
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    @app.get("/v1/meta")
+    def v1_meta() -> dict:
+        return service_meta
 
     @app.post("/v1/classify", response_model=ClassifyOut)
     def v1_classify(payload: ClassifyIn = Body()) -> ClassifyOut:
@@ -190,6 +214,7 @@ def create_reference_app(rt, model_name: str, hsp_chunks: list[str] | None = Non
 
 
 def main() -> None:
+    from hsp_corpus_lib import corpus_meta as build_corpus_meta
     from hsp_corpus_lib import load_chunks
     from phase3_common import resolve_checkpoint_or_hub
     from tinymodel_runtime import TinyModelRuntime
@@ -208,12 +233,16 @@ def main() -> None:
 
     hsp_corpus = resolve_hsp_corpus_path(args.hsp_corpus)
     hsp_chunks = load_chunks(hsp_corpus)
-    print(f"Loaded HSP corpus {hsp_corpus} ({len(hsp_chunks)} chunks)", file=sys.stderr)
+    hsp_meta = build_corpus_meta(hsp_corpus)
+    print(
+        f"Loaded HSP corpus {hsp_corpus} ({len(hsp_chunks)} chunks, version={hsp_meta['version'][:12]}…)",
+        file=sys.stderr,
+    )
     if len(hsp_chunks) < 8:
         print(f"Warning: expected >= 8 corpus chunks, got {len(hsp_chunks)}", file=sys.stderr)
 
     rt = TinyModelRuntime(args.model, device="cpu", max_length=128)
-    app = create_reference_app(rt, args.model, hsp_chunks)
+    app = create_reference_app(rt, args.model, hsp_chunks, corpus_meta=hsp_meta)
     print(f"Starting reference server on http://{args.host}:{args.port} model={args.model!r}")
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 

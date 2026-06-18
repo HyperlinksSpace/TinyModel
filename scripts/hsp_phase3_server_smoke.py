@@ -23,10 +23,11 @@ _REPO = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from hsp_corpus_lib import chunk_title, load_chunks
+from hsp_corpus_lib import chunk_title, corpus_fingerprint, load_chunks
 from hsp_phase3_contract_smoke import (
     validate_classify_response,
     validate_healthz,
+    validate_meta_response,
     validate_plan_response,
     validate_retrieve_response,
 )
@@ -119,6 +120,10 @@ def run_verify(model_arg: str | None, port: int) -> tuple[bool, dict[str, Any]]:
     try:
         _wait_health(base, proc)
         checks.append({"name": "healthz", "ok": True})
+
+        _, meta_body = _http_json(f"{base}/v1/meta", timeout=10.0)
+        validate_meta_response(meta_body, expected_version=corpus_fingerprint(_CORPUS))
+        checks.append({"name": "meta", "ok": True})
 
         _, classify_body = _http_json(
             f"{base}/v1/classify",

@@ -1,0 +1,27 @@
+# Nightly probe of deployed TinyModel sidecar (Railway tinymodel.hyperlinks.space).
+
+name: HSP production smoke
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify deployed sidecar
+        env:
+          TINYMODEL_PUBLIC_URL: https://tinymodel.hyperlinks.space
+        run: python scripts/hsp_railway_deploy_smoke.py --verify

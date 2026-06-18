@@ -27,7 +27,7 @@ Phases are **ordered** but some HSP UI work can overlap backend wiring. Each pha
 | ----- | ---- | ------ |
 | TinyModel | `phase3_reference_server.py` — `/v1/classify`, `/retrieve`, `/plan` | **Done** |
 | TinyModel | Reference TS client `integrations/hsp/reference/` | **Done** |
-| Ops | Deploy sidecar to **Railway** (or Fly); `GET /healthz` | Todo |
+| Ops | Deploy sidecar to **Railway** (or Fly); `GET /healthz` | **Done** (`tinymodel.hyperlinks.space`) |
 | HSP | Copy/adapt `tinymodel-client.ts` → `ai/tinymodel.ts` | Todo |
 | HSP | `/api/ai` calls `planRequest`; log `meta.tinymodel` | Todo |
 
@@ -136,7 +136,7 @@ Adjust for HSP UI readiness—backend Phases 1–2 do not require finished Globa
 - [x] `/v1/plan` + screen context
 - [x] TS reference client
 - [x] `plan/` documentation
-- [ ] Railway deploy recipe in CI or `plan/05-deployment.md` automation script
+- [x] Railway deploy recipe in CI or `plan/05-deployment.md` automation script
 - [ ] UB artifact with HSP corpus (Phase 4)
 
 **Hyperlinks Space Program**

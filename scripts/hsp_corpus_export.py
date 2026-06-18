@@ -22,7 +22,7 @@ _REPO = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from hsp_corpus_lib import chunk_title, load_chunks
+from hsp_corpus_lib import chunk_title, corpus_fingerprint, load_chunks
 
 _CORPUS = _REPO / "texts" / "hsp_program_corpus.md"
 _DEFAULT_OUT = _REPO / "artifacts" / "hsp" / "hsp_program_corpus.json"
@@ -66,6 +66,7 @@ def export_corpus(corpus_path: Path) -> dict[str, Any]:
     return {
         "schema": _SCHEMA,
         "source": str(corpus_path.resolve()),
+        "corpus_version": corpus_fingerprint(corpus_path),
         "chunk_count": len(chunks),
         "chunks": rows,
     }
@@ -76,6 +77,9 @@ def validate_export(body: Any) -> None:
         raise ValueError("export must be object")
     if body.get("schema") != _SCHEMA:
         raise ValueError(f"schema must be {_SCHEMA!r}")
+    version = body.get("corpus_version")
+    if not isinstance(version, str) or len(version) != 64:
+        raise ValueError("corpus_version must be sha256 hex (64 chars)")
     count = body.get("chunk_count")
     chunks = body.get("chunks")
     if not isinstance(count, int) or count < _MIN_CHUNKS:

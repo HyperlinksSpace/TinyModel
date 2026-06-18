@@ -21,8 +21,10 @@ _scripts = Path(__file__).resolve().parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from hsp_phase3_contract_smoke import validate_healthz, validate_plan_response
+from hsp_corpus_lib import corpus_fingerprint
+from hsp_phase3_contract_smoke import validate_healthz, validate_meta_response, validate_plan_response
 
+_CORPUS = Path(__file__).resolve().parent.parent / "texts" / "hsp_program_corpus.md"
 _DEFAULT_URL = os.environ.get(
     "TINYMODEL_PUBLIC_URL",
     "https://tinymodel.hyperlinks.space",
@@ -75,6 +77,17 @@ def run_verify(base_url: str) -> dict[str, Any]:
     _, health = _get(f"{base}/healthz")
     validate_healthz(health)
     checks.append({"name": "healthz", "ok": True})
+
+    expected_version = corpus_fingerprint(_CORPUS) if _CORPUS.is_file() else None
+    _, meta = _get(f"{base}/v1/meta")
+    validate_meta_response(meta, expected_version=expected_version)
+    checks.append(
+        {
+            "name": "meta:corpus_version",
+            "ok": True,
+            "version": meta.get("corpus", {}).get("version"),
+        }
+    )
 
     _, plan_nav = _post(f"{base}/v1/plan", {"text": "open swap page"}, timeout=180.0)
     validate_plan_response(plan_nav)

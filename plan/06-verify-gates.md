@@ -43,6 +43,7 @@ Adds: hybrid RAG, route-then-retrieve glue, live `phase3_reference_server` subpr
 | TS reference files | `python scripts/hsp_reference_client_smoke.py --verify` |
 | HSP intents golden | `python scripts/ub_eval_runner.py --verify` |
 | Corpus JSON export | `python scripts/hsp_corpus_export.py --verify` |
+| Production Railway | `python scripts/hsp_railway_deploy_smoke.py --verify` |
 
 ---
 
@@ -51,6 +52,7 @@ Adds: hybrid RAG, route-then-retrieve glue, live `phase3_reference_server` subpr
 | Check | How |
 | ----- | --- |
 | Sidecar health | `curl $TINYMODEL_API_URL/healthz` |
+| Corpus drift | `curl $TINYMODEL_API_URL/v1/meta` → `corpus.version` |
 | Plan navigate | `curl -X POST $TINYMODEL_API_URL/v1/plan -H 'Content-Type: application/json' -d '{"text":"open swap page"}'` |
 | HSP meta | `/api/ai` response includes `meta.tinymodel` |
 | Stream | `/api/ai/stream` returns tokens |

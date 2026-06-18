@@ -55,7 +55,7 @@ Optional later:
    - optional `HF_TOKEN`
 4. Health check: `GET /healthz` (timeout 300s on first boot).
 5. Verify: `python scripts/hsp_railway_deploy_smoke.py --verify`
-6. HSP: `TINYMODEL_API_URL=https://tinymodel.hyperlinks.space`
+6. HSP: `TINYMODEL_API_URL=https://tinymodel.hyperlinks.space` — compare `GET /v1/meta` → `corpus.version` with HSP `tinymodelCorpusVersion` when wired.
 
 **Resource hint:** CPU 1–2 vCPU, 2–4 GB RAM; first request loads HF weights (~tens of seconds).
 

@@ -21,7 +21,7 @@ _REPO = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from hsp_corpus_lib import chunk_title, load_chunks
+from hsp_corpus_lib import chunk_title, corpus_fingerprint, load_chunks
 
 _CORPUS = _REPO / "texts" / "hsp_program_corpus.md"
 _OUT = _REPO / ".tmp" / "hsp-phase3-contract" / "run.json"
@@ -37,6 +37,33 @@ def _fail(msg: str) -> None:
 def validate_healthz(body: Any) -> None:
     if not isinstance(body, dict) or body.get("status") != "ok":
         _fail("healthz must be {\"status\": \"ok\"}")
+
+
+def validate_meta_response(body: Any, *, expected_version: str | None = None) -> None:
+    if not isinstance(body, dict):
+        _fail("meta response must be object")
+    if body.get("service") != "tinymodel-phase3":
+        _fail("meta.service must be tinymodel-phase3")
+    if not isinstance(body.get("api_version"), str) or not body["api_version"].strip():
+        _fail("meta.api_version must be non-empty string")
+    if not isinstance(body.get("model"), str) or not body["model"].strip():
+        _fail("meta.model must be non-empty string")
+    corpus = body.get("corpus")
+    if not isinstance(corpus, dict):
+        _fail("meta.corpus must be object")
+    version = corpus.get("version")
+    if not isinstance(version, str) or len(version) != 64:
+        _fail("meta.corpus.version must be sha256 hex (64 chars)")
+    chunk_count = corpus.get("chunk_count")
+    if not isinstance(chunk_count, int) or chunk_count < 1:
+        _fail("meta.corpus.chunk_count must be positive int")
+    if not isinstance(corpus.get("source"), str) or not corpus["source"].strip():
+        _fail("meta.corpus.source must be non-empty string")
+    endpoints = body.get("endpoints")
+    if not isinstance(endpoints, dict) or not endpoints.get("plan"):
+        _fail("meta.endpoints must include plan")
+    if expected_version is not None and version != expected_version:
+        _fail(f"meta.corpus.version mismatch: expected {expected_version}, got {version}")
 
 
 def validate_classify_request(body: Any) -> None:
@@ -180,6 +207,23 @@ def build_hsp_sample_requests(chunks: list[str]) -> dict[str, Any]:
     """Payloads matching Hyperlinks Space Program ai/tinymodel.ts client calls."""
     return {
         "healthz": {"status": "ok"},
+        "meta_response_sample": {
+            "service": "tinymodel-phase3",
+            "api_version": "0.1.0",
+            "model": "HyperlinksSpace/TinyModel1",
+            "corpus": {
+                "source": str(_CORPUS),
+                "version": corpus_fingerprint(_CORPUS),
+                "chunk_count": len(chunks),
+            },
+            "endpoints": {
+                "health": "/healthz",
+                "meta": "/v1/meta",
+                "classify": "POST /v1/classify",
+                "retrieve": "POST /v1/retrieve",
+                "plan": "POST /v1/plan",
+            },
+        },
         "classify_request": {"texts": ["open swap page and explain slippage"]},
         "classify_response_sample": {
             "items": [{"label_scores": {"World": 0.12, "Business": 0.55, "Sports": 0.08, "Sci/Tech": 0.25}}]
@@ -242,6 +286,13 @@ def run_verify() -> tuple[bool, dict[str, Any]]:
             raise
 
     _check("healthz", lambda: validate_healthz(samples["healthz"]))
+    _check(
+        "meta_response",
+        lambda: validate_meta_response(
+            samples["meta_response_sample"],
+            expected_version=corpus_fingerprint(_CORPUS),
+        ),
+    )
     _check("classify_request", lambda: validate_classify_request(samples["classify_request"]))
     _check(
         "classify_response",

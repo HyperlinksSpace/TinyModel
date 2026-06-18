@@ -6,6 +6,7 @@ import type {
   MetaTinyModel,
   PlanContext,
   PlanResponse,
+  ServiceMeta,
 } from "./tinymodel-types";
 
 const DEFAULT_BASE = "http://127.0.0.1:8765";
@@ -16,6 +17,15 @@ export function tinymodelBaseUrl(): string {
       process.env?.TINYMODEL_API_URL?.trim()) ||
     DEFAULT_BASE
   ).replace(/\/$/, "");
+}
+
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${tinymodelBaseUrl()}${path}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`TinyModel ${path} ${res.status}: ${detail}`);
+  }
+  return (await res.json()) as T;
 }
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
@@ -29,6 +39,10 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
     throw new Error(`TinyModel ${path} ${res.status}: ${detail}`);
   }
   return (await res.json()) as T;
+}
+
+export async function getServiceMeta(): Promise<ServiceMeta> {
+  return getJson<ServiceMeta>("/v1/meta");
 }
 
 export async function classifyTexts(texts: string[]): Promise<Record<string, number>[]> {
