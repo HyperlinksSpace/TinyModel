@@ -27,12 +27,14 @@ _EXPORTS = (
     "classifyTexts",
     "retrieveCandidates",
     "buildMetaTinyModel",
+    "buildMetaTinyModelError",
     "tinymodelBaseUrl",
 )
 
 _TYPES = (
     "PlanResponse",
     "MetaTinyModel",
+    "MetaTinyModelError",
     "ServiceMeta",
     "PlanContext",
     "PlanIntent",
@@ -53,7 +55,10 @@ def run_verify() -> None:
     client = (_REF / "tinymodel-client.ts").read_text(encoding="utf-8")
     types = (_REF / "tinymodel-types.ts").read_text(encoding="utf-8")
     for name in _EXPORTS:
-        if f"export async function {name}" not in client and f"export function {name}" not in client:
+        if (
+            f"export async function {name}" not in client
+            and f"export function {name}" not in client
+        ):
             raise ValueError(f"tinymodel-client.ts missing export {name}")
     for name in _TYPES:
         if name not in types:

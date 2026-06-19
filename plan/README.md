@@ -40,14 +40,14 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 | ----- | --------- | --- |
 | **0** Corpus & contracts | Done | Pending docs/env |
 | **1** Encoder sidecar (`/v1/plan`) | **Done** (Railway live) | Not wired |
-| **2** Hybrid `transmitter` + meta | Prep done (TS reference, screen context); spec [`plan/07-ai-transmitter.md`](../plan/07-ai-transmitter.md) | Not started |
+| **2** Hybrid `transmitter` + meta | **Prep done** (reference fallback, availability, context, error meta) | Not started |
 | **3** Full UB chat service | Artifact exists; deploy optional | Not started |
 | **4** Chat UI + action executor | N/A | Not started |
 
 **One-command verify (TinyModel):**
 
 ```bash
-python scripts/hsp_integration_smoke.py --verify          # stdlib (8 gates)
+python scripts/hsp_integration_smoke.py --verify          # stdlib (9 gates)
 python scripts/hsp_integration_smoke.py --verify --full     # + torch + live HTTP
 ```
 

@@ -41,6 +41,7 @@ Adds: hybrid RAG, route-then-retrieve glue, live `phase3_reference_server` subpr
 | Screen context | `python scripts/hsp_screen_context_smoke.py --verify` |
 | meta.tinymodel | `python scripts/hsp_meta_contract_smoke.py --verify` |
 | TS reference files | `python scripts/hsp_reference_client_smoke.py --verify` |
+| Transmitter reference | `python scripts/hsp_reference_transmitter_smoke.py --verify` |
 | HSP intents golden | `python scripts/ub_eval_runner.py --verify` |
 | Corpus JSON export | `python scripts/hsp_corpus_export.py --verify` |
 | Production Railway | `python scripts/hsp_railway_deploy_smoke.py --verify` |

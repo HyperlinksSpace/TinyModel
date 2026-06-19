@@ -4,6 +4,7 @@
 
 import type {
   MetaTinyModel,
+  MetaTinyModelError,
   PlanContext,
   PlanResponse,
   ServiceMeta,
@@ -103,5 +104,14 @@ export function buildMetaTinyModel(plan: PlanResponse, model: string): MetaTinyM
   if (plan.context) {
     meta.context = plan.context;
   }
+  return meta;
+}
+
+export function buildMetaTinyModelError(
+  error: string,
+  options?: { fallback?: string },
+): MetaTinyModelError {
+  const meta: MetaTinyModelError = { error };
+  if (options?.fallback) meta.fallback = options.fallback;
   return meta;
 }

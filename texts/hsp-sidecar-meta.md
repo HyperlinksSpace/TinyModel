@@ -30,6 +30,17 @@ When Hyperlinks Space Program wires the TinyModel encoder sidecar into `/api/ai`
 
 When routing abstains and hybrid RAG runs, `retrieval` contains `top_idx`, `top_title`, `hybrid_score`, `keyword_overlap`, and `chunk_preview` (same fields as `/v1/plan`).
 
+When `POST /v1/plan` fails, log:
+
+```json
+"meta": {
+  "tinymodel": {
+    "error": "plan_unavailable",
+    "fallback": "plan→heuristic"
+  }
+}
+```
+
 ## Gates
 
 - Stdlib contract: `python scripts/hsp_meta_contract_smoke.py --verify`

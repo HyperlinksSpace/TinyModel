@@ -33,6 +33,25 @@ def build_meta_tinymodel(plan: dict[str, Any], model: str) -> dict[str, Any]:
     return meta
 
 
+def build_meta_tinymodel_error(error: str, *, fallback: str | None = None) -> dict[str, Any]:
+    """Build meta.tinymodel when POST /v1/plan fails (plan/07-ai-transmitter.md)."""
+    meta: dict[str, Any] = {"error": error}
+    if fallback:
+        meta["fallback"] = fallback
+    return meta
+
+
+def validate_meta_tinymodel_error(meta: Any) -> None:
+    if not isinstance(meta, dict):
+        raise ValueError("meta.tinymodel error must be object")
+    err = meta.get("error")
+    if not isinstance(err, str) or not err.strip():
+        raise ValueError("meta.tinymodel.error must be non-empty string")
+    fb = meta.get("fallback")
+    if fb is not None and not isinstance(fb, str):
+        raise ValueError("meta.tinymodel.fallback must be string or null")
+
+
 def validate_meta_tinymodel(meta: Any) -> None:
     """Validate meta.tinymodel object shape (stdlib, no torch)."""
     if not isinstance(meta, dict):

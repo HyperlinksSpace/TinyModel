@@ -21,7 +21,12 @@ _REPO = _scripts.parent
 if str(_scripts) not in sys.path:
     sys.path.insert(0, str(_scripts))
 
-from hsp_meta_lib import build_meta_tinymodel, validate_meta_tinymodel
+from hsp_meta_lib import (
+    build_meta_tinymodel,
+    build_meta_tinymodel_error,
+    validate_meta_tinymodel,
+    validate_meta_tinymodel_error,
+)
 
 _OUT = _REPO / ".tmp" / "hsp-meta-contract" / "run.json"
 _SCHEMA = "hsp_meta_contract_smoke_run/1.0"
@@ -120,6 +125,10 @@ def run_verify() -> tuple[bool, dict[str, Any]]:
         parsed = json.loads(raw)
         validate_meta_tinymodel(parsed["meta"]["tinymodel"])
         checks.append({"name": name, "ok": True, "meta": meta})
+
+    error_meta = build_meta_tinymodel_error("plan_unavailable", fallback="plan→heuristic")
+    validate_meta_tinymodel_error(error_meta)
+    checks.append({"name": "plan_error_meta", "ok": True, "meta": error_meta})
 
     artifact = {
         "schema": _SCHEMA,

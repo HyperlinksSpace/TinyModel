@@ -6,9 +6,12 @@ meta.tinymodel contract, ub_eval nl_signals + hsp_intents.
 
 With --full (needs torch): hybrid RAG, route-then-retrieve glue, live HTTP server smoke.
 
+With --production: also probe deployed Railway sidecar (network).
+
 Examples:
   python scripts/hsp_integration_smoke.py --verify
   python scripts/hsp_integration_smoke.py --verify --full
+  python scripts/hsp_integration_smoke.py --verify --production
   python scripts/hsp_integration_smoke.py --verify --full --model .tmp/phase3-smoke
 """
 
@@ -49,6 +52,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Checkpoint for --full torch gates (default: rag_faq_smoke picker).",
     )
+    p.add_argument(
+        "--production",
+        action="store_true",
+        help="Also run hsp_railway_deploy_smoke against TINYMODEL_PUBLIC_URL.",
+    )
     p.add_argument("--output-json", type=str, default="", help=f"Write run JSON (default: {_OUT}).")
     return p
 
@@ -75,7 +83,7 @@ def _run_gate(name: str, argv: list[str]) -> dict[str, Any]:
     return row
 
 
-def run_verify(model: str | None, full: bool) -> tuple[bool, dict[str, Any]]:
+def run_verify(model: str | None, full: bool, production: bool) -> tuple[bool, dict[str, Any]]:
     stdlib_gates: list[tuple[str, list[str]]] = [
         ("corpus", ["hsp_corpus_smoke.py", "--verify"]),
         ("lexical_rag", ["hsp_rag_smoke.py", "--verify"]),
@@ -84,6 +92,7 @@ def run_verify(model: str | None, full: bool) -> tuple[bool, dict[str, Any]]:
         ("meta_contract", ["hsp_meta_contract_smoke.py", "--verify"]),
         ("screen_context", ["hsp_screen_context_smoke.py", "--verify"]),
         ("reference_client", ["hsp_reference_client_smoke.py", "--verify"]),
+        ("reference_transmitter", ["hsp_reference_transmitter_smoke.py", "--verify"]),
         ("ub_eval", ["ub_eval_runner.py", "--verify"]),
     ]
 
@@ -123,10 +132,20 @@ def run_verify(model: str | None, full: bool) -> tuple[bool, dict[str, Any]]:
                     print(row["stderr_tail"], file=sys.stderr)
                 raise SystemExit(1)
 
+    if production:
+        row = _run_gate("production_railway", ["hsp_railway_deploy_smoke.py", "--verify"])
+        rows.append(row)
+        if not row["ok"]:
+            print(f"{_PROG}: FAIL gate production_railway", file=sys.stderr)
+            if row.get("stderr_tail"):
+                print(row["stderr_tail"], file=sys.stderr)
+            raise SystemExit(1)
+
     passed = sum(1 for r in rows if r["ok"])
+    mode = "full+production" if full and production else "production" if production else "full" if full else "stdlib"
     artifact = {
         "schema": _SCHEMA,
-        "mode": "full" if full else "stdlib",
+        "mode": mode,
         "model": model_id,
         "gates_total": len(rows),
         "gates_passed": passed,
@@ -143,7 +162,7 @@ def main() -> None:
         raise SystemExit(2)
 
     try:
-        ok, artifact = run_verify(args.model, args.full)
+        ok, artifact = run_verify(args.model, args.full, args.production)
     except subprocess.TimeoutExpired as e:
         print(f"{_PROG}: FAIL timeout {e}", file=sys.stderr)
         raise SystemExit(1) from e

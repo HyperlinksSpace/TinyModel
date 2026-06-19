@@ -64,3 +64,9 @@ export interface MetaTinyModel {
   classify_top_label?: string | null;
   context?: PlanContext;
 }
+
+/** Logged when POST /v1/plan fails (plan/07-ai-transmitter.md). */
+export interface MetaTinyModelError {
+  error: string;
+  fallback?: string;
+}
