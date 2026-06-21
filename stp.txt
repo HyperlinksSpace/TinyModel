@@ -1,1 +1,2 @@
 Connect to hsp with UI — see plan/README.md
+Connect to ctrategy
