@@ -44,6 +44,17 @@ From repository root (after `git push` or local):
 railway up --detach
 ```
 
+**New service instance** (second sidecar in project HSP):
+
+```bash
+railway login   # once, in your terminal (browser)
+bash deploy/railway/deploy-new-instance.sh
+```
+
+Requires interactive `railway login` first (or `RAILWAY_TOKEN` for CI). Optional: `SERVICE_NAME=MySidecar`, `HF_TOKEN=hf_...`.
+
+If a previous run stopped at `Enter a variable`, either delete the half-created service in the Railway dashboard or set `SERVICE_NAME` to a new name and re-run.
+
 Or connect **GitHub** in Railway → TinyModel → Settings → Source → deploy on push to `main`.
 
 Build uses root **`Dockerfile`** and **`railway.toml`**.
