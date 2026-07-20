@@ -1,0 +1,8 @@
+{"id": "comp_001", "input": "open swap page", "mode": null, "expect_intent": "navigate", "expect_lane": "control", "expect_generator": "template", "expect_actions_path": "/swap"}
+{"id": "comp_002", "input": "what is USDT price on TON", "mode": null, "expect_intent": "token_info", "expect_lane": "facts", "expect_generator": "swap_coffee_hybrid"}
+{"id": "comp_003", "input": "what is this", "context_route": "/shield", "expect_intent": "explain_screen", "expect_lane": "grounded", "expect_generator": "vercel_ai"}
+{"id": "comp_004", "input": "summarize the swap help section", "mode": null, "expect_intent": "chat", "expect_lane": "soft", "expect_generator": "vercel_ai"}
+{"id": "comp_005", "input": "swap 10 TON to USDT", "mode": null, "expect_intent": "swap_hint", "expect_lane": "grounded", "expect_generator": "vercel_ai"}
+{"id": "comp_006", "input": "open swap page", "mode": null, "vercel_ai": false, "expect_intent": "navigate", "expect_lane": "control", "expect_generator": "template"}
+{"id": "comp_007", "input": "explain slippage on swap", "mode": null, "vercel_ai": false, "ub": true, "expect_intent": "chat", "expect_lane": "grounded", "expect_generator": "ub"}
+{"id": "comp_008", "input": "$NOT holders", "mode": "token_info", "expect_intent": "token_info", "expect_lane": "facts", "expect_generator": "swap_coffee_hybrid"}

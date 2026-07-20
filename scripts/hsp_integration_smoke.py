@@ -93,6 +93,7 @@ def run_verify(model: str | None, full: bool, production: bool) -> tuple[bool, d
         ("screen_context", ["hsp_screen_context_smoke.py", "--verify"]),
         ("reference_client", ["hsp_reference_client_smoke.py", "--verify"]),
         ("reference_transmitter", ["hsp_reference_transmitter_smoke.py", "--verify"]),
+        ("composer_routes", ["hsp_composer_smoke.py", "--verify"]),
         ("ub_eval", ["ub_eval_runner.py", "--verify"]),
     ]
 
