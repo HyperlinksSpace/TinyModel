@@ -7,6 +7,7 @@ from typing import Any
 from hsp_corpus_lib import chunk_title
 from hsp_intent_router import actions_from_route_hint, infer_hsp_route_hint
 from hsp_screen_context import build_screen_retrieval_query, infer_plan_intent
+from hsp_strategy_handshake import is_strategy_handshake, strategy_handshake_plan
 from rag_faq_smoke import hybrid_retrieve, overlap_faithfulness
 from routing_policy import route_from_probs
 from tinymodel_runtime import TinyModelRuntime
@@ -21,9 +22,14 @@ def plan_hsp_request(
     min_margin: float = 0.10,
     top_k: int = 2,
     context: dict[str, Any] | None = None,
+    model_name: str | None = None,
 ) -> dict[str, Any]:
     """Return HSP-shaped plan: route hint, actions, classify probs, routing, optional retrieval."""
     ctx = context or {}
+    # Fast path: Strategy AI CORE sidecar ping — no classify/retrieve (avoids cold-start abort).
+    if is_strategy_handshake(text):
+        return strategy_handshake_plan(text, context=ctx, model_name=model_name)
+
     route = ctx.get("route") if isinstance(ctx.get("route"), str) else None
 
     route_hint = infer_hsp_route_hint(text)

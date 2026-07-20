@@ -37,6 +37,9 @@ class PlanContext(BaseModel):
     route: str | None = Field(None, description="Current app route, e.g. /swap.")
     locale: str | None = Field(None, description="UI locale, e.g. en or ru.")
     wallet_connected: bool | None = Field(None, description="Whether wallet is linked.")
+    surface: str | None = Field(None, description="Client surface, e.g. strategy-site or ai-core.")
+    visible_section: str | None = Field(None, description="Visible strategy section id.")
+    tour_active: bool | None = Field(None, description="Whether guided tour is active.")
 
 
 class PlanIn(BaseModel):
@@ -77,3 +80,7 @@ class PlanOut(BaseModel):
     probs: dict[str, float]
     routing: PlanRouting
     retrieval: PlanRetrieval | None = None
+    reply_text: str | None = Field(
+        None,
+        description="Optional verbatim reply (e.g. strategy_handshake) for integrators.",
+    )

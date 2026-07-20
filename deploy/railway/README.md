@@ -75,6 +75,19 @@ python scripts/hsp_railway_deploy_smoke.py --verify
 python scripts/hsp_railway_deploy_smoke.py --verify --base-url https://tinymodel.hyperlinks.space
 ```
 
+### Strategy AI CORE handshake
+
+Fast-path test (no model classify) so [ctrategy.hyperlinks.space](https://ctrategy.hyperlinks.space/) can prove the sidecar authored the reply:
+
+```bash
+curl -sS -X POST https://tinymodel.hyperlinks.space/v1/plan \
+  -H 'Content-Type: application/json' \
+  -d '{"text":"sidecar ping strategy ai core"}'
+# expect: intent=strategy_handshake, reply_text contains TM1-SIDECAR-OK
+```
+
+In Strategy **AI CORE** chat, send the same phrase; the bubble must show `SIDECAR_OK · TM1-SIDECAR-OK · …`. Unit test: `python -m unittest tests.test_hsp_strategy_handshake -v`.
+
 OpenAPI: https://tinymodel.hyperlinks.space/docs
 
 ---

@@ -192,13 +192,17 @@ def create_reference_app(
             min_margin=payload.min_margin,
             top_k=payload.top_k,
             context=ctx_dict,
+            model_name=model_name,
         )
         retrieval = None
         if plan["retrieval"] is not None:
             retrieval = PlanRetrieval(**plan["retrieval"])
         out_ctx = None
         if plan.get("context"):
-            out_ctx = PlanContext(**plan["context"])
+            # Drop unknown keys so older clients / partial contexts stay valid.
+            allowed = set(PlanContext.model_fields.keys())
+            slim = {k: v for k, v in plan["context"].items() if k in allowed}
+            out_ctx = PlanContext(**slim) if slim else None
         return PlanOut(
             text=plan["text"],
             intent=plan["intent"],
@@ -208,6 +212,7 @@ def create_reference_app(
             probs=plan["probs"],
             routing=PlanRouting(**plan["routing"]),
             retrieval=retrieval,
+            reply_text=plan.get("reply_text"),
         )
 
     return app

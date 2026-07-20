@@ -103,6 +103,19 @@ def run_verify(base_url: str) -> dict[str, Any]:
     screen_ok = plan_screen.get("intent") == "explain_screen"
     checks.append({"name": "plan:explain_screen", "ok": screen_ok})
 
+    _, plan_hs = _post(
+        f"{base}/v1/plan",
+        {"text": "sidecar ping strategy ai core", "context": {"locale": "en", "surface": "ai-core"}},
+        timeout=30.0,
+    )
+    validate_plan_response(plan_hs)
+    reply = str(plan_hs.get("reply_text") or "")
+    hs_ok = (
+        plan_hs.get("intent") == "strategy_handshake"
+        and "TM1-SIDECAR-OK" in reply
+    )
+    checks.append({"name": "plan:strategy_handshake", "ok": hs_ok, "reply_text": reply[:120]})
+
     failed = [c for c in checks if not c["ok"]]
     if failed:
         raise ValueError(f"checks failed: {failed}")
