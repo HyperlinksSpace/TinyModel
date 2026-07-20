@@ -1,0 +1,13 @@
+{
+  "description": "HSP npm deps when wiring composer + Vercel AI (copy versions to Hyperlinks Space Program package.json)",
+  "dependencies": {
+    "ai": "^4.0.0"
+  },
+  "optionalDependencies": {
+    "@ai-sdk/openai": "^1.0.0"
+  },
+  "comments": {
+    "gateway": "Prefer AI Gateway model strings (openai/gpt-4.1-mini) — no extra @ai-sdk/* required on Vercel",
+    "legacy": "AI_PROVIDER=openai keeps old transmitter until migration completes"
+  }
+}

@@ -43,6 +43,7 @@ export function defaultComposerConfig(): ComposerConfig {
       .filter(Boolean),
     preferFastForGrounded: env?.AI_COMPOSER_PREFER_FAST_GROUNDED === "true",
     planTimeoutMs: Number(env?.TINYMODEL_PLAN_TIMEOUT_MS || "8000"),
+    preferVercelAi: env?.AI_PROVIDER?.trim().toLowerCase() !== "openai",
   };
 }
 

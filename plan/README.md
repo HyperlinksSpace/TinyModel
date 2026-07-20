@@ -48,7 +48,7 @@ This folder is the **single entry point** for shipping **universal in-app chat**
 **One-command verify (TinyModel):**
 
 ```bash
-python scripts/hsp_integration_smoke.py --verify          # stdlib (10 gates)
+python scripts/hsp_integration_smoke.py --verify          # stdlib (11 gates)
 python scripts/hsp_integration_smoke.py --verify --full     # + torch + live HTTP
 ```
 

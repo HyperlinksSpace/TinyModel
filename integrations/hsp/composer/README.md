@@ -68,39 +68,71 @@ Resolved intents (after mode + plan + heuristics):
 
 ---
 
-## 4. Vercel AI SDK integration (HSP target)
+## 4. Vercel AI integration (priority over legacy OpenAI)
 
-Install in **Hyperlinks Space Program** (not TinyModel):
+HSP today calls OpenAI directly in `ai/transmitter.ts`. The composer **replaces that path** with the [Vercel AI SDK](https://sdk.vercel.ai) + [AI Gateway](https://vercel.com/docs/ai-gateway/models-and-providers) — same reply quality tier, but multi-model fallbacks and unified observability on Vercel.
+
+### Provider modes
+
+| `AI_PROVIDER` | Behavior |
+| ------------- | -------- |
+| **`hybrid`** (default) | TinyModel `composeTurn` + **Vercel AI `streamText`** (priority) |
+| **`vercel_ai`** | Skip optional plan tuning; Vercel AI generation only |
+| **`openai`** | Legacy: existing OpenAI transmitter (migration only — remove after cutover) |
+
+### Reference modules (copy to HSP)
+
+| TinyModel | HSP | Role |
+| --------- | --- | ---- |
+| `reference/transmitter.ts` | `ai/transmitter.ts` | Drop-in replacement for OpenAI-only transmit |
+| `reference/vercel-ai-client.ts` | `ai/vercel-ai-client.ts` | Build AI SDK params from composer turn |
+| `reference/composer.ts` | `ai/composer.ts` | Plan + lane + model route |
+
+### Wire in HSP (same slot as OpenAI today)
+
+```typescript
+import { streamText } from "ai";
+import { transmit, transmitStream } from "./transmitter";
+
+// In /api/ai handler — inject real streamText from `ai` package:
+const response = await transmit(request, {
+  streamText: (params) =>
+    streamText({
+      model: params.model,
+      system: params.system,
+      prompt: params.prompt,
+      maxOutputTokens: params.maxOutputTokens,
+      providerOptions: params.providerOptions,
+    }),
+  fetchTokenInfo: existingSwapCoffeeFn,
+  legacyOpenAiTransmit: oldTransmit, // only if AI_PROVIDER=openai
+});
+```
+
+Install deps: see [`../reference/package.reference.json`](../reference/package.reference.json).
 
 ```bash
-npm install ai @ai-sdk/openai
-# optional: @ai-sdk/anthropic @ai-sdk/google — or use AI Gateway string models only
+npm install ai
+# Gateway model strings work on Vercel without @ai-sdk/openai
 ```
 
 ### Per-turn generation (after `composeTurn`)
 
 ```typescript
 import { streamText } from "ai";
-import { composeTurn, defaultComposerConfig } from "./composer";
+import { transmit } from "./transmitter";
 
-const turn = await composeTurn(request, availability);
-
-if (turn.generator === "template") {
-  return { output_text: turn.outputTemplate ?? "…", actions: turn.actions, meta: turn.meta };
-}
-
-if (turn.generator === "vercel_ai" && turn.modelRoute) {
-  const result = streamText({
-    model: turn.modelRoute.model, // e.g. "openai/gpt-4.1-mini"
-    system: turn.systemContext,
-    prompt: request.input,
-    maxOutputTokens: turn.modelRoute.maxOutputTokens,
-    providerOptions: {
-      gateway: turn.modelRoute.gateway,
-    },
-  });
-  // yield actions + meta first, then stream tokens (see plan/07)
-}
+const response = await transmit(request, {
+  streamText: (params) =>
+    streamText({
+      model: params.model,
+      system: params.system,
+      prompt: params.prompt,
+      maxOutputTokens: params.maxOutputTokens,
+      providerOptions: params.providerOptions,
+    }),
+});
+// response: { output_text, actions[], meta: { provider: "hybrid", generator: "vercel_ai", ... } }
 ```
 
 ### AI Gateway fallbacks
@@ -121,6 +153,7 @@ Composer defaults (override via env):
 
 | Env | Default | Purpose |
 | --- | ------- | ------- |
+| **`AI_PROVIDER`** | **`hybrid`** | **`hybrid` = plan + Vercel AI (priority)**; `openai` = legacy only |
 | `AI_COMPOSER_QUALITY_MODEL` | `openai/gpt-4.1-mini` | Grounded chat, token narration |
 | `AI_COMPOSER_FAST_MODEL` | `openai/gpt-4.1-nano` | Soft tasks, optional grounded |
 | `AI_COMPOSER_NAVIGATE_ACK` | `template` | Skip LLM for navigate (`template` or model id) |
@@ -140,6 +173,8 @@ On Vercel, AI Gateway auth is automatic when using the AI SDK with gateway model
 | -------------- | ---------- |
 | `integrations/hsp/reference/composer.ts` | `ai/composer.ts` |
 | `integrations/hsp/reference/composer-types.ts` | `ai/composer-types.ts` |
+| `integrations/hsp/reference/vercel-ai-client.ts` | `ai/vercel-ai-client.ts` |
+| `integrations/hsp/reference/transmitter.ts` | `ai/transmitter.ts` |
 | `integrations/hsp/reference/tinymodel-client.ts` | `ai/tinymodel.ts` |
 | `integrations/hsp/reference/fallback-router.ts` | `ai/fallback-router.ts` |
 | `integrations/hsp/reference/availability.ts` | `ai/availability.ts` |
@@ -158,6 +193,7 @@ On Vercel, AI Gateway auth is automatic when using the AI SDK with gateway model
 | Python mirror (stdlib tests) | `scripts/hsp_composer_lib.py` |
 | Golden routing cases | `texts/golden-prompts/hsp_composer_routes.jsonl` |
 | Verify gate | `python scripts/hsp_composer_smoke.py --verify` |
+| Vercel AI transmitter | `python scripts/hsp_vercel_ai_transmitter_smoke.py --verify` |
 | Production sidecar | `https://tinymodel.hyperlinks.space/v1/plan` |
 
 ```bash
@@ -177,13 +213,13 @@ python scripts/hsp_composer_smoke.py --verify
 - [ ] Unit-test `composeTurn` with mocked plan responses
 - [ ] Log `meta.lane`, `meta.model`, `meta.gateway` on every `/api/ai` response
 
-### Phase B — Wire generation
+### Phase B — Wire generation (Vercel AI priority)
 
-- [ ] Refactor `ai/transmitter.ts`: `composeTurn` → branch on `generator`
-- [ ] `streamText` path with `providerOptions.gateway`
-- [ ] Keep Swap.Coffee path for `swap_coffee_hybrid`
+- [ ] Replace `ai/transmitter.ts` body with reference `transmit` / `transmitStream`
+- [ ] Inject `streamText` from `import { streamText } from "ai"`
+- [ ] Set `AI_PROVIDER=hybrid` on Vercel (remove single-model OpenAI default)
+- [ ] Keep `legacyOpenAiTransmit` adapter until `AI_PROVIDER=openai` is deleted
 - [ ] Emit **first SSE chunk** with `actions[]` + meta before tokens
-- [ ] Env: `AI_PROVIDER=hybrid`, `TINYMODEL_API_URL`, gateway model vars above
 
 ### Phase C — Product face
 

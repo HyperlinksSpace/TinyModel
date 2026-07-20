@@ -38,6 +38,8 @@ export interface ComposerConfig {
   /** When true, grounded lane prefers fastModel over qualityModel. */
   preferFastForGrounded: boolean;
   planTimeoutMs: number;
+  /** Prefer Vercel AI SDK over legacy direct OpenAI (always true in hybrid mode). */
+  preferVercelAi: boolean;
 }
 
 export type AiRequestMode = "chat" | "token_info" | null;
@@ -57,6 +59,7 @@ export interface ComposerRequest {
 
 export interface ComposerAvailability {
   tinymodel: boolean;
+  /** Vercel AI SDK + Gateway — primary generation path (priority over legacy OpenAI). */
   vercel_ai: boolean;
   ub: boolean;
   swap_coffee: boolean;
