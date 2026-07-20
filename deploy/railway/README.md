@@ -55,6 +55,8 @@ Requires interactive `railway login` first (or `RAILWAY_TOKEN` for CI). Optional
 
 If a previous run stopped at `Enter a variable`, either delete the half-created service in the Railway dashboard or set `SERVICE_NAME` to a new name and re-run.
 
+On **Git Bash (Windows)**, the script sets `MSYS_NO_PATHCONV=1` so `/app/texts/...` is not rewritten to `C:/Program Files/Git/app/...`.
+
 Or connect **GitHub** in Railway → TinyModel → Settings → Source → deploy on push to `main`.
 
 Build uses root **`Dockerfile`** and **`railway.toml`**.

@@ -39,8 +39,8 @@ echo "==> Linking project HSP (${HSP_PROJECT_ID}), env ${RAILWAY_ENV} (no servic
 railway link -p "$HSP_PROJECT_ID" -e "$RAILWAY_ENV" 2>/dev/null || railway link -p "$HSP_PROJECT_ID" -e "$RAILWAY_ENV"
 
 echo "==> Creating service: ${SERVICE_NAME} (non-interactive)"
-# Pass --variables here so CLI does not prompt "Enter a variable" in scripts/CI.
-railway add --service "$SERVICE_NAME" --json \
+# MSYS_NO_PATHCONV prevents Git Bash from rewriting /app/... to C:/Program Files/Git/app/...
+MSYS_NO_PATHCONV=1 railway add --service "$SERVICE_NAME" \
   --variables "TINYMODEL_PATH=HyperlinksSpace/TinyModel1" \
   --variables "TINYMODEL_HSP_CORPUS=/app/texts/hsp_program_corpus.md" \
   --variables "HOST=0.0.0.0"
@@ -49,7 +49,7 @@ echo "==> Linking cwd to service ${SERVICE_NAME}"
 railway service "$SERVICE_NAME"
 
 echo "==> Ensuring variables (idempotent)"
-railway variables \
+MSYS_NO_PATHCONV=1 railway variables \
   --set "TINYMODEL_PATH=HyperlinksSpace/TinyModel1" \
   --set "TINYMODEL_HSP_CORPUS=/app/texts/hsp_program_corpus.md" \
   --set "HOST=0.0.0.0"
