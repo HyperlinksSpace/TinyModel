@@ -4,5 +4,7 @@
     "https://json.schemastore.org/github-workflow.json": [
       ".github/workflows/*.{yml,yaml}"
     ]
-  }
+  },
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.cwd": "${workspaceFolder}"
 }
